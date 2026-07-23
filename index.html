@@ -1068,7 +1068,21 @@
                         }
 
                         const detailLink = `play-${p.id}.html?id=${p.id}`;
-                        const venueName = p.venues && p.venues[0] ? p.venues[0].name.split("(")[0].trim() : 'TLP Stage';
+                        
+                        let venueName = 'TLP Stage';
+                        if (p.venues && p.venues.length > 0) {
+                            if (p.venues.length > 1) {
+                                const cities = p.venues.map(v => {
+                                    const name = v.name.toLowerCase();
+                                    if (name.includes('london')) return 'London';
+                                    if (name.includes('cambridge')) return 'Cambridge';
+                                    return v.name.split(',')[0].trim();
+                                });
+                                venueName = [...new Set(cities)].join(' & ');
+                            } else {
+                                venueName = p.venues[0].name.split("(")[0].trim();
+                            }
+                        }
                         
                         const card = document.createElement("div");
                         card.className = "glass-card play-spotlight-card reveal";
