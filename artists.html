@@ -127,6 +127,31 @@
             background: rgba(6,7,10,0.8);
         }
 
+        /* Slideshow Container */
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        .slideshow-container .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .slideshow-container .slide.active {
+            opacity: 1;
+        }
+
         @media (max-width: 992px) {
             .artist-opp-row, .artist-opp-row.reverse {
                 grid-template-columns: 1fr;
@@ -194,32 +219,23 @@
 
             <!-- Children's Workshop -->
             <div class="artist-opp-row reverse reveal" style="margin-bottom: 6rem; align-items: center;">
-                <div class="glass-card registry-form-box" style="padding: 2.5rem;">
-                    <h3 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: normal; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; color: var(--primary);">Club Curriculum & Focus</h3>
-                    <ul style="list-style: none; padding-left: 0; font-size: 0.95rem; line-height: 1.7; color: var(--text-main);">
-                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
-                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
-                            <strong>Creative Storytelling:</strong> Learning character development, scenarios, and building imaginative narratives.
-                        </li>
-                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
-                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
-                            <strong>Physical Expression:</strong> Development of spatial awareness, movement, and body language on stage.
-                        </li>
-                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
-                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
-                            <strong>Vocal Performance:</strong> Essential techniques for voice projection, tone, clarity, and articulation.
-                        </li>
-                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
-                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
-                            <strong>Social Skills:</strong> Fostering active teamwork, collaborative play, confidence, and mutual respect.
-                        </li>
-                    </ul>
-                    <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">★ Held weekly in Cambridge. Term dates and prices available upon request.</span>
+                <div class="slideshow-container">
+                    <div class="slide active" style="background-image: url('assets/images/slideshow11-86368c53.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-375e204f.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-afc6d71b.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-52fcbd8f.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-0e27f76a.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-7f0baa85.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-f6077cff.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-8a47bd98.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-3218de60.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-b7aad491.jpg');"></div>
+                    <div class="slide" style="background-image: url('assets/images/slideshow11-567ee6e2.jpg');"></div>
                 </div>
                 <div>
                     <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: normal; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Theatre Club (Ages 7–12)</h2>
-                    <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">TLP Studio's school-age workshop introduces young children to the fundamentals of theatre and dramatic arts through fun, interactive, and structured activities.</p>
-                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">Led by Artistic Director Rosina Piovani, who has extensive experience teaching in community organizations and local schools, the club provides a safe, encouraging space for children to express their creativity, build self-confidence, and learn essential communication skills.</p>
+                    <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">The theatre class for kids (7 to 12 years old) aims to introduce young children to the basics of theatre and dramatic arts through fun, engaging, and interactive activities. The class focuses on fostering creativity, teamwork, and self-expression while teaching essential theatre skills such as voice projection, movement, character development, and storytelling.</p>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">Led by TLP's Artistic Directors, it focuses on developing an understanding of basic theatre concepts, enhancing communication and social skills, encouraging creativity, and building confidence and teamwork abilities.</p>
                     <a href="contact.html?subject=Theatre%20Club%20Enquiry" class="btn btn-outline" style="margin-top: 1rem;">Register Interest</a>
                 </div>
             </div>
@@ -389,6 +405,19 @@
                 form.reset();
             });
         }
+
+        // Youth Club Slideshow Animation
+        document.addEventListener("DOMContentLoaded", () => {
+            const slides = document.querySelectorAll(".slideshow-container .slide");
+            let currentSlide = 0;
+            if (slides.length > 0) {
+                setInterval(() => {
+                    slides[currentSlide].classList.remove("active");
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    slides[currentSlide].classList.add("active");
+                }, 3000);
+            }
+        });
     </script>
 </body>
 </html>
