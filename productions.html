@@ -404,25 +404,32 @@
                         ? "background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;"
                         : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;";
 
-                    const card = document.createElement("div");
-                    card.className = `${rowClass} reveal`;
-                    card.id = p.id;
-                    card.innerHTML = `
-                        <div class="prod-image-box">
-                            <img src="${p.image}" alt="${p.title}">
-                            <span class="prod-status-tag" style="background: ${tagBg}">${p.status}</span>
-                        </div>
-                        <div class="prod-info-box">
-                            <span style="${tagStyle}">${tagText}</span>
-                            <h2>${p.title}</h2>
-                            <div class="prod-meta">${p.year}${creditsHtml}</div>
-                            <p class="prod-synopsis">${p.synopsis}</p>
-                            <div style="display: flex; gap: 1rem;">
-                                <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">View Details</a>
-                                <a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>
-                            </div>
-                            ${reviewsHtml}
-                        </div>
+                            let bookingBtn = "";
+                            if (p.detailsLink && p.detailsLink.startsWith("http")) {
+                                bookingBtn = `<a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>`;
+                            } else {
+                                bookingBtn = `<a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>`;
+                            }
+
+                            const card = document.createElement("div");
+                            card.className = `${rowClass} reveal`;
+                            card.id = p.id;
+                            card.innerHTML = `
+                                <div class="prod-image-box">
+                                    <img src="${p.image}" alt="${p.title}">
+                                    <span class="prod-status-tag" style="background: ${tagBg}">${p.status}</span>
+                                </div>
+                                <div class="prod-info-box">
+                                    <span style="${tagStyle}">${tagText}</span>
+                                    <h2>${p.title}</h2>
+                                    <div class="prod-meta">${p.year}${creditsHtml}</div>
+                                    <p class="prod-synopsis">${p.synopsis}</p>
+                                    <div style="display: flex; gap: 1rem;">
+                                        <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">View Details</a>
+                                        ${bookingBtn}
+                                    </div>
+                                    ${reviewsHtml}
+                                </div>
                     `;
                     container.appendChild(card);
                 });
