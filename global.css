@@ -878,7 +878,7 @@ body.mouse-active .mouse-spotlight {
 }
 
 /* Subpage Hero Custom Mobile Alignments */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .play-hero-bg.align-right {
         background-position: right center !important;
     }
