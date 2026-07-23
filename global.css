@@ -230,6 +230,7 @@ section {
 
 /* Global Announcement Banner */
 .announcement-banner {
+    display: none; /* Hide by default to prevent flashing LOADING BANNER on page loads */
     background: linear-gradient(90deg, var(--accent-red) 0%, var(--bg-darker) 100%);
     border-bottom: 1px solid var(--border-color);
     color: var(--text-main);
