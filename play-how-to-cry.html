@@ -393,11 +393,6 @@
                             ${(play.detailsLink && play.detailsLink.startsWith("http")) ? `<a href="${play.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Book Tickets on TicketSource</a>` : `<a href="contact.html?subject=Ticket%20Booking:%20${encodeURIComponent(play.title)}" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Enquire / Book Tickets</a>`}
                         </div>
 
-                        <div class="glass-card" style="padding: 2.2rem; margin-top: 2rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); text-align: left;">
-                            <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 1rem; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Casting Calls & Auditions</h4>
-                            <p style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6;">We are currently casting and building the production crew for this show. If you are a performer, technician, or designer, click below to view open calls.</p>
-                            <a href="artists.html" class="btn btn-outline" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Auditions Board</a>
-                        </div>
                     `;
                     bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
                 }
