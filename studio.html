@@ -142,6 +142,85 @@
             flex-grow: 1;
         }
 
+        /* Gallery Lightbox Styles */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 7, 10, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 2.5rem;
+            color: #ffffff;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: var(--transition-fast);
+            z-index: 2100;
+        }
+        .lightbox-close:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .lightbox-prev, .lightbox-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4rem;
+            color: #ffffff;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0.5;
+            padding: 1.5rem;
+            transition: var(--transition-fast);
+            z-index: 2100;
+        }
+        .lightbox-prev:hover, .lightbox-next:hover {
+            opacity: 1;
+            color: var(--primary);
+        }
+        .lightbox-prev {
+            left: 2rem;
+        }
+        .lightbox-next {
+            right: 2rem;
+        }
+        .lightbox-counter {
+            position: absolute;
+            bottom: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            letter-spacing: 0.1em;
+            z-index: 2100;
+        }
+
+        @media (max-width: 768px) {
+            .lightbox-prev { left: 0.5rem; }
+            .lightbox-next { right: 0.5rem; }
+            .lightbox-prev, .lightbox-next { font-size: 2.5rem; }
+        }
+
         @media (max-width: 992px) {
             .workshop-row, .workshop-row.reverse {
                 grid-template-columns: 1fr;
@@ -268,6 +347,15 @@
         </div>
     </footer>
 
+    <!-- Lightbox Container -->
+    <div id="gallery-lightbox" class="lightbox-overlay" style="display: none;">
+        <button class="lightbox-close" aria-label="Close Lightbox">&times;</button>
+        <button class="lightbox-prev" aria-label="Previous">&lsaquo;</button>
+        <button class="lightbox-next" aria-label="Next">&rsaquo;</button>
+        <div class="lightbox-content"></div>
+        <div class="lightbox-counter"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="global.js"></script>
     <script>
@@ -306,6 +394,25 @@
                 if (p.status === "current") tagBg = "var(--accent-purple-light)";
                 if (p.status === "past") tagBg = "rgba(255,255,255,0.15)";
 
+                let actionButtonsHtml = "";
+                if (p.status === "past") {
+                    actionButtonsHtml = `
+                        <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">See Reviews</a>
+                        <button class="btn btn-outline gallery-trigger" data-id="${p.id}" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15); cursor: pointer;">Gallery</button>
+                    `;
+                } else {
+                    let bookingBtn = "";
+                    if (p.detailsLink && p.detailsLink.startsWith("http")) {
+                        bookingBtn = `<a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>`;
+                    } else {
+                        bookingBtn = `<a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>`;
+                    }
+                    actionButtonsHtml = `
+                        <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
+                        ${bookingBtn}
+                    `;
+                }
+
                 const playRow = document.createElement("div");
                 playRow.className = `${rowClass} reveal`;
                 playRow.innerHTML = `
@@ -319,12 +426,133 @@
                         <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">${p.year}${creditsHtml}</div>
                         <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.65; margin-bottom: 2rem;">${p.synopsis}</p>
                         <div style="display: flex; gap: 1rem;">
-                            <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
-                            <a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>
+                            ${actionButtonsHtml}
                         </div>
                     </div>
                 `;
                 container.appendChild(playRow);
+            });
+
+            // Lightbox Implementation
+            let currentMedia = [];
+            let currentMediaIdx = 0;
+            const lightbox = document.getElementById("gallery-lightbox");
+            const lightboxContent = lightbox.querySelector(".lightbox-content");
+            const lightboxCounter = lightbox.querySelector(".lightbox-counter");
+            const lightboxPrev = lightbox.querySelector(".lightbox-prev");
+            const lightboxNext = lightbox.querySelector(".lightbox-next");
+            const lightboxClose = lightbox.querySelector(".lightbox-close");
+
+            function openLightbox(mediaItems, startIdx = 0) {
+                currentMedia = mediaItems;
+                currentMediaIdx = startIdx;
+                lightbox.style.display = "flex";
+                document.body.style.overflow = "hidden"; // Disable background scrolling
+                renderMedia();
+            }
+
+            function closeLightbox() {
+                // Pause and clear media to stop any playing videos
+                lightboxContent.innerHTML = "";
+                lightbox.style.display = "none";
+                document.body.style.overflow = "";
+            }
+
+            function renderMedia() {
+                if (currentMedia.length === 0) return;
+                const item = currentMedia[currentMediaIdx];
+                lightboxContent.innerHTML = "";
+
+                if (item.type === "video") {
+                    const video = document.createElement("video");
+                    video.src = item.src;
+                    if (item.poster) video.poster = item.poster;
+                    video.controls = true;
+                    video.autoplay = true;
+                    video.style.cssText = "max-width: 100%; max-height: 80vh; border-radius: 8px;";
+                    lightboxContent.appendChild(video);
+                } else {
+                    const img = document.createElement("img");
+                    img.src = item.src;
+                    img.alt = "Gallery Image";
+                    img.style.cssText = "max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain;";
+                    lightboxContent.appendChild(img);
+                }
+
+                lightboxCounter.textContent = `${currentMediaIdx + 1} / ${currentMedia.length}`;
+            }
+
+            function nextMedia() {
+                if (currentMedia.length === 0) return;
+                currentMediaIdx = (currentMediaIdx + 1) % currentMedia.length;
+                renderMedia();
+            }
+
+            function prevMedia() {
+                if (currentMedia.length === 0) return;
+                currentMediaIdx = (currentMediaIdx - 1 + currentMedia.length) % currentMedia.length;
+                renderMedia();
+            }
+
+            lightboxNext.addEventListener("click", nextMedia);
+            lightboxPrev.addEventListener("click", prevMedia);
+            lightboxClose.addEventListener("click", closeLightbox);
+            lightbox.addEventListener("click", (e) => {
+                if (e.target === lightbox || e.target === lightboxContent) {
+                    closeLightbox();
+                }
+            });
+
+            // Keyboard navigation
+            document.addEventListener("keydown", (e) => {
+                if (lightbox.style.display === "flex") {
+                    if (e.key === "ArrowRight") nextMedia();
+                    if (e.key === "ArrowLeft") prevMedia();
+                    if (e.key === "Escape") closeLightbox();
+                }
+            });
+
+            // Event delegation for gallery triggers
+            container.addEventListener("click", (e) => {
+                const trigger = e.target.closest(".gallery-trigger");
+                if (trigger) {
+                    const playId = trigger.getAttribute("data-id");
+                    const play = TLP_DB.getProductions().find(p => p.id === playId);
+                    if (play) {
+                        const mediaItems = [];
+                        
+                        // Add video if exists
+                        if (play.video) {
+                            mediaItems.push({
+                                type: "video",
+                                src: play.video,
+                                poster: play.videoPoster
+                            });
+                        }
+                        
+                        // Add images from venues
+                        if (play.venues) {
+                            play.venues.forEach(v => {
+                                if (v.images) {
+                                    v.images.forEach(imgSrc => {
+                                        if (!mediaItems.some(item => item.src === imgSrc)) {
+                                            mediaItems.push({
+                                                type: "image",
+                                                src: imgSrc
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        
+                        if (mediaItems.length > 0) {
+                            openLightbox(mediaItems, 0);
+                        } else {
+                            alert("No gallery media available for this production.");
+                        }
+                    }
+                }
             });
 
             // Scroll Reveal logic
