@@ -266,6 +266,15 @@
                 <!-- Left Card: Story & Vision -->
                 <div class="glass-card" style="padding: 2.5rem; border: 1px solid rgba(255,255,255,0.06); background: rgba(13, 15, 23, 0.45); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
+                        <!-- Media Showcase header inside the Left Card -->
+                        <div style="position: relative; height: 200px; border-radius: 8px; overflow: hidden; margin-bottom: 2rem; border: 1px solid rgba(255,255,255,0.05);">
+                            <img src="assets/images/slideshow09-dbdd7f54.jpg" alt="TLP Production Scene 1" class="support-gallery-img" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: opacity 1s ease-in-out; opacity: 1;">
+                            <img src="assets/images/slideshow06-d611dc74.jpg" alt="TLP Production Scene 2" class="support-gallery-img" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: opacity 1s ease-in-out; opacity: 0;">
+                            <img src="assets/images/slideshow08-bde4fe49.jpg" alt="TLP Production Scene 3" class="support-gallery-img" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: opacity 1s ease-in-out; opacity: 0;">
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(0deg, rgba(6,7,10,0.85) 0%, transparent 100%); padding: 1rem; color: #fff; font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; z-index: 5;">
+                                Scenes from our London & Cambridge Tours
+                            </div>
+                        </div>
                         <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 1.25rem; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Our Fundraising Mission</h3>
                         <p style="font-size: 0.98rem; line-height: 1.7; color: rgba(255,255,255,0.85); margin-bottom: 1.25rem;">
                             Founded in 2025, True Life Productions (TLP) is a registered Community Interest Company (CIC) dedicated to creating bold, human theatre and telling honest, emotionally truthful stories that challenge, engage, and heal. 
@@ -375,6 +384,17 @@
     <script src="global.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // Support page image fader
+            const galleryImgs = document.querySelectorAll(".support-gallery-img");
+            if (galleryImgs.length > 0) {
+                let currentIndex = 0;
+                setInterval(() => {
+                    galleryImgs[currentIndex].style.opacity = 0;
+                    currentIndex = (currentIndex + 1) % galleryImgs.length;
+                    galleryImgs[currentIndex].style.opacity = 1;
+                }, 3000);
+            }
+
             // Clipboard share trigger for Crowdfunder Campaign
             const shareBtn = document.getElementById("copy-campaign-link");
             if (shareBtn) {
