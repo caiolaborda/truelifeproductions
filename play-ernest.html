@@ -327,6 +327,9 @@
                 const heroBg = document.querySelector(".play-hero-bg");
                 if (heroBg && play.banner) {
                     heroBg.style.backgroundImage = `url('${play.banner}')`;
+                    if (play.mobileHeroAlign === "right") {
+                        heroBg.classList.add("align-right");
+                    }
                 }
 
                 // Update Hero Header & Tags
