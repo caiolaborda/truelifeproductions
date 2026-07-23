@@ -29,14 +29,33 @@
         /* Workshop Row Layouts */
         .workshop-row {
             display: grid;
-            grid-template-columns: 1.1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 4.5rem;
             align-items: center;
             margin-bottom: 6rem;
         }
 
-        .workshop-row.reverse {
-            grid-template-columns: 1fr 1.1fr;
+        .workshop-row.reverse .prod-image-box {
+            order: 2;
+        }
+
+        .workshop-row.reverse .prod-info-box {
+            order: 1;
+        }
+
+        .prod-image-box {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            aspect-ratio: 4/3;
+        }
+
+        .prod-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .workshop-card {
@@ -127,6 +146,12 @@
             .workshop-row, .workshop-row.reverse {
                 grid-template-columns: 1fr;
                 gap: 2.5rem;
+            }
+            .workshop-row.reverse .prod-image-box {
+                order: 0;
+            }
+            .workshop-row.reverse .prod-info-box {
+                order: 0;
             }
             .opportunities-grid {
                 grid-template-columns: 1fr;
@@ -279,21 +304,27 @@
                 else if (p.pageType === "pre-prod") detailLink = `play-ernest.html?id=${p.id}`;
                 else if (detailLink === "#") detailLink = `contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}`;
 
+                // Generate status color matching productions.html
+                let tagBg = "var(--primary)";
+                if (p.status === "upcoming") tagBg = "var(--accent-red)";
+                if (p.status === "current") tagBg = "var(--accent-purple-light)";
+                if (p.status === "past") tagBg = "rgba(255,255,255,0.15)";
+
                 const playRow = document.createElement("div");
                 playRow.className = `${rowClass} reveal`;
                 playRow.innerHTML = `
-                    <div class="prod-image-box" style="position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/10; border: 1px solid var(--border-color);">
-                        <img src="${p.image}" alt="${p.title}" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span class="prod-status-tag" style="position: absolute; top: 1rem; left: 1rem; background: var(--accent-red); color: #fff; padding: 0.35rem 0.85rem; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;">${p.status}</span>
+                    <div class="prod-image-box">
+                        <img src="${p.image}" alt="${p.title}">
+                        <span class="prod-status-tag" style="background: ${tagBg}">${p.status}</span>
                     </div>
-                    <div>
-                        <span style="background: rgba(223, 183, 92, 0.12); border: 1px solid rgba(223, 183, 92, 0.4); color: #dfb75c; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;">TLP Studio Production</span>
+                    <div class="prod-info-box">
+                        <span style="background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;">TLP Studio Production</span>
                         <h2 style="font-size: 2.2rem; font-weight: normal; margin-bottom: 1rem; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">${p.title}</h2>
                         <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">${p.year}${creditsHtml}</div>
                         <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.65; margin-bottom: 2rem;">${p.synopsis}</p>
                         <div style="display: flex; gap: 1rem;">
-                            <a href="${detailLink}" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Explore Production</a>
-                            <a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Enquire / Book</a>
+                            <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
+                            <a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>
                         </div>
                     </div>
                 `;
