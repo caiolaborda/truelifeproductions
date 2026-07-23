@@ -208,7 +208,7 @@ const DEFAULT_PRODUCTIONS = [
         banner: "play-19-6.jpg",
         accent: "#dfb75c", // Gold / Studio accent
         animationType: "digital-particles",
-        detailsLink: "https://www.adctheatre.co.uk/",
+        detailsLink: "https://www.adctheatre.com/whats-on/festival/cambridge-festival-of-drama-event-5/",
         showInHero: true,
         isStudio: true,
         pageType: "pre-prod",
@@ -282,7 +282,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "2.9";
+        const CURRENT_DB_VERSION = "3.0";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
