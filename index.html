@@ -1052,19 +1052,22 @@
                 if (sorted.length === 0) {
                     grid.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">No highlights at this time.</p>`;
                 } else {
+                    const nextPlayId = sorted.find(p => p.status === "upcoming" || p.status === "current")?.id;
+
                     sorted.forEach(p => {
                         const isPast = p.status === "past";
+                        const isNext = p.id === nextPlayId;
                         
-                        let isStudioText = p.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
-                        let isStudioBg = p.isStudio ? "#dfb75c" : "#8f1b2c";
-                        let isStudioColor = p.isStudio ? "#06070a" : "#ffffff";
-                        let isStudioBorder = p.isStudio ? "1px solid #dfb75c" : "1px solid #8f1b2c";
+                        const isStudioText = p.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
+                        const isStudioBg = p.isStudio ? "#dfb75c" : "#8f1b2c";
+                        const isStudioColor = p.isStudio ? "#06070a" : "#ffffff";
+                        const isStudioBorder = p.isStudio ? "1px solid #dfb75c" : "1px solid #8f1b2c";
                         
+                        let statusTagHtml = "";
                         if (isPast) {
-                            isStudioText = "PAST PRODUCTION";
-                            isStudioBg = "rgba(255,255,255,0.15)";
-                            isStudioColor = "#ffffff";
-                            isStudioBorder = "1px solid rgba(255,255,255,0.2)";
+                            statusTagHtml = `<span style="background: rgba(2,3,5,0.75); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">Past Run</span>`;
+                        } else if (isNext) {
+                            statusTagHtml = `<span style="background: #a81e32; border: 1px solid #a81e32; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 2px 8px rgba(168,30,50,0.4);">Next Show</span>`;
                         }
 
                         const detailLink = `play-${p.id}.html?id=${p.id}`;
@@ -1095,7 +1098,10 @@
 
                         card.innerHTML = `
                             <div style="height: 200px; width: 100%; background-image: url('${p.image}'); background-size: cover; background-position: center; position: relative;">
-                                <span style="position: absolute; bottom: 1rem; left: 1rem; background: ${isStudioBg}; border: ${isStudioBorder}; color: ${isStudioColor}; font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">${isStudioText}</span>
+                                <div style="position: absolute; bottom: 1rem; left: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <span style="background: ${isStudioBg}; border: ${isStudioBorder}; color: ${isStudioColor}; font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">${isStudioText}</span>
+                                    ${statusTagHtml}
+                                </div>
                             </div>
                             <div style="padding: 2.2rem 2rem 2rem 2rem; display: flex; flex-direction: column; flex-grow: 1;">
                                 <span style="font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${p.year} | ${venueName}</span>
