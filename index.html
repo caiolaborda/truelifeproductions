@@ -1091,10 +1091,15 @@
                         card.className = "glass-card play-spotlight-card reveal";
                         card.style.cssText = "padding: 0; overflow: hidden; border-radius: 8px; display: flex; flex-direction: column; background: rgba(13, 15, 23, 0.45); border: 1px solid rgba(255,255,255,0.05);";
                         
-                        // Right CTA changes to "See Reviews" for past plays
-                        const ctaButton = isPast 
-                            ? `<a href="${detailLink}#reviews" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700; background: var(--primary); border: 1px solid var(--primary); color: #06070a;">See Reviews</a>`
-                            : `<a href="contact.html?subject=Tickets: ${encodeURIComponent(p.title)}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>`;
+                        let buttonsHtml = "";
+                        if (isPast) {
+                            buttonsHtml = `<a href="${detailLink}#reviews" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700; background: var(--primary); border: 1px solid var(--primary); color: #06070a; width: 100%; text-align: center; display: block;">See Reviews</a>`;
+                        } else {
+                            buttonsHtml = `
+                                <a href="${detailLink}" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem;">More Info</a>
+                                <a href="contact.html?subject=Tickets: ${encodeURIComponent(p.title)}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>
+                            `;
+                        }
 
                         card.innerHTML = `
                             <div style="height: 200px; width: 100%; background-image: url('${p.image}'); background-size: cover; background-position: center; position: relative;">
@@ -1107,9 +1112,8 @@
                                 <span style="font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${p.year} | ${venueName}</span>
                                 <h3 style="font-family: var(--font-heading); font-size: 1.35rem; color: #fff; font-weight: normal; margin-bottom: 1rem;">${p.title}</h3>
                                 <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem; flex-grow: 1;">${p.synopsis.slice(0, 140)}...</p>
-                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem;">
-                                    <a href="${detailLink}" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem;">View Show</a>
-                                    ${ctaButton}
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem; width: 100%;">
+                                    ${buttonsHtml}
                                 </div>
                             </div>
                         `;
