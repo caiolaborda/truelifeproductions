@@ -598,6 +598,9 @@ footer.global-footer {
         flex-direction: column;
         gap: 1rem;
     }
+    .footer-links ul {
+        align-items: center;
+    }
 }
 
 /* ==========================================================================
