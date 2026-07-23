@@ -167,14 +167,15 @@ function openPlayModal(mode, playId = '') {
         document.getElementById("play-prod-type").value = "full";
         document.getElementById("play-show-hero").checked = false;
         document.getElementById("play-details-link").value = "";
-        document.getElementById("play-venues").value = JSON.stringify([
-            {
-                "name": "Cockpit Theatre, London",
-                "dates": "Summer 2026",
-                "reviews": [],
-                "images": []
-            }
-        ], null, 2);
+        
+        // Clear list and add default venue card
+        document.getElementById("venues-editor-list").innerHTML = "";
+        addVenueField({
+            name: "The Cockpit, London",
+            dates: "Summer 2026",
+            reviews: [],
+            images: []
+        });
     } else if (mode === "edit" && playId) {
         titleEl.textContent = "Edit Production";
         
@@ -199,7 +200,11 @@ function openPlayModal(mode, playId = '') {
             document.getElementById("play-prod-type").value = play.isStudio ? 'studio' : 'full';
             document.getElementById("play-show-hero").checked = !!play.showInHero;
             document.getElementById("play-details-link").value = play.detailsLink || '';
-            document.getElementById("play-venues").value = play.venues ? JSON.stringify(play.venues, null, 2) : '[]';
+            
+            // Render venue editor cards
+            document.getElementById("venues-editor-list").innerHTML = "";
+            const venuesList = play.venues || [];
+            venuesList.forEach(v => addVenueField(v));
         }
     }
 
@@ -235,19 +240,9 @@ function handlePlaySubmit(event) {
     const isStudio = prodType === "studio";
     const showInHero = document.getElementById("play-show-hero").checked;
     const detailsLink = document.getElementById("play-details-link").value;
-    const venuesRaw = document.getElementById("play-venues").value;
-
-    // JSON Validation for Venues
-    let venues = [];
-    try {
-        venues = JSON.parse(venuesRaw);
-        if (!Array.isArray(venues)) {
-            throw new Error("Venues details must be an outer JSON Array.");
-        }
-    } catch (e) {
-        alert("Invalid Venues format: " + e.message + "\nPlease make sure it is a valid JSON Array of objects.");
-        return;
-    }
+    
+    // Read from visual builder
+    const venues = getVenuesData();
 
     const productions = TLP_DB.getProductions();
 
@@ -331,4 +326,155 @@ function deletePlay(playId) {
         renderPlaysTable();
         alert(`Production "${play.title}" deleted.`);
     }
+}
+
+// ==========================================================================
+// VISUAL VENUES & REVIEWS FORM BUILDER HELPERS
+// ==========================================================================
+
+function addVenueField(data = null) {
+    const container = document.getElementById("venues-editor-list");
+    const venueId = 'venue-' + Date.now() + '-' + Math.floor(Math.random() * 100000);
+    
+    const card = document.createElement("div");
+    card.className = "glass-card venue-editor-card";
+    card.id = venueId;
+    card.style.padding = "2rem";
+    card.style.background = "rgba(255,255,255,0.02)";
+    card.style.border = "1px solid rgba(255,255,255,0.06)";
+    card.style.borderRadius = "8px";
+    card.style.position = "relative";
+    card.style.marginBottom = "1.5rem";
+    
+    const name = data ? data.name || '' : '';
+    const dates = data ? data.dates || '' : '';
+    const images = data ? data.images || [] : [];
+    const reviews = data ? data.reviews || [] : [];
+    
+    card.innerHTML = `
+        <button type="button" class="close-modal" style="position: absolute; top: 1rem; right: 1.5rem; color: #d9534f; font-size: 1.5rem;" onclick="removeVenueField('${venueId}')">×</button>
+        <h4 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 1.5rem; font-weight: normal; text-transform: uppercase; font-size: 1.05rem;">Venue Details</h4>
+        
+        <div class="form-grid-2">
+            <div class="admin-form-group" style="margin-bottom: 0;">
+                <label>Venue Name</label>
+                <input type="text" class="admin-control venue-name" value="${name.replace(/"/g, '&quot;')}" placeholder="e.g. Cambridge Junction" required>
+            </div>
+            <div class="admin-form-group" style="margin-bottom: 0;">
+                <label>Show Dates</label>
+                <input type="text" class="admin-control venue-dates" value="${dates.replace(/"/g, '&quot;')}" placeholder="e.g. Spring 2026" required>
+            </div>
+        </div>
+        
+        <!-- Images Sub-Section -->
+        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Scenic / Performance Images</label>
+                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-color: rgba(255,255,255,0.15);" onclick="addVenueImageInput('${venueId}')">+ Add Scenic Image</button>
+            </div>
+            <div class="venue-images-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Dynamically added image inputs -->
+            </div>
+        </div>
+
+        <!-- Reviews Sub-Section -->
+        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Critical Review Quotes</label>
+                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-color: rgba(255,255,255,0.15);" onclick="addVenueReviewInput('${venueId}')">+ Add Review Quote</button>
+            </div>
+            <div class="venue-reviews-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Dynamically added review quote blocks -->
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(card);
+    
+    // Add existing images
+    images.forEach(imgUrl => addVenueImageInput(venueId, imgUrl));
+    
+    // Add existing reviews
+    reviews.forEach(rev => addVenueReviewInput(venueId, rev));
+}
+
+function addVenueImageInput(venueId, value = '') {
+    const venueCard = document.getElementById(venueId);
+    const imagesList = venueCard.querySelector(".venue-images-list");
+    const inputId = 'image-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    
+    const wrapper = document.createElement("div");
+    wrapper.id = inputId;
+    wrapper.style.display = "flex";
+    wrapper.style.gap = "0.5rem";
+    wrapper.style.alignItems = "center";
+    wrapper.innerHTML = `
+        <input type="url" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="https://example.com/scenic-performance-photo.jpg" style="flex-grow: 1;" required>
+        <button type="button" class="action-icon-btn delete" style="padding: 0.7rem 0.9rem;" onclick="document.getElementById('${inputId}').remove()">×</button>
+    `;
+    imagesList.appendChild(wrapper);
+}
+
+function addVenueReviewInput(venueId, reviewData = null) {
+    const venueCard = document.getElementById(venueId);
+    const reviewsList = venueCard.querySelector(".venue-reviews-list");
+    const reviewId = 'review-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    
+    const quote = reviewData ? reviewData.quote || '' : '';
+    const reviewer = reviewData ? reviewData.reviewer || '' : '';
+    
+    const wrapper = document.createElement("div");
+    wrapper.id = reviewId;
+    wrapper.style.display = "flex";
+    wrapper.style.gap = "0.75rem";
+    wrapper.style.alignItems = "flex-start";
+    wrapper.style.marginBottom = "0.5rem";
+    wrapper.innerHTML = `
+        <textarea class="admin-control review-quote" placeholder="e.g. A masterclass in visceral performance..." rows="2" style="flex: 2; min-width: 200px; resize: vertical;" required>${quote}</textarea>
+        <input type="text" class="admin-control review-reviewer" value="${reviewer.replace(/"/g, '&quot;')}" placeholder="e.g. Julie Petrucci, Combinations" style="flex: 1; min-width: 120px;" required>
+        <button type="button" class="action-icon-btn delete" style="padding: 0.7rem 0.9rem; align-self: flex-start;" onclick="document.getElementById('${reviewId}').remove()">×</button>
+    `;
+    reviewsList.appendChild(wrapper);
+}
+
+function removeVenueField(venueId) {
+    document.getElementById(venueId).remove();
+}
+
+function getVenuesData() {
+    const venues = [];
+    const cards = document.querySelectorAll(".venue-editor-card");
+    
+    cards.forEach(card => {
+        const name = card.querySelector(".venue-name").value.trim();
+        const dates = card.querySelector(".venue-dates").value.trim();
+        
+        // Gather images
+        const images = [];
+        card.querySelectorAll(".venue-image-url").forEach(input => {
+            const url = input.value.trim();
+            if (url) images.push(url);
+        });
+        
+        // Gather reviews
+        const reviews = [];
+        card.querySelectorAll(".venue-reviews-list > div").forEach(row => {
+            const quote = row.querySelector(".review-quote").value.trim();
+            const reviewer = row.querySelector(".review-reviewer").value.trim();
+            if (quote || reviewer) {
+                reviews.push({ quote, reviewer });
+            }
+        });
+        
+        if (name || dates || images.length > 0 || reviews.length > 0) {
+            venues.push({
+                name,
+                dates,
+                images,
+                reviews
+            });
+        }
+    });
+    
+    return venues;
 }

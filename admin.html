@@ -350,6 +350,7 @@
             }
         }
     </style>
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
 </head>
 <body>
 
@@ -599,20 +600,15 @@
                     </div>
                 </div>
 
-                <div class="admin-form-group">
-                    <label for="play-venues">Venues, Show Dates, Reviews & Images (JSON Array)</label>
-                    <textarea id="play-venues" class="admin-control" rows="6" placeholder='[
-  {
-    "name": "Junction, Cambridge",
-    "dates": "Spring 2026",
-    "reviews": [
-      { "quote": "Excellent...", "reviewer": "Alex Elbro" }
-    ],
-    "images": [
-      "https://example.com/scene1.jpg"
-    ]
-  }
-]' required></textarea>
+                <!-- Interactive Visual Venues & Reviews Builder -->
+                <div class="admin-form-group" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <label style="font-size: 1.1rem; color: #fff; margin-bottom: 0; font-family: var(--font-heading); text-transform: none; letter-spacing: 0.02em;">Performance Venues, Dates & Reviews</label>
+                        <button type="button" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem;" onclick="addVenueField()">+ Add Venue</button>
+                    </div>
+                    <div id="venues-editor-list">
+                        <!-- Dynamically populated venue cards -->
+                    </div>
                 </div>
 
                 <div class="admin-form-group">
