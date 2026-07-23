@@ -530,6 +530,30 @@ footer.global-footer {
     border-color: var(--primary);
 }
 
+/* Tablet Spacing and Padding Adjustments (1200px down to 768px) */
+@media (max-width: 1200px) and (min-width: 768px) {
+    .container {
+        width: 94% !important; /* Increase width on tablet to maximize horizontal space */
+    }
+    section {
+        padding: 4.5rem 0 !important; /* Reduce vertical padding to keep content dense */
+    }
+    /* Reduce column gaps in grids to prevent text squishing */
+    .prod-row, 
+    .workshop-row, 
+    .play-grid, 
+    .crowdfunder-grid, 
+    .portal-grid, 
+    .home-split-grid {
+        gap: 2rem !important;
+    }
+    /* Moderate sub-page hero title scales */
+    .page-hero h1, 
+    .play-main-title {
+        font-size: 2.5rem !important;
+    }
+}
+
 /* General Layout Responsive Breaks */
 @media (max-width: 992px) {
     .footer-grid {
@@ -851,4 +875,11 @@ body.mouse-active .mouse-spotlight {
     position: relative;
     z-index: 2;
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* Subpage Hero Custom Mobile Alignments */
+@media (max-width: 768px) {
+    .play-hero-bg.align-right {
+        background-position: right center !important;
+    }
 }
