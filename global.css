@@ -56,9 +56,12 @@ html {
     font-family: var(--font-body);
 }
 
+html, body {
+    overflow-x: clip;
+}
+
 body {
     min-height: 100vh;
-    overflow-x: hidden;
     line-height: 1.6;
 }
 
