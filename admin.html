@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLP Content Administrator Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Admin dashboard specific styling */
+        body {
+            background-color: var(--bg-darker);
+            padding-top: var(--header-height);
+        }
+
+        /* Lock screen overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-darker);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: var(--transition-smooth);
+        }
+
+        .login-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .login-box {
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            padding: 3rem 2rem;
+            border-color: var(--border-gold);
+        }
+
+        .login-box h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .login-box p {
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(2,3,5,0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .login-input:focus {
+            border-color: var(--primary);
+        }
+
+        .login-error {
+            color: #d9534f;
+            font-size: 0.85rem;
+            margin-top: -1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* Admin layout panel */
+        .admin-wrapper {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: calc(100vh - var(--header-height));
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Sidebar navigation */
+        .admin-sidebar {
+            background: var(--bg-main);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .admin-sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .admin-tab-btn {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            padding: 1rem 2rem;
+            color: var(--text-muted);
+            font-family: var(--font-heading);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: var(--transition-fast);
+        }
+
+        .admin-tab-btn:hover, .admin-tab-btn.active {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.02);
+            border-left-color: var(--primary);
+        }
+
+        /* Content Panel container */
+        .admin-content {
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .admin-tab-panel {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .admin-tab-panel.active {
+            display: block;
+        }
+
+        /* Form elements inside admin panel */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .admin-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-fast);
+        }
+
+        .admin-control:focus {
+            border-color: var(--primary);
+        }
+
+        /* Production list table grid */
+        .plays-table-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-main);
+            margin-top: 2rem;
+        }
+
+        table.plays-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        table.plays-table th, table.plays-table td {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table.plays-table th {
+            background: rgba(255,255,255,0.02);
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            color: var(--primary);
+        }
+
+        table.plays-table td {
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        table.plays-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .td-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-icon-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: var(--transition-fast);
+        }
+
+        .action-icon-btn.edit:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .action-icon-btn.delete:hover {
+            border-color: #d9534f;
+            color: #d9534f;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 4px;
+        }
+
+        /* Modal Overlay for CRUD create/edit operations */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2,3,5,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-smooth);
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .admin-modal {
+            max-width: 750px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: var(--text-main);
+        }
+
+        /* Preview banner thumbnail */
+        .color-preview-dot {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 992px) {
+            .admin-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .admin-sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+            .admin-sidebar-menu {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .admin-tab-btn {
+                padding: 0.5rem 1rem;
+                text-align: center;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+            .admin-tab-btn:hover, .admin-tab-btn.active {
+                border-left-color: transparent;
+                border-bottom-color: var(--primary);
+            }
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu" style="display: none;">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Passcode Authentication screen -->
+    <div class="login-overlay" id="login-overlay">
+        <div class="glass-card login-box">
+            <h2>Admin Login</h2>
+            <p>Access the content management system to edit plays and site settings</p>
+            <div class="login-error" id="login-error">Invalid administrator password</div>
+            <input type="password" class="login-input" id="passcode" placeholder="Enter admin password" aria-label="Passcode">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="verifyPasscode()">Log In</button>
+        </div>
+    </div>
+
+    <!-- Main Workspace Dashboard -->
+    <div class="admin-wrapper">
+        
+        <!-- Sidebar Tabs controls -->
+        <div class="admin-sidebar">
+            <ul class="admin-sidebar-menu">
+                <li><button class="admin-tab-btn active" onclick="switchTab('settings')">General Settings</button></li>
+                <li><button class="admin-tab-btn" onclick="switchTab('plays')">Manage Plays</button></li>
+            </ul>
+            <div style="padding: 0 2rem;">
+                <button class="btn btn-outline" style="width: 100%; padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="logoutAdmin()">Log Out</button>
+            </div>
+        </div>
+
+        <!-- Working Panels -->
+        <div class="admin-content">
+            
+            <!-- Tab 1: General Settings Panel -->
+            <div class="admin-tab-panel active" id="panel-settings">
+                <h2>General Site Settings</h2>
+                <p>Modify basic metadata and text displayed across pages.</p>
+                
+                <div class="glass-card" style="margin-top: 2rem;">
+                    <form onsubmit="saveSiteSettings(event)">
+                        <div class="form-grid-2">
+                            <div class="admin-form-group">
+                                <label for="site-title">Site Title</label>
+                                <input type="text" id="site-title" class="admin-control" required>
+                            </div>
+                             <div class="admin-form-group">
+                                 <label for="site-announcement">Top Announcement Banner <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Leave empty to hide banner)</span></label>
+                                 <input type="text" id="site-announcement" class="admin-control">
+                             </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="admin-form-group">
+                                <label for="site-email">Contact Email</label>
+                                <input type="email" id="site-email" class="admin-control" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="site-phone">Contact Phone</label>
+                                <input type="text" id="site-phone" class="admin-control" required>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="admin-form-group">
+                                <label for="site-registration">Company Registration Text</label>
+                                <input type="text" id="site-registration" class="admin-control" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="site-address">Primary Location/Address</label>
+                                <input type="text" id="site-address" class="admin-control" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save Site Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 2: Manage Plays Panel -->
+            <div class="admin-tab-panel" id="panel-plays">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2>Manage Plays & Seasons</h2>
+                        <p>Create, update, or remove productions displayed in the home banner and the archives grid.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openPlayModal('create')">+ Add Production</button>
+                </div>
+
+                <div class="plays-table-container">
+                    <table class="plays-table">
+                        <thead>
+                            <tr>
+                                <th>Play Title</th>
+                                <th>Author / Director</th>
+                                <th>Year</th>
+                                <th>Status</th>
+                                <th>Theme Accent</th>
+                                <th>Animation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="plays-table-body">
+                            <!-- Javascript renders rows dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Edit/Create Play modal -->
+    <div class="modal-overlay" id="play-modal-overlay">
+        <div class="glass-card admin-modal" id="play-modal">
+            <div class="modal-header">
+                <h3 id="modal-action-title">Add New Production</h3>
+                <button class="close-modal" onclick="closePlayModal()">×</button>
+            </div>
+            
+            <form onsubmit="handlePlaySubmit(event)">
+                <input type="hidden" id="play-form-mode" value="create">
+                <input type="hidden" id="play-form-id">
+                
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="play-title">Play Title</label>
+                        <input type="text" id="play-title" class="admin-control" placeholder="e.g. Poison" required>
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="play-author">Author</label>
+                        <input type="text" id="play-author" class="admin-control" placeholder="e.g. Lot Vekemans" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="play-director">Director</label>
+                        <input type="text" id="play-director" class="admin-control" placeholder="e.g. Rosina Piovani">
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="play-year">Season Year</label>
+                        <input type="text" id="play-year" class="admin-control" placeholder="e.g. 2026" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="play-status">Schedule Status</label>
+                        <select id="play-status" class="admin-control" required>
+                            <option value="upcoming">Upcoming Production</option>
+                            <option value="current">Current Season</option>
+                            <option value="past">Archive (Past)</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="play-accent">Theme Color Hex Accent</label>
+                        <input type="color" id="play-accent" class="admin-control" style="height: 43px; padding: 0.2rem;" value="#dfb75c" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="play-animation">Hero Banner Special Animation</label>
+                        <select id="play-animation" class="admin-control" required>
+                            <option value="none">None (Static background image only)</option>
+                            <option value="rose-petals">Rose Petals (Victorian / Romantic - roses fall like snow)</option>
+                            <option value="misty-fog">Misty Stage Fog (Drama / Melancholic - slow drifting clouds)</option>
+                            <option value="digital-particles">Digital Particles (Modern / Satirical - network lines)</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="play-image">Billboard Image URL</label>
+                        <input type="url" id="play-image" class="admin-control" placeholder="https://..." required>
+                    </div>
+                </div>
+
+                <!-- Custom cast credits -->
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="play-cast">Cast Credits (Comma Separated)</label>
+                        <input type="text" id="play-cast" class="admin-control" placeholder="e.g. Martin Maynard, Lynne Livingstone">
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="play-set">Set Designer</label>
+                        <input type="text" id="play-set" class="admin-control" placeholder="e.g. Suzanne Emerson">
+                    </div>
+                </div>
+
+                <!-- Phase 2 additions: Show in Hero, Page Type, Studio, and Venues JSON -->
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="play-page-type">Page Display Mode</label>
+                        <select id="play-page-type" class="admin-control" required>
+                            <option value="pre-prod">Pre-Production (Tickets & Auditions Board)</option>
+                            <option value="post-prod">Post-Production (Critical Reviews & Gallery Archive)</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="play-prod-type">Production Tag</label>
+                        <select id="play-prod-type" class="admin-control" required>
+                            <option value="full">Full TLP Production</option>
+                            <option value="studio">TLP Studio Production (Amateur Talent / Fundraiser)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2" style="align-items: center;">
+                    <div class="admin-form-group">
+                        <label for="play-details-link">Direct Custom File Link (if any)</label>
+                        <input type="text" id="play-details-link" class="admin-control" placeholder="e.g. play-poison.html">
+                    </div>
+                    <div class="admin-form-group" style="flex-direction: row; gap: 1rem; align-items: center; padding-top: 1.5rem;">
+                        <input type="checkbox" id="play-show-hero" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="play-show-hero" style="margin-bottom: 0; cursor: pointer; font-size: 0.9rem; color: #fff;">Show in Homepage Hero Slider</label>
+                    </div>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="play-venues">Venues, Show Dates, Reviews & Images (JSON Array)</label>
+                    <textarea id="play-venues" class="admin-control" rows="6" placeholder='[
+  {
+    "name": "Junction, Cambridge",
+    "dates": "Spring 2026",
+    "reviews": [
+      { "quote": "Excellent...", "reviewer": "Alex Elbro" }
+    ],
+    "images": [
+      "https://example.com/scene1.jpg"
+    ]
+  }
+]' required></textarea>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="play-synopsis">Synopsis / Story Description</label>
+                    <textarea id="play-synopsis" class="admin-control" rows="5" placeholder="Write a short summary of the play plot..." required></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="closePlayModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Production</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="global.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Meet the team behind True Life Productions CIC. Rosina Piovani, Martin Maynard, Suzanne Emerson. Professional Theatre in Cambridgeshire.">
+    <title>About Us & Team | True Life Productions CIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* About Page Specific Styles */
+        .page-hero {
+            padding: 8rem 0 4rem 0;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-main) 100%);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-hero p {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Mission Block */
+        .vision-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4.5rem;
+            align-items: center;
+            margin-bottom: 5rem;
+        }
+
+        .vision-card {
+            border: 1px solid var(--border-gold);
+            position: relative;
+        }
+
+        .vision-card::before {
+            content: '“';
+            position: absolute;
+            top: -2rem;
+            left: 2rem;
+            font-size: 8rem;
+            font-family: var(--font-heading);
+            color: rgba(223, 183, 92, 0.08);
+            line-height: 1;
+        }
+
+        /* Team Section */
+        .team-section {
+            background: var(--bg-lighter);
+            padding: 6rem 0;
+        }
+
+        .team-title-block {
+            text-align: center;
+            margin-bottom: 4.5rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+        }
+
+        .team-card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--bg-darker);
+            aspect-ratio: 3/4;
+            display: flex;
+            align-items: flex-end;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transition: var(--transition-smooth);
+        }
+
+        .team-card-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: var(--transition-smooth);
+        }
+
+        .team-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(6,7,10,0.1) 0%, rgba(6,7,10,0.9) 80%);
+            z-index: 1;
+            transition: var(--transition-fast);
+        }
+
+        .team-card-content {
+            position: relative;
+            z-index: 2;
+            padding: 2rem;
+            width: 100%;
+            transform: translateY(115px); /* slide offset hides bio initially */
+            transition: var(--transition-smooth);
+        }
+
+        .team-card-name {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .team-card-role {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .team-card-bio {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Hover Actions */
+        .team-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 35px rgba(223, 183, 92, 0.08);
+        }
+
+        .team-card:hover .team-card-image {
+            transform: scale(1.05);
+        }
+
+        .team-card:hover::after {
+            background: linear-gradient(180deg, rgba(6,7,10,0.3) 0%, rgba(6,7,10,0.98) 50%);
+        }
+
+        .team-card:hover .team-card-content {
+            transform: translateY(0);
+        }
+
+        .team-card:hover .team-card-bio {
+            opacity: 1;
+            transition-delay: 0.2s;
+        }
+
+        @media (max-width: 992px) {
+            .vision-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            .team-grid {
+                grid-template-columns: 1fr;
+                max-width: 450px;
+                margin: 0 auto;
+            }
+            .team-card-content {
+                transform: translateY(0); /* Bio always shown on mobile */
+            }
+            .team-card-bio {
+                opacity: 1;
+            }
+            .team-card::after {
+                background: linear-gradient(180deg, rgba(6,7,10,0.2) 0%, rgba(6,7,10,0.95) 60%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container reveal">
+            <h1>About Us</h1>
+            <p>Our history, our commitment as a Community Interest Company, and the team driving professional performances in Cambridgeshire.</p>
+        </div>
+    </section>
+
+    <!-- Mission & Core values -->
+    <section>
+        <div class="container">
+            <div class="vision-grid reveal">
+                <div>
+                    <h2>Our Mission & Core Purpose</h2>
+                    <p>True Life Productions CIC (TLP) is a professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <p>Founded in 2024 following a chance coffee shop meeting between founders Rosina and Martin, TLP acts as a vital platform for promising artistic talent, enabling actors, writers, and designers to develop their craft, gain professional credits, and grow within the industry.</p>
+                    <p>As a Community Interest Company based on the border of Hertfordshire and Cambridgeshire, our goal is to link local theatrical community groups directly with professional spaces, particularly bridging opportunities to the London theatre world.</p>
+                </div>
+                <div class="glass-card vision-card">
+                    <p style="font-size: 1.2rem; line-height: 1.6; color: var(--text-main); font-style: italic;">
+                        "Aiming to link communities with performing arts, creating safe places for expression, building emotional connections, and celebrating local identities. We prioritize human connection and the search for truth in every actor's work."
+                    </p>
+                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">True Life Productions CIC Charter</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Showcase Section -->
+    <section style="background: rgba(223, 183, 92, 0.02); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="spotlight-glow" style="top: 10%; right: 5%;"></div>
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 4rem; align-items: center;" class="reveal">
+                <div class="video-player-container" style="position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 15px 35px rgba(0,0,0,0.6); aspect-ratio: 16/9; background: var(--bg-darker);">
+                    <video id="about-showreel" controls style="width: 100%; height: 100%; object-fit: cover;" poster="assets/videos/container07.mp4.jpg">
+                        <source src="assets/videos/container07.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div>
+                    <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; display: block;">Media Showcase</span>
+                    <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem;">Season Highlights & Showreel</h2>
+                    <p>Watch rehearsals, scene previews, and trailer edits from our latest season. These cuts reflect the raw emotional authenticity that TLP aims to capture in every performance.</p>
+                    <p style="font-size: 0.95rem; color: var(--text-muted);">
+                        🎬 Video Editing Credits: <strong>Samantha Baillie</strong>
+                        <br>📸 Photo Credits: <strong>Samantha Baillie, Lidia Crisafulli, David Sear</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team section -->
+    <section class="team-section">
+        <div class="spotlight-glow" style="top: 20%; left: -20%;"></div>
+        <div class="container">
+            <div class="team-title-block reveal">
+                <h2 class="center">Meet the Creative Team</h2>
+                <p>Hover over cards to read bios of our founding directors and set designers</p>
+            </div>
+
+            <div class="team-grid" id="team-cards-container">
+                <!-- Javascript will render cards dynamically from DB -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <h3>True Life<span>.</span></h3>
+                    <p>A professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com" class="social-icon" aria-label="Instagram" target="_blank">IG</a>
+                        <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">FB</a>
+                        <a href="https://tiktok.com" class="social-icon" aria-label="TikTok" target="_blank">TK</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="studio.html#opportunities">Opportunities</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="global.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("team-cards-container");
+            const team = TLP_DB.getTeam();
+
+            if (container && team) {
+                container.innerHTML = "";
+                team.forEach((member, idx) => {
+                    const card = document.createElement("div");
+                    card.className = "team-card reveal";
+                    card.style.transitionDelay = `${idx * 0.1}s`;
+                    card.innerHTML = `
+                        <div class="team-card-image" style="background-image: url('${member.image}');"></div>
+                        <div class="team-card-content">
+                            <h3 class="team-card-name">${member.name}</h3>
+                            <span class="team-card-role">${member.role}</span>
+                            <p class="team-card-bio">${member.bio}</p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+                // Re-trigger scroll reveal for newly added cards
+                const revealElements = container.querySelectorAll(".reveal");
+                const revealObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("active");
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                revealElements.forEach(el => revealObserver.observe(el));
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TLP Studio & workshops in Cambridge. Acting classes, Theatre Club for kids 7-12, and Meisner training.">
+    <title>TLP Studio & Workshops | True Life Productions CIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Studio Page Specific Styles */
+        .page-hero {
+            padding: 8rem 0 4rem 0;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-main) 100%);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-hero p {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Workshop Row Layouts */
+        .workshop-row {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 4.5rem;
+            align-items: center;
+            margin-bottom: 6rem;
+        }
+
+        .workshop-row.reverse {
+            grid-template-columns: 1fr 1.1fr;
+        }
+
+        .workshop-card {
+            border: 1px solid var(--border-color);
+            background: var(--bg-lighter);
+        }
+
+        .workshop-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        .workshop-details-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .workshop-details-list li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.85rem;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .workshop-details-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--primary);
+            font-weight: 900;
+        }
+
+        /* Opportunities Grid */
+        .opportunities-section {
+            background: var(--bg-lighter);
+            padding: 6rem 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .opportunities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.5rem;
+            margin-top: 3.5rem;
+        }
+
+        .opp-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .opp-tag {
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .opp-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .opp-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .opp-desc {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 992px) {
+            .workshop-row, .workshop-row.reverse {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+            .opportunities-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link active">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="page-hero" style="padding-bottom: 3.5rem;">
+        <div class="container reveal">
+            <!-- Studio Unique Logo -->
+            <div style="max-width: 550px; margin: 0 auto 2rem auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                <img src="studio-logo.jpg" alt="Studio at True Life Productions" style="width: 100%; height: auto; display: block;">
+            </div>
+            <h1 style="font-size: 1.6rem; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; margin-bottom: 1.5rem; color: var(--primary);">Supporting Local Theatre Community</h1>
+            <p style="max-width: 800px; margin: 0 auto; font-family: var(--font-body); font-size: 1.05rem; line-height: 1.8; color: rgba(255,255,255,0.85); text-align: justify; text-align-last: center;">
+                Alongside our professional productions, TLP Studio is our community-focused branch dedicated to nurturing local talent across Cambridge and the surrounding areas. TLP Studio is the heartbeat of our local theatre community — creating opportunities for emerging and amateur artists. Through productions, festivals and amateur competitions, TLP Studio provides opportunities for local talent to develop, collaborate and share their passion for performance — while remaining connected to the wider creative vision of True Life Productions.
+            </p>
+        </div>
+    </section>
+
+    <!-- Studio Productions dynamic listing -->
+    <section style="padding-top: 5rem; padding-bottom: 5rem;">
+        <div class="container" id="studio-productions-container">
+            <!-- Dynamically populated via Javascript -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <h3>True Life<span>.</span></h3>
+                    <p>A professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com" class="social-icon" aria-label="Instagram" target="_blank">IG</a>
+                        <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">FB</a>
+                        <a href="https://tiktok.com" class="social-icon" aria-label="TikTok" target="_blank">TK</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="studio.html#opportunities">Opportunities</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="global.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("studio-productions-container");
+            const productions = TLP_DB.getProductions();
+            
+            // Filter for studio plays
+            const studioPlays = productions.filter(p => p.isStudio === true || p.isStudio === "true");
+            
+            if (!container) return;
+            container.innerHTML = "";
+            
+            if (studioPlays.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
+                        <p style="color: var(--text-muted); font-size: 1.1rem;">No TLP Studio productions currently scheduled. Check back soon!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            studioPlays.forEach((p, idx) => {
+                const isEven = idx % 2 === 0;
+                const rowClass = isEven ? "workshop-row" : "workshop-row reverse"; // reuse CSS row grids!
+                
+                let creditsHtml = "";
+                if (p.director) creditsHtml += ` | Directed by ${p.director}`;
+                if (p.cast) creditsHtml += `<br>Cast: ${p.cast}`;
+                
+                let detailLink = p.detailsLink || "#";
+                if (p.id === "poison") detailLink = "play-poison.html?id=poison";
+                else if (p.id === "continuity") detailLink = "play-continuity.html?id=continuity";
+                else if (p.pageType === "pre-prod") detailLink = `play-ernest.html?id=${p.id}`;
+                else if (detailLink === "#") detailLink = `contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}`;
+
+                const playRow = document.createElement("div");
+                playRow.className = `${rowClass} reveal`;
+                playRow.innerHTML = `
+                    <div class="prod-image-box" style="position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/10; border: 1px solid var(--border-color);">
+                        <img src="${p.image}" alt="${p.title}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span class="prod-status-tag" style="position: absolute; top: 1rem; left: 1rem; background: var(--accent-red); color: #fff; padding: 0.35rem 0.85rem; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;">${p.status}</span>
+                    </div>
+                    <div>
+                        <span style="background: rgba(223, 183, 92, 0.12); border: 1px solid rgba(223, 183, 92, 0.4); color: #dfb75c; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;">TLP Studio Production</span>
+                        <h2 style="font-size: 2.2rem; font-weight: normal; margin-bottom: 1rem; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">${p.title}</h2>
+                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">${p.year}${creditsHtml}</div>
+                        <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.65; margin-bottom: 2rem;">${p.synopsis}</p>
+                        <div style="display: flex; gap: 1rem;">
+                            <a href="${detailLink}" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Explore Production</a>
+                            <a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Enquire / Book</a>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(playRow);
+            });
+
+            // Scroll Reveal logic
+            const revealElements = container.querySelectorAll(".reveal");
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("active");
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => revealObserver.observe(el));
+        });
+    </script>
+</body>
+</html>

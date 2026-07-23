@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Explore True Life Productions' active and past plays, reviews, sets, and casting details in Cambridge and London.">
+    <title>Our Season & Productions | True Life Productions CIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Productions Page Specific Styles */
+        .page-hero {
+            padding: 8rem 0 3.5rem 0;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-main) 100%);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-hero p {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 0 0 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: var(--transition-fast);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--primary);
+            color: var(--text-main);
+            background: rgba(223, 183, 92, 0.05);
+        }
+
+        /* Productions Grid & Cards */
+        .prod-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 5rem;
+            margin-bottom: 6rem;
+        }
+
+        .prod-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .prod-row.reverse .prod-image-box {
+            order: 2;
+        }
+
+        .prod-row.reverse .prod-info-box {
+            order: 1;
+        }
+
+        .prod-image-box {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            aspect-ratio: 4/3;
+        }
+
+        .prod-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .prod-status-tag {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: 4px;
+            color: var(--text-main);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .prod-info-box h2 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prod-meta {
+            font-family: var(--font-heading);
+            color: var(--primary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .prod-synopsis {
+            margin-bottom: 2rem;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        /* Production Specific Review Cards */
+        .prod-reviews-block {
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+        }
+
+        .prod-review-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .prod-review-item p {
+            font-style: italic;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .prod-review-item span {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 992px) {
+            .prod-row, .prod-row.reverse {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+            .prod-image-box {
+                aspect-ratio: 16/9;
+                order: -1; /* Keep image on top on mobile */
+            }
+            .prod-info-box {
+                order: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link active">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Hero Banner -->
+    <section class="page-hero">
+        <div class="container reveal">
+            <h1>Our Season</h1>
+            <p>From contemporary drama exploring grief, to sharp satires questioning immortality and classic comedies, explore our current and archive list of performances.</p>
+        </div>
+    </section>
+
+    <!-- Filters and Productions Grid -->
+    <section style="padding-top: 0;">
+        <div class="container">
+            
+            <!-- Category Tabs -->
+            <div class="filter-controls reveal" style="margin-bottom: 1.5rem;">
+                <button class="filter-btn active" data-filter="all">All Productions</button>
+                <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+                <button class="filter-btn" data-filter="past">Past Productions</button>
+            </div>
+
+            <!-- Sort dropdown (Hidden per request) -->
+            <div class="reveal" style="display: none !important; gap: 0.75rem; align-items: center; justify-content: center; margin-bottom: 3.5rem;">
+                <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; font-weight: 700;">Sort By:</span>
+                <select id="prod-sort" style="background: rgba(13,15,23,0.7); border: 1px solid var(--border-color); color: #fff; padding: 0.45rem 1.75rem 0.45rem 0.75rem; border-radius: 4px; font-family: var(--font-body); font-size: 0.85rem; outline: none; cursor: pointer; transition: var(--transition-fast);">
+                    <option value="date-desc" selected>Date (Newest First)</option>
+                    <option value="date-asc">Date (Oldest First)</option>
+                    <option value="location-asc">Location (A-Z)</option>
+                </select>
+            </div>
+
+            <!-- List Grid -->
+            <div class="prod-grid" id="productions-container">
+                <!-- Javascript will render cards dynamically from DB -->
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <h3>True Life<span>.</span></h3>
+                    <p>A professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com" class="social-icon" aria-label="Instagram" target="_blank">IG</a>
+                        <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">FB</a>
+                        <a href="https://tiktok.com" class="social-icon" aria-label="TikTok" target="_blank">TK</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="studio.html#opportunities">Opportunities</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="global.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("productions-container");
+            const filterBtns = document.querySelectorAll(".filter-btn");
+            const sortSelect = document.getElementById("prod-sort");
+            
+            // Get all productions
+            const productions = TLP_DB.getProductions();
+
+            function getDateRank(yearStr) {
+                if (!yearStr) return 0;
+                const str = yearStr.toLowerCase().trim();
+                const yearMatch = str.match(/\d{4}/);
+                let year = yearMatch ? parseInt(yearMatch[0]) : 2026;
+                
+                let seasonOffset = 0;
+                if (str.includes("spring")) {
+                    seasonOffset = 0.25;
+                } else if (str.includes("summer")) {
+                    seasonOffset = 0.5;
+                } else if (str.includes("autumn") || str.includes("fall")) {
+                    seasonOffset = 0.75;
+                } else if (str.includes("winter")) {
+                    seasonOffset = 0.9;
+                } else if (str.includes("-")) {
+                    seasonOffset = 0.8;
+                }
+                return year + seasonOffset;
+            }
+
+            function renderProductions() {
+                container.innerHTML = "";
+                
+                // 1. Get active filter value
+                const activeFilterBtn = document.querySelector(".filter-btn.active");
+                const filterType = activeFilterBtn ? activeFilterBtn.getAttribute("data-filter") : "all";
+                
+                // 2. Filter
+                let filtered = productions.filter(p => {
+                    if (filterType === "all") return true;
+                    if (filterType === "upcoming") {
+                        return p.status === "upcoming" || p.status === "current";
+                    }
+                    return p.status === filterType;
+                });
+
+                // 3. Sort
+                const sortValue = sortSelect.value;
+                filtered.sort((a, b) => {
+                    // Always put past productions at the bottom
+                    if (a.status === "past" && b.status !== "past") return 1;
+                    if (b.status === "past" && a.status !== "past") return -1;
+
+                    if (sortValue === "date-desc") {
+                        return getDateRank(b.year) - getDateRank(a.year);
+                    } else if (sortValue === "date-asc") {
+                        return getDateRank(a.year) - getDateRank(b.year);
+                    } else if (sortValue === "location-asc") {
+                        const locA = a.venues && a.venues[0] ? a.venues[0].name.toLowerCase() : "";
+                        const locB = b.venues && b.venues[0] ? b.venues[0].name.toLowerCase() : "";
+                        if (!locA) return 1;
+                        if (!locB) return -1;
+                        return locA.localeCompare(locB);
+                    }
+                    return 0;
+                });
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `<div class="glass-card" style="text-align: center; padding: 4rem 1rem;"><p>No productions listed for this category.</p></div>`;
+                    return;
+                }
+
+                filtered.forEach((p, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowClass = isEven ? "prod-row" : "prod-row reverse";
+                    
+                    // Format cast and set details if available
+                    let creditsHtml = "";
+                    if (p.director) creditsHtml += ` | Directed by ${p.director}`;
+                    if (p.translator) creditsHtml += ` | Translated by ${p.translator}`;
+                    if (p.cast) creditsHtml += `<br>Cast: ${p.cast}`;
+
+                    // Generate status color
+                    let tagBg = "var(--primary)";
+                    if (p.status === "upcoming") tagBg = "var(--accent-red)";
+                    if (p.status === "current") tagBg = "var(--accent-purple-light)";
+                    if (p.status === "past") tagBg = "rgba(255,255,255,0.15)";
+
+                    // Build reviews HTML
+                    let reviewsHtml = "";
+                    if (p.reviews && p.reviews.length > 0) {
+                        reviewsHtml = `
+                            <div class="prod-reviews-block">
+                                <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem;">Critical Acclaim</h4>
+                                ${p.reviews.map(r => `
+                                    <div class="prod-review-item">
+                                        <p>"${r.quote}"</p>
+                                        <span>— ${r.reviewer}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+
+                    // Map production ID to custom detail page URLs
+                    let detailLink = p.detailsLink || "#";
+                    if (p.id === "poison") detailLink = "play-poison.html?id=poison";
+                    else if (p.id === "continuity") detailLink = "play-continuity.html?id=continuity";
+                    else if (p.pageType === "pre-prod") detailLink = `play-ernest.html?id=${p.id}`;
+                    else if (detailLink === "#") detailLink = `contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}`;
+
+                    const tagText = p.isStudio ? "TLP Studio Production" : "Full TLP Production";
+                    const tagStyle = p.isStudio 
+                        ? "background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;"
+                        : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;";
+
+                    const card = document.createElement("div");
+                    card.className = `${rowClass} reveal`;
+                    card.id = p.id;
+                    card.innerHTML = `
+                        <div class="prod-image-box">
+                            <img src="${p.image}" alt="${p.title}">
+                            <span class="prod-status-tag" style="background: ${tagBg}">${p.status}</span>
+                        </div>
+                        <div class="prod-info-box">
+                            <span style="${tagStyle}">${tagText}</span>
+                            <h2>${p.title}</h2>
+                            <div class="prod-meta">${p.year}${creditsHtml}</div>
+                            <p class="prod-synopsis">${p.synopsis}</p>
+                            <div style="display: flex; gap: 1rem;">
+                                <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">View Details</a>
+                                <a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>
+                            </div>
+                            ${reviewsHtml}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                // Re-trigger scroll reveal since container updated
+                const revealElements = container.querySelectorAll(".reveal");
+                const revealObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("active");
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                revealElements.forEach(el => revealObserver.observe(el));
+            }
+
+            // Initial render
+            renderProductions();
+
+            // Set up click handlers for filters
+            filterBtns.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    filterBtns.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    renderProductions();
+                });
+            });
+
+            // Set up change handler for sort selection
+            if (sortSelect) {
+                sortSelect.addEventListener("change", () => {
+                    renderProductions();
+                });
+            }
+
+            // Handle anchor scroll if opening from external link (e.g. index.html#poison)
+            if (window.location.hash) {
+                setTimeout(() => {
+                    const targetEl = document.querySelector(window.location.hash);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

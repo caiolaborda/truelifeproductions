@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Support local theatre. Join as a Friend of TLP or donate to True Life Productions CIC to support actors and artists in Cambridge.">
+    <title>Support Us & Donations | True Life Productions CIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Support Page Specific Styles */
+        .page-hero {
+            padding: 8rem 0 4rem 0;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-main) 100%);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-hero p {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Tier Cards Grid */
+        .tiers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            align-items: stretch;
+            margin-top: 3.5rem;
+        }
+
+        .tier-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 4px solid transparent;
+            height: 100%;
+        }
+
+        .tier-card.featured {
+            border-color: var(--primary);
+            background: rgba(223, 183, 92, 0.03);
+            transform: scale(1.03);
+        }
+
+        .tier-card.featured:hover {
+            transform: scale(1.03) translateY(-4px);
+        }
+
+        .tier-name {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .tier-card.featured .tier-name {
+            color: var(--primary);
+        }
+
+        .tier-price {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            line-height: 1;
+        }
+
+        .tier-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            min-height: 50px;
+        }
+
+        .tier-benefits {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .tier-benefits li {
+            position: relative;
+            padding-left: 1.5rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .tier-benefits li::before {
+            content: '★';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        /* Interactive custom donation box */
+        .custom-donation-section {
+            background: var(--bg-lighter);
+            padding: 6rem 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .donation-interactive-box {
+            max-width: 700px;
+            margin: 3.5rem auto 0 auto;
+            text-align: center;
+        }
+
+        .amount-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .amount-btn {
+            width: 80px;
+            height: 50px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-darker);
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .amount-btn:hover, .amount-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(223, 183, 92, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .custom-amount-input-wrapper {
+            margin-bottom: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding: 0.5rem 0;
+            width: 200px;
+            justify-content: center;
+        }
+
+        .custom-amount-input-wrapper span {
+            font-size: 2rem;
+            color: var(--text-muted);
+            margin-right: 0.5rem;
+            font-family: var(--font-heading);
+        }
+
+        .custom-amount-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-size: 2rem;
+            font-family: var(--font-heading);
+            width: 120px;
+            text-align: center;
+        }
+
+        .impact-statement {
+            background: rgba(2, 3, 5, 0.5);
+            border: 1px dashed var(--border-gold);
+            border-radius: 8px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2.5rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 992px) {
+            .tiers-grid {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+                max-width: 450px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .tier-card.featured {
+                transform: scale(1);
+            }
+            .tier-card.featured:hover {
+                transform: translateY(-4px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link active">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container reveal">
+            <h1>Support TLP</h1>
+            <p>True Life Productions is a non-profit Community Interest Company (CIC). Your generosity directly supports school workshops, community festivals, and developing emerging local talent.</p>
+        </div>
+    </section>
+
+    <!-- Supporter Tiers Grid -->
+    <section style="padding-top: 0;">
+        <div class="container">
+            <div style="text-align: center; max-width: 600px; margin: 0 auto;" class="reveal">
+                <h2 class="center">Choose a Supporter Tier</h2>
+                <p>Support community theatre with TLP. Your support actively fosters our latest plays and artistic initiatives.</p>
+            </div>
+
+            <div class="tiers-grid">
+                
+                <!-- Tier 3 -->
+                <div class="glass-card tier-card reveal">
+                    <div>
+                        <span class="tier-name">Tier 3 | Donor</span>
+                        <div class="tier-price">£10</div>
+                        <p class="tier-desc">Support talent and help seed early stage plays.</p>
+                        <ul class="tier-benefits">
+                            <li>Personal thank you letter from Martin, Rosina, and the TLP crew.</li>
+                            <li>Name listed in the printed programmes for the season.</li>
+                            <li>Regular newsletters and backstage updates.</li>
+                        </ul>
+                    </div>
+                    <a href="contact.html?subject=Tier%203%20Donor%20Support" class="btn btn-gold-outline">Donate £10</a>
+                </div>
+
+                <!-- Tier 2 -->
+                <div class="glass-card tier-card featured reveal" style="transition-delay: 0.1s;">
+                    <div>
+                        <span class="tier-name">Tier 2 | Friend of TLP</span>
+                        <div class="tier-price">£50</div>
+                        <p class="tier-desc">Actively support production development and crew costs.</p>
+                        <ul class="tier-benefits">
+                            <li>All benefits of Tier 3 Donor.</li>
+                            <li>Early bird pre-sale tickets for major productions (London & Cambridge).</li>
+                            <li>10% discount on TLP Studio adult classes.</li>
+                            <li>Exclusive reserved seating at theatre halls.</li>
+                        </ul>
+                    </div>
+                    <a href="contact.html?subject=Tier%202%20Friend%20Support" class="btn btn-primary">Donate £50</a>
+                </div>
+
+                <!-- Tier 1 -->
+                <div class="glass-card tier-card reveal" style="transition-delay: 0.2s;">
+                    <div>
+                        <span class="tier-name">Tier 1 | True Supporter</span>
+                        <div class="tier-price">£100+</div>
+                        <p class="tier-desc">Actively sponsor local actors, scholarships, and school visits.</p>
+                        <ul class="tier-benefits">
+                            <li>All benefits of Tier 2 Friend of TLP.</li>
+                            <li>Invitation to exclusive closed rehearsals and script readings.</li>
+                            <li>Access to post-show drinks and meet-the-cast events.</li>
+                            <li>Sponsorship acknowledgement in all marketing materials.</li>
+                        </ul>
+                    </div>
+                    <a href="contact.html?subject=Tier%201%20True%20Supporter%20Support" class="btn btn-gold-outline">Sponsor £100+</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom Donation interactive block -->
+    <section class="custom-donation-section">
+        <div class="spotlight-glow" style="top: 20%; right: -20%;"></div>
+        <div class="container">
+            <div style="text-align: center; max-width: 600px; margin: 0 auto;" class="reveal">
+                <h2 class="center">Custom Donation</h2>
+                <p>Choose an amount below to see the direct impact of your contribution to our Community Interest Company.</p>
+            </div>
+
+            <div class="glass-card donation-interactive-box reveal">
+                
+                <!-- Quick Amount Buttons -->
+                <div class="amount-buttons">
+                    <button class="amount-btn" data-value="15">£15</button>
+                    <button class="amount-btn" data-value="30">£30</button>
+                    <button class="amount-btn active" data-value="75">£75</button>
+                    <button class="amount-btn" data-value="150">£150</button>
+                    <button class="amount-btn" data-value="500">£500</button>
+                </div>
+
+                <!-- Input box -->
+                <div class="custom-amount-input-wrapper">
+                    <span>£</span>
+                    <input type="number" class="custom-amount-input" id="donation-amount" value="75" min="1" aria-label="Donation Amount">
+                </div>
+
+                <!-- Dynamic Impact description -->
+                <div class="impact-statement" id="impact-statement">
+                    Loading impact...
+                </div>
+
+                <a href="#" class="btn btn-primary" id="custom-donate-submit">Proceed to Support</a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <h3>True Life<span>.</span></h3>
+                    <p>A professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com" class="social-icon" aria-label="Instagram" target="_blank">IG</a>
+                        <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">FB</a>
+                        <a href="https://tiktok.com" class="social-icon" aria-label="TikTok" target="_blank">TK</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="studio.html#opportunities">Opportunities</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="global.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const amountBtns = document.querySelectorAll(".amount-btn");
+            const amountInput = document.getElementById("donation-amount");
+            const impactStatement = document.getElementById("impact-statement");
+            const donateSubmit = document.getElementById("custom-donate-submit");
+
+            // Mapping amounts to impact descriptions
+            const IMPACT_DESCRIPTIONS = [
+                { limit: 20, text: "Sponsors scripts and playwriting folders for one emerging actor." },
+                { limit: 45, text: "Covers the travel costs to bring professional Meisner acting training to a school workshop." },
+                { limit: 99, text: "Funds high-quality printing of theater booklets, programmes, and local promotional sheets." },
+                { limit: 249, text: "Covers a full day's rental of a professional rehearsal space in Cambridge for scene study." },
+                { limit: 499, text: "Sponsors a full youth theatre scholarship, enabling a child to attend TLP Theatre Club classes for an entire term." },
+                { limit: Infinity, text: "Provides foundational funding for set designers to purchase raw materials and props for staging upcoming plays." }
+            ];
+
+            function updateImpact(value) {
+                const numVal = parseFloat(value) || 0;
+                
+                // Find matching impact
+                const desc = IMPACT_DESCRIPTIONS.find(d => numVal <= d.limit);
+                impactStatement.textContent = desc ? desc.text : "Thank you for your generous support of community theatre!";
+
+                // Update final CTA link subject
+                donateSubmit.href = `contact.html?subject=Custom%20Donation%20Support%20of%20%C2%A3${numVal}&amount=${numVal}`;
+            }
+
+            // Button click triggers
+            amountBtns.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    amountBtns.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    
+                    const val = btn.getAttribute("data-value");
+                    amountInput.value = val;
+                    updateImpact(val);
+                });
+            });
+
+            // Input typing triggers
+            amountInput.addEventListener("input", (e) => {
+                const val = e.target.value;
+                
+                // Remove active button highlighting if it doesn't match
+                amountBtns.forEach(btn => {
+                    if (btn.getAttribute("data-value") !== val) {
+                        btn.classList.remove("active");
+                    } else {
+                        btn.classList.add("active");
+                    }
+                });
+
+                updateImpact(val);
+            });
+
+            // Initial impact update
+            updateImpact(amountInput.value);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="True Life Productions CIC (TLP) is a professional theatre company working with emerging local talent in Hertfordshire and Cambridgeshire. Explore our season.">
+    <meta name="keywords" content="True Life Productions, Theatre, Cambridge, Hertfordshire, Plays, Workshops, Rosina Piovani, Martin Maynard">
+    <meta property="og:title" content="True Life Productions CIC - Professional Theatre & Creative Space">
+    <meta property="og:description" content="Nurturing emerging local talent, creating truth-based performances, and maximizing human connection.">
+    <meta property="og:type" content="website">
+    <title>True Life Productions CIC | Home</title>
+    
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Homepage-specific styling */
+        
+        /* Hero Section Slider */
+        .hero-section {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            background: var(--bg-darker);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        #hero-effect-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hero-slides-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1.2s ease-in-out, visibility 1.2s ease-in-out;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .hero-bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.05);
+            transition: transform 8s ease-out;
+        }
+
+        .hero-slide.active .hero-bg-image {
+            transform: scale(1);
+        }
+
+        .hero-content-wrapper {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            padding-top: 60px; /* Accounts for header */
+        }
+
+        .hero-text-content {
+            max-width: 650px;
+        }
+
+        .slide-tag {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+
+        .slide-title {
+            margin-bottom: 1rem;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            line-height: 1.1;
+        }
+
+        .slide-author {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--primary);
+            letter-spacing: 0.08em;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .slide-synopsis {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: #d1d4dc;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Hero navigation controls */
+        .hero-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(13, 15, 23, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            color: var(--text-main);
+            transition: var(--transition-fast);
+            backdrop-filter: blur(5px);
+        }
+
+        .hero-nav-btn:hover {
+            background: var(--primary);
+            color: var(--text-dark);
+            border-color: var(--primary);
+        }
+
+        .hero-nav-btn.prev { left: 2rem; }
+        .hero-nav-btn.next { right: 2rem; }
+
+        .slider-dots-container {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.75rem;
+            z-index: 10;
+        }
+
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .slider-dot.active {
+            background: var(--primary);
+            transform: scale(1.3);
+        }
+
+        /* Hover Zoom effect for Scenic Showcase cards */
+        .carrd-btn-card-container:hover {
+            border-color: rgba(255, 255, 255, 0.22) !important;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6) !important;
+        }
+        .carrd-btn-card-container:hover .hover-zoom-img {
+            transform: scale(1.05) !important;
+        }
+
+        /* Prevent hover translations on static ecosystem cards */
+        .static-card:hover {
+            transform: none !important;
+            border-color: rgba(255, 255, 255, 0.06) !important;
+            box-shadow: 0 8px 32px 0 var(--glass-shadow) !important;
+        }
+
+        /* Quick Portal Cards Grid */
+        .portal-section {
+            padding: 0;
+            margin-top: -4rem; /* overlaps hero nicely */
+            position: relative;
+            z-index: 15;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .portal-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 250px;
+            border-bottom: 4px solid transparent;
+        }
+
+        .portal-card:hover {
+            border-bottom-color: var(--primary);
+        }
+
+        .portal-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .portal-card p {
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .portal-link {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .portal-link:hover {
+            color: var(--primary-hover);
+        }
+
+        /* Spotlight Production Banner (Conversion focal) */
+        .spotlight-production-section {
+            position: relative;
+        }
+
+        .spotlight-flex {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .spotlight-info {
+            z-index: 10;
+        }
+
+        .spotlight-tag {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .spotlight-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .spotlight-quote {
+            font-style: italic;
+            border-left: 2px solid var(--primary);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0 2rem 0;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .spotlight-image-frame {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        .spotlight-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: var(--transition-smooth);
+        }
+
+        .spotlight-image-frame:hover img {
+            transform: scale(1.03);
+        }
+
+        /* Testimonials Review Slider */
+        .reviews-section {
+            background: linear-gradient(180deg, var(--bg-main) 0%, var(--bg-darker) 100%);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .reviews-title-block {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .reviews-slider {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            min-height: 250px;
+        }
+
+        .review-card {
+            text-align: center;
+            padding: 1rem 3rem;
+            display: none;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .review-card.active {
+            display: block;
+        }
+
+        .rating-stars {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .review-text {
+            font-size: 1.25rem;
+            line-height: 1.7;
+            font-style: italic;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+
+        .review-author {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+        }
+
+        .reviews-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .review-nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .review-nav-dot.active {
+            background: var(--primary);
+            transform: scale(1.4);
+        }
+
+        /* Conversion CTA Newsletter/Workshops Grid */
+        .cta-action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .newsletter-box, .opportunities-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .newsletter-box h3, .opportunities-box h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .newsletter-input {
+            flex-grow: 1;
+            padding: 0.85rem 1.2rem;
+            background: rgba(2, 3, 5, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition-fast);
+        }
+
+        .newsletter-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(223,183,92,0.15);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .portal-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .portal-section {
+                margin-top: -2rem;
+            }
+            .spotlight-flex {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            .cta-action-grid {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-nav-btn {
+                display: none;
+            }
+            .review-card {
+                padding: 1rem 0;
+            }
+            .hero-content-wrapper {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .slide-title {
+                font-size: 2.4rem;
+                line-height: 1.2;
+            }
+            .slide-synopsis {
+                font-size: 0.95rem;
+                line-height: 1.5;
+            }
+            .hero-actions {
+                gap: 0.75rem;
+            }
+            .hero-actions .btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.8rem;
+            }
+            .footer-cta-divider {
+                border-left: none !important;
+                padding-left: 0 !important;
+                margin-top: 3rem;
+            }
+        }
+
+        /* Home Page Specific Grid Layouts */
+        .home-split-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.85fr;
+            gap: 3.5rem;
+            margin-top: 2rem;
+            margin-bottom: 5rem;
+        }
+
+        .home-left-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-right-col {
+            display: flex;
+            flex-direction: column;
+            padding-top: 0.5rem;
+        }
+
+        .column-section-title {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.75rem;
+        }
+
+        .showcase-video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            margin-bottom: 2rem;
+        }
+
+        .showcase-video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }
+
+        .home-intro-text {
+            font-size: 1.15rem;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 2.5rem;
+            font-family: var(--font-body);
+        }
+
+        .carrd-text-link {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: lowercase;
+            letter-spacing: 0.05em;
+            text-decoration: underline;
+            transition: var(--transition-fast);
+        }
+
+        .carrd-text-link:hover {
+            color: #ffffff;
+        }
+
+        .scroll-down-wrapper {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            z-index: 5;
+            transition: var(--transition-smooth);
+        }
+
+        .scroll-down-wrapper:hover {
+            color: #ffffff;
+        }
+
+        .scroll-down-label {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.75rem;
+        }
+
+        .scroll-down-arrow {
+            font-size: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+            65% { transform: translateY(-4px); }
+        }
+
+        @media (max-width: 992px) {
+            .home-split-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            .home-trailer-row {
+                grid-template-columns: 1fr !important;
+                gap: 2.5rem !important;
+            }
+            .home-portals-grid {
+                grid-template-columns: 1fr !important;
+                gap: 3rem !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .carrd-small-cards-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING PRODUCTION DETAILS...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link active">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <a href="productions.html" class="btn btn-gold-outline btn-header-cta" style="padding: 0.5rem 1.2rem; font-size: 0.8rem; display: none;">Book Now</a>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Rotating Hero Section with Themed Animations -->
+    <section class="hero-section">
+        <!-- Canvas background for animations -->
+        <canvas id="hero-effect-canvas"></canvas>
+        
+        <!-- Hero Slides (rendered dynamically by app.js) -->
+        <div class="hero-slides-wrapper" id="hero-slider">
+            <!-- Dynamic Slide fallback content during script load -->
+            <div class="hero-slide active">
+                <div class="container hero-content-wrapper">
+                    <div class="hero-text-content">
+                        <span class="slide-tag" style="background: var(--accent-red);">UPCOMING SEASON</span>
+                        <h1 class="slide-title">True Life Productions</h1>
+                        <p class="slide-synopsis">Creating truth-based theatrical performances and maximizing human connection. Nurturing the next generation of creative talent in Cambridgeshire.</p>
+                        <div class="hero-actions">
+                            <a href="productions.html" class="btn btn-primary">Our Productions</a>
+                            <a href="studio.html" class="btn btn-outline">Join Workshops</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slider Nav Arrows -->
+        <button class="hero-nav-btn prev" aria-label="Previous slide">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="hero-nav-btn next" aria-label="Next slide">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <!-- Slider Navigation Dots -->
+        <div class="slider-dots-container" id="hero-dots"></div>
+    </section>
+
+    <!-- Main Content Section: Dynamic Season Highlights & Trailer -->
+    <section style="padding-top: 5rem;" id="whats-on-grid">
+        <div class="container reveal">
+            
+            <!-- 1. Theatrical Showreel & Welcome Banner -->
+            <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 4rem; align-items: center; margin-bottom: 6rem;" class="home-trailer-row">
+                <div class="showcase-video-wrapper" style="margin-bottom: 0;">
+                    <!-- HTML5 Looping Autoplay Showreel Video -->
+                    <video id="homepage-trailer-video" class="showcase-video-player" src="assets/videos/container07.mp4" poster="assets/videos/container07.mp4.jpg" autoplay preload="auto" loop playsinline disablepictureinpicture disableremoteplayback webkit-playsinline muted>
+                        Your browser does not support the HTML5 video tag.
+                    </video>
+                    <!-- Floating Video Controls -->
+                    <div class="video-controls-overlay" style="position: absolute; bottom: 1rem; right: 1rem; display: flex; gap: 0.5rem; z-index: 10;">
+                        <button id="video-play-btn" class="video-control-btn" aria-label="Pause Video" style="background: rgba(6, 7, 10, 0.65); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 50%; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+                            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" id="play-pause-icon"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>
+                        </button>
+                        <button id="video-mute-btn" class="video-control-btn" aria-label="Unmute Audio" style="background: rgba(6, 7, 10, 0.65); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 50%; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" id="mute-unmute-icon"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zM6 5.04L4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96V5.04zm7.854.646a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.2em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">WELCOME TO TLP</span>
+                    <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: normal; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; color: #ffffff;">True Life Productions</h2>
+                    <p class="home-intro-text" style="font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.8); margin-bottom: 2rem;">Welcome to True Life Productions CIC (TLP), a professional theatre company working with emerging local talent to create truth-based performances and maximise human connection. TLP exists as a platform for promising artists, enabling them to develop their craft, gain professional experience, and grow within the creative industry.</p>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="about.html" class="btn btn-outline" style="padding: 0.7rem 1.8rem; font-size: 0.8rem;">Our Story</a>
+                        <a href="contact.html" class="btn btn-outline" style="padding: 0.7rem 1.8rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Collaborate</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Active Season Highlights ("What's On") -->
+            <div style="margin-bottom: 6rem;">
+                <div class="column-section-title" style="font-size: 0.85rem; border-color: rgba(255,255,255,0.06); padding-bottom: 1rem; margin-bottom: 3rem;">UPCOMING SEASON HIGHLIGHTS</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;" id="upcoming-plays-grid">
+                    <!-- Dynamically populated from LocalStorage -->
+                </div>
+            </div>
+
+            <!-- 3. TLP Ecosystem (Studio & Artists Registry) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; margin-bottom: 6rem;" class="home-portals-grid">
+                <!-- Left: Studio -->
+                <div class="reveal">
+                    <div class="glass-card static-card" style="padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%; border: 1px solid rgba(255,255,255,0.06); background: rgba(13, 15, 23, 0.45); border-radius: 12px;">
+                        <div>
+                            <!-- Studio Logo Emblem -->
+                            <div style="max-width: 240px; margin-bottom: 1.8rem; border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+                                <img src="studio-logo.jpg" alt="Studio at TLP Logo" style="width: 100%; height: auto; display: block;">
+                            </div>
+                            <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">Studio at TLP</span>
+                            <h3 style="font-size: 1.8rem; margin-bottom: 1.25rem; font-family: var(--font-heading); color: #ffffff;">Local & Fundraiser Theatre</h3>
+                            <p style="font-size: 1.02rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 2rem;">Alongside our professional productions, TLP Studio is our community-focused branch dedicated to nurturing local talent across Cambridge and surrounding areas. Through community-led productions, festivals, and amateur fundraisers, TLP Studio provides opportunities for local emerging artists to develop, collaborate, and share their passion for performance.</p>
+                        </div>
+                        <a href="studio.html" class="btn btn-outline" style="align-self: flex-start;">Explore TLP Studio</a>
+                    </div>
+                </div>
+                
+                <!-- Right: Artists & Classes -->
+                <div class="reveal">
+                    <div class="glass-card static-card" style="padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%; border: 1px solid rgba(255,255,255,0.06); background: rgba(13, 15, 23, 0.45); border-radius: 12px;">
+                        <div>
+                            <!-- Header Spacer to align titles perfectly with Left Column -->
+                            <div style="height: 52px; margin-bottom: 1.8rem;"></div>
+                            <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">For Artists & Classes</span>
+                            <h3 style="font-size: 1.8rem; margin-bottom: 1.25rem; font-family: var(--font-heading); color: #ffffff;">Training & Opportunities</h3>
+                            <p style="font-size: 1.02rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 2rem;">We run structured drama and movement workshops and provide a launchpad for writers, actors, and directors. Register for our weekly youth drama club led by industry professionals or join our local cast & crew registry.</p>
+                            <div style="display: flex; gap: 1rem; margin-bottom: 2.2rem; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 130px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; text-align: center;">
+                                    <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 0.25rem; font-family: var(--font-heading);">Youth Club</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Rosina Piovani</p>
+                                </div>
+                                <div style="flex: 1; min-width: 130px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; text-align: center;">
+                                    <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 0.25rem; font-family: var(--font-heading);">Talent Registry</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Actors & Crew</p>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="artists.html" class="btn btn-outline" style="align-self: flex-start;">Workshops & Registry</a>
+                    </div>
+                </div>
+            </div>
+             
+        </div></section>
+
+    <!-- Split Mission Section (from initial design) -->
+    <section style="background: var(--bg-lighter);">
+        <div class="spotlight-glow" style="bottom: -10%; left: -10%;"></div>
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;" class="reveal">
+                <div>
+                    <h2 style="font-family: var(--font-heading); font-size: 2rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.05em; color: #ffffff;">Connecting Communities through Live performance</h2>
+                    <p style="font-family: var(--font-body); font-size: 1.1rem; line-height: 1.7; color: rgba(255,255,255,0.85); margin-bottom: 1.5rem;">Based on the border of Hertfordshire and Cambridgeshire, True Life Productions (TLP) was born from a desire to create a dynamic bridge between the thriving local artistic community and the professional theatre world, particularly in London.</p>
+                    <p style="font-family: var(--font-body); font-size: 1.1rem; line-height: 1.7; color: rgba(255,255,255,0.85); margin-bottom: 1.5rem;">Our core purpose extends beyond producing theatre; we are deeply committed to the professional development of local artists, fostering inclusive performances, and celebrating local identity through workshops and community drama projects.</p>
+                    <a href="about.html" class="btn btn-outline" style="margin-top: 1rem;">Meet the Team</a>
+                </div>
+                <div class="glass-card" style="padding: 3rem; text-align: center; border: 1px solid rgba(255,255,255,0.06); background: rgba(13, 15, 23, 0.4);">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5); font-family: var(--font-body); letter-spacing: 0.15em; display: block; margin-bottom: 1.5rem; text-transform: uppercase;">OUR CO-FOUNDERS LOG</span>
+                    <p style="font-style: italic; font-size: 1.25rem; line-height: 1.6; color: #ffffff; font-family: var(--font-heading);">"Our vision for TLP is to be more than just a theatre company; we want to be a catalyst for artistic growth in Cambridgeshire, providing a vital link to professional opportunities."</p>
+                    <div style="margin-top: 2rem;">
+                        <h4 style="font-size: 1.05rem; font-family: var(--font-heading); color: #ffffff; font-weight: normal; margin-bottom: 0.25rem;">Martin Maynard & Rosina Piovani</h4>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.05em;">Artistic Directors, TLP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section (from initial design) -->
+    <section class="reviews-section" style="border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(6,7,10,0.5);">
+        <div class="container">
+            <div class="reviews-title-block reveal">
+                <h2 class="center" style="font-family: var(--font-heading); font-size: 2.2rem; text-transform: uppercase; font-weight: normal; letter-spacing: 0.05em; color: #ffffff; margin-bottom: 1rem; text-align: center;">Press & Audience Reviews</h2>
+                <p style="font-family: var(--font-body); color: var(--text-muted); font-size: 1.1rem; text-align: center;">What critics and theatregoers are saying about our productions</p>
+            </div>
+            
+            <div class="reviews-slider reveal" style="transition-delay: 0.1s;">
+                <div class="review-card active">
+                    <div class="rating-stars" style="color: #ffffff; font-size: 1.2rem; margin-bottom: 1.5rem; letter-spacing: 2px;">★★★★★</div>
+                    <p class="review-text" style="font-size: 1.3rem; line-height: 1.65; font-style: italic; color: #ffffff; margin-bottom: 1.5rem;">"A masterclass in contrasting grief. Maynard’s performance is outstanding both subtle and real. Livingstone’s portrayal is visceral. Rosina Piovani’s direction is masterfully uncomfortable. A hauntingly beautiful expertly acted experience."</p>
+                    <span class="review-author" style="font-family: var(--font-heading); color: rgba(255,255,255,0.7); font-size: 0.95rem;">— Davinia Fisher</span>
+                </div>
+                <div class="review-card">
+                    <div class="rating-stars" style="color: #ffffff; font-size: 1.2rem; margin-bottom: 1.5rem; letter-spacing: 2px;">★★★★★</div>
+                    <p class="review-text" style="font-size: 1.3rem; line-height: 1.65; font-style: italic; color: #ffffff; margin-bottom: 1.5rem;">"An emotionally charged, beautifully written and acted two-hander about almost unbearable loss... both this and their first production - 'Continuity' - unquestionably deliver on TLP's mission statement."</p>
+                    <span class="review-author" style="font-family: var(--font-heading); color: rgba(255,255,255,0.7); font-size: 0.95rem;">— Marcus Pollett, Playwright & Reviewer</span>
+                </div>
+                <div class="review-card">
+                    <div class="rating-stars" style="color: #ffffff; font-size: 1.2rem; margin-bottom: 1.5rem; letter-spacing: 2px;">★★★★★</div>
+                    <p class="review-text" style="font-size: 1.3rem; line-height: 1.65; font-style: italic; color: #ffffff; margin-bottom: 1.5rem;">"A beautifully directed production of a play dealing with a very emotive subject. Superb acting. An extremely moving piece of theatre."</p>
+                    <span class="review-author" style="font-family: var(--font-heading); color: rgba(255,255,255,0.7); font-size: 0.95rem;">— Julie Petrucci, Combinations</span>
+                </div>
+                <div class="review-card">
+                    <div class="rating-stars" style="color: #ffffff; font-size: 1.2rem; margin-bottom: 1.5rem; letter-spacing: 2px;">★★★★★</div>
+                    <p class="review-text" style="font-size: 1.3rem; line-height: 1.65; font-style: italic; color: #ffffff; margin-bottom: 1.5rem;">"Continuity was the perfect play to showcase what True Life Productions are all about."</p>
+                    <span class="review-author" style="font-family: var(--font-heading); color: rgba(255,255,255,0.7); font-size: 0.95rem;">— Alex Elbro, Cambridge Radio</span>
+                </div>
+            </div>
+
+            <div class="reviews-nav" style="display: flex; justify-content: center; gap: 1.5rem; margin-top: 2.5rem;">
+                <button class="review-nav-dot active" aria-label="Go to review 1" style="width: 8px; height: 8px; border-radius: 50%; border: none; background: #ffffff; opacity: 1; cursor: pointer; transition: var(--transition-fast);"></button>
+                <button class="review-nav-dot" aria-label="Go to review 2" style="width: 8px; height: 8px; border-radius: 50%; border: none; background: #ffffff; opacity: 0.3; cursor: pointer; transition: var(--transition-fast);"></button>
+                <button class="review-nav-dot" aria-label="Go to review 3" style="width: 8px; height: 8px; border-radius: 50%; border: none; background: #ffffff; opacity: 0.3; cursor: pointer; transition: var(--transition-fast);"></button>
+                <button class="review-nav-dot" aria-label="Go to review 4" style="width: 8px; height: 8px; border-radius: 50%; border: none; background: #ffffff; opacity: 0.3; cursor: pointer; transition: var(--transition-fast);"></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Past Production Showcase Portfolio (Moved beneath reviews) -->
+    <section style="padding-top: 6rem; padding-bottom: 6rem; border-top: 1px solid rgba(255,255,255,0.05); background: var(--bg-darker);">
+        <div class="container">
+            <div class="column-section-title" style="font-size: 0.85rem; border-color: rgba(255,255,255,0.06); padding-bottom: 1rem; margin-bottom: 3.5rem;">TLP PAST PRODUCTIONS PORTFOLIO</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem;" class="home-portals-grid">
+                
+                <!-- Poison Showcase Card -->
+                <div class="reveal">
+                    <div class="glass-card carrd-btn-card-container" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); background: rgba(13, 15, 23, 0.45); border-radius: 12px; display: flex; flex-direction: column; height: 100%; transition: border-color 0.3s ease;">
+                        <div style="position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <img src="assets/images/play-poison-banner.jpg" alt="Poison Scenic Shot" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease;" class="hover-zoom-img">
+                            <span style="position: absolute; top: 1.5rem; left: 1.5rem; background: rgba(6,7,10,0.85); border: 1px solid rgba(255,255,255,0.15); color: #ffffff; padding: 0.35rem 0.85rem; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Archive Production</span>
+                        </div>
+                        <div style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
+                            <div>
+                                <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--primary); letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">2026 | Cambridge Junction & The Cockpit London</span>
+                                <h3 style="font-size: 1.6rem; margin-bottom: 1rem; font-family: var(--font-heading); color: #ffffff;">Poison by Lot Vekemans</h3>
+                                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">A marriage destroyed by grief. A former husband and wife are reunited to protect the memory of their lost child in Lot Vekemans’ raw, emotionally intense, and critically acclaimed drama.</p>
+                            </div>
+                            <a href="play-poison.html" class="btn btn-outline" style="align-self: flex-start; padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Continuity Showcase Card -->
+                <div class="reveal">
+                    <div class="glass-card carrd-btn-card-container" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); background: rgba(13, 15, 23, 0.45); border-radius: 12px; display: flex; flex-direction: column; height: 100%; transition: border-color 0.3s ease;">
+                        <div style="position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <img src="assets/images/play-continuity-banner.jpg" alt="Continuity Scenic Shot" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease;" class="hover-zoom-img">
+                            <span style="position: absolute; top: 1.5rem; left: 1.5rem; background: rgba(6,7,10,0.85); border: 1px solid rgba(255,255,255,0.15); color: #ffffff; padding: 0.35rem 0.85rem; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Archive Production</span>
+                        </div>
+                        <div style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
+                            <div>
+                                <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--primary); letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">2025 | Mumford Theatre Cambridge & The Cockpit London</span>
+                                <h3 style="font-size: 1.6rem; margin-bottom: 1rem; font-family: var(--font-heading); color: #ffffff;">Continuity<sup>(7)</sup> by David Sear</h3>
+                                <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">A satirical and darkly comic sci-fi tale about humanity’s yearning for immortality, our digital obsession, and what makes us human. Directed by Rosina Piovani.</p>
+                            </div>
+                            <a href="play-continuity.html" class="btn btn-outline" style="align-self: flex-start; padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Conversion CTA Banner -->
+    <section style="padding-top: 4rem; padding-bottom: 4rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="container">
+            <div class="glass-card reveal" style="padding: 4rem; border: 1px solid rgba(255, 255, 255, 0.06); background: linear-gradient(135deg, rgba(20, 22, 33, 0.7) 0%, rgba(13, 15, 23, 0.9) 100%); border-radius: 16px; position: relative; overflow: hidden;">
+                <div class="spotlight-glow" style="top: -20%; right: -20%; opacity: 0.15; pointer-events: none;"></div>
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 5rem; align-items: center;" class="home-portals-grid">
+                    
+                    <!-- Left: Newsletter -->
+                    <div>
+                        <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">Newsletter</span>
+                        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: normal; margin-bottom: 1.25rem; color: #ffffff;">Stay in the Loop</h2>
+                        <p style="color: var(--text-muted); font-size: 1.02rem; line-height: 1.65; margin-bottom: 2rem;">Subscribe for priority ticket releases, season announcements, and regional workshop schedules directly to your inbox.</p>
+                        
+                        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!'); this.reset();" style="display: flex; gap: 0.75rem; max-width: 480px;">
+                            <input type="email" class="newsletter-input" placeholder="Enter your email address" required aria-label="Email Address" style="padding: 0.95rem 1.2rem;">
+                            <button type="submit" class="btn btn-primary" style="padding: 0.95rem 2rem;">Subscribe</button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Support / Donate -->
+                    <div style="border-left: 1px solid rgba(255, 255, 255, 0.06); padding-left: 5rem;" class="footer-cta-divider">
+                        <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">Support Our Mission</span>
+                        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: normal; margin-bottom: 1.25rem; color: #ffffff;">Get Involved</h2>
+                        <p style="color: var(--text-muted); font-size: 1.02rem; line-height: 1.65; margin-bottom: 2rem;">As a Community Interest Company, TLP relies on donations and partnerships to run youth drama programs and support regional talent.</p>
+                        
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <a href="support.html" class="btn btn-primary" style="flex: 1; min-width: 140px; text-align: center;">Support TLP</a>
+                            <a href="contact.html" class="btn btn-outline" style="flex: 1; min-width: 140px; text-align: center;">Contact Us</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <h3>True Life<span>.</span></h3>
+                    <p>A professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com" class="social-icon" aria-label="Instagram" target="_blank">IG</a>
+                        <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">FB</a>
+                        <a href="https://tiktok.com" class="social-icon" aria-label="TikTok" target="_blank">TK</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="studio.html#opportunities">Opportunities</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Scripts -->
+    <script src="global.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Inline script for Reviews Carousel
+        document.addEventListener("DOMContentLoaded", () => {
+            // Homepage Trailer Video Custom Controls
+            const trailerVideo = document.getElementById("homepage-trailer-video");
+            const playBtn = document.getElementById("video-play-btn");
+            const muteBtn = document.getElementById("video-mute-btn");
+            const playPauseIcon = document.getElementById("play-pause-icon");
+            const muteUnmuteIcon = document.getElementById("mute-unmute-icon");
+
+            if (trailerVideo && playBtn && muteBtn) {
+                // Hover styling
+                [playBtn, muteBtn].forEach(btn => {
+                    btn.addEventListener("mouseenter", () => {
+                        btn.style.background = "rgba(223, 183, 92, 0.25)";
+                        btn.style.borderColor = "var(--primary)";
+                    });
+                    btn.addEventListener("mouseleave", () => {
+                        btn.style.background = "rgba(6, 7, 10, 0.65)";
+                        btn.style.borderColor = "rgba(255, 255, 255, 0.15)";
+                    });
+                });
+
+                // Play / Pause Toggle
+                playBtn.addEventListener("click", () => {
+                    if (trailerVideo.paused) {
+                        trailerVideo.play();
+                        playPauseIcon.innerHTML = `<path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>`;
+                        playBtn.setAttribute("aria-label", "Pause Video");
+                    } else {
+                        trailerVideo.pause();
+                        playPauseIcon.innerHTML = `<path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C3.713 12.579 3 12.114 3 11.4v-6.8c0-.714.713-1.179 1.433-.784v-.002z"/>`;
+                        playBtn.setAttribute("aria-label", "Play Video");
+                    }
+                });
+
+                // Mute / Unmute Toggle
+                muteBtn.addEventListener("click", () => {
+                    if (trailerVideo.muted) {
+                        trailerVideo.muted = false;
+                        muteUnmuteIcon.innerHTML = `<path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/><path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/><path d="M8.707 11.182A4.5 4.5 0 0 0 10.025 8a4.5 4.5 0 0 0-1.318-3.182L8 5.525A3.5 3.5 0 0 1 9.025 8 3.5 3.5 0 0 1 8 10.475z"/><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zM6 5.04 4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96z"/>`;
+                        muteBtn.setAttribute("aria-label", "Mute Audio");
+                    } else {
+                        trailerVideo.muted = true;
+                        muteUnmuteIcon.innerHTML = `<path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zM6 5.04 4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96V5.04zm7.854.646a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/>`;
+                        muteBtn.setAttribute("aria-label", "Unmute Audio");
+                    }
+                });
+            }
+
+            // Dynamic Season Highlights Loader
+            const grid = document.getElementById("upcoming-plays-grid");
+            if (grid) {
+                const productions = TLP_DB.getProductions();
+                const upcoming = productions.filter(p => p.status === "upcoming" || p.status === "current");
+                
+                grid.innerHTML = "";
+                
+                if (upcoming.length === 0) {
+                    grid.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">No upcoming season highlights at this time.</p>`;
+                } else {
+                    upcoming.forEach(p => {
+                        const isStudioText = p.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
+                        const isStudioBg = p.isStudio ? "#dfb75c" : "#8f1b2c";
+                        const isStudioColor = p.isStudio ? "#06070a" : "#ffffff";
+                        const isStudioBorder = p.isStudio ? "1px solid #dfb75c" : "1px solid #8f1b2c";
+                        const detailLink = p.pageType === "pre-prod" ? `play-ernest.html?id=${p.id}` : `play-poison.html?id=${p.id}`;
+                        const venueName = p.venues && p.venues[0] ? p.venues[0].name.split("(")[0].trim() : 'TLP Stage';
+                        
+                        const card = document.createElement("div");
+                        card.className = "glass-card play-spotlight-card reveal";
+                        card.style.cssText = "padding: 0; overflow: hidden; border-radius: 8px; display: flex; flex-direction: column; background: rgba(13, 15, 23, 0.45); border: 1px solid rgba(255,255,255,0.05);";
+                        card.innerHTML = `
+                            <div style="height: 200px; width: 100%; background-image: url('${p.image}'); background-size: cover; background-position: center; position: relative;">
+                                <span style="position: absolute; bottom: 1rem; left: 1rem; background: ${isStudioBg}; border: ${isStudioBorder}; color: ${isStudioColor}; font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">${isStudioText}</span>
+                            </div>
+                            <div style="padding: 2.2rem 2rem 2rem 2rem; display: flex; flex-direction: column; flex-grow: 1;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${p.year} | ${venueName}</span>
+                                <h3 style="font-family: var(--font-heading); font-size: 1.35rem; color: #fff; font-weight: normal; margin-bottom: 1rem;">${p.title}</h3>
+                                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem; flex-grow: 1;">${p.synopsis.slice(0, 140)}...</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem;">
+                                    <a href="${detailLink}" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem;">View Show</a>
+                                    <a href="contact.html?subject=Tickets: ${encodeURIComponent(p.title)}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    
+                    // Re-trigger scroll reveal for dynamic content
+                    const revealElements = grid.querySelectorAll(".reveal");
+                    const revealObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("active");
+                                revealObserver.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.1 });
+                    revealElements.forEach(el => revealObserver.observe(el));
+                }
+            }
+
+            const reviews = document.querySelectorAll(".review-card");
+            const dots = document.querySelectorAll(".review-nav-dot");
+            let activeIdx = 0;
+            let reviewInterval;
+
+            function showReview(idx) {
+                reviews.forEach((r, i) => {
+                    if (i === idx) {
+                        r.classList.add("active");
+                        dots[i].classList.add("active");
+                    } else {
+                        r.classList.remove("active");
+                        dots[i].classList.remove("active");
+                    }
+                });
+                activeIdx = idx;
+            }
+
+            dots.forEach((dot, idx) => {
+                dot.addEventListener("click", () => {
+                    showReview(idx);
+                    resetReviewTimer();
+                });
+            });
+
+            function nextReview() {
+                const nextIdx = (activeIdx + 1) % reviews.length;
+                showReview(nextIdx);
+            }
+
+            function startReviewTimer() {
+                reviewInterval = setInterval(nextReview, 6000);
+            }
+
+            function resetReviewTimer() {
+                clearInterval(reviewInterval);
+                startReviewTimer();
+            }
+
+            if (reviews.length > 1) {
+                startReviewTimer();
+            }
+        });
+    </script>
+</body>
+</html>

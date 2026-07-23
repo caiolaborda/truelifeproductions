@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuity(7) by David Sear | True Life Productions</title>
+    <meta name="description" content="Explore Continuity(7) by David Sear, a satirical theatrical production by True Life Productions. Cast, reviews, synopsis, and details.">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="global.css">
+    
+    <style>
+        .play-hero {
+            position: relative;
+            height: 60vh;
+            min-height: 400px;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 4rem;
+            overflow: hidden;
+        }
+
+        .play-hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+
+        .play-hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(6, 7, 10, 0.4) 0%, rgba(6, 7, 10, 0.95) 100%);
+            z-index: 2;
+        }
+
+        .play-hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .play-hero-content {
+            position: relative;
+            z-index: 4;
+            width: 100%;
+        }
+
+        .play-title-tag {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50px;
+            margin-bottom: 1.5rem;
+        }
+
+        .play-main-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .play-main-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.75);
+            font-family: var(--font-heading);
+            letter-spacing: 0.05em;
+        }
+
+        .play-grid {
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 4rem;
+            margin-top: 2rem;
+            margin-bottom: 5rem;
+        }
+
+        .play-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .play-info-panel {
+            padding: 2.5rem;
+            border-radius: 12px;
+            background: rgba(13, 15, 23, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .play-info-item {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 1.25rem;
+        }
+
+        .play-info-item:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .play-info-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .play-info-value {
+            font-size: 1.05rem;
+            color: #ffffff;
+        }
+
+        .play-content-body h3 {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .play-synopsis-text {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 3rem;
+        }
+
+        .review-quote-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            transition: var(--transition-fast);
+        }
+
+        .review-quote-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .review-quote-text {
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .review-quote-author {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .play-gallery {
+            margin-top: 5rem;
+            margin-bottom: 5rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .gallery-img-box {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            aspect-ratio: 4/3;
+        }
+
+        .gallery-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition-smooth);
+        }
+
+        .gallery-img-box:hover img {
+            transform: scale(1.06);
+        }
+
+        @media (max-width: 992px) {
+            .play-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            .play-hero {
+                height: 50vh;
+            }
+            .gallery-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link active">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Play Hero Section -->
+    <section class="play-hero">
+        <div class="play-hero-bg" style="background-image: url('https://truelifeproductions.co.uk/assets/images/gallery05/e67d526d.jpg?v=ba767609');"></div>
+        <div class="play-hero-overlay"></div>
+        <canvas class="play-hero-canvas" id="digital-canvas"></canvas>
+        
+        <div class="container play-hero-content reveal">
+            <span class="play-title-tag">Past Production</span>
+            <h1 class="play-main-title">Continuity<sup>(7)</sup></h1>
+            <p class="play-main-subtitle">By David Sear | Directed by Rosina Piovani</p>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <section class="container" style="padding-top: 0;">
+        <div class="play-grid">
+            
+            <!-- Sidebar: Details -->
+            <div class="play-sidebar reveal">
+                <div class="play-info-panel">
+                    <div class="play-info-item">
+                        <div class="play-info-label">Playwright</div>
+                        <div class="play-info-value">David Sear</div>
+                    </div>
+                    <div class="play-info-item">
+                        <div class="play-info-label">Director</div>
+                        <div class="play-info-value">Rosina Piovani</div>
+                    </div>
+                    <div class="play-info-item">
+                        <div class="play-info-label">Characters & Cast</div>
+                        <div class="play-info-value">
+                            Stevie: Martin Maynard<br>
+                            "Y" (Tech Bro): Christian Burton<br>
+                            Dylan: Guy<br>
+                            Lesley (Parent): Catherine Watson<br>
+                            Morgan: Iain Mahony<br>
+                            Geraldine Hindley
+                        </div>
+                    </div>
+                    <div class="play-info-item">
+                        <div class="play-info-label">Performance Venues</div>
+                        <div class="play-info-value">
+                            Cockpit Theatre, London<br>
+                            Mumford Theatre, Cambridge
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="contact.html?subject=Continuity%20Production" class="btn btn-primary" style="text-align: center; justify-content: center; width: 100%;">Enquire About Continuity</a>
+                <a href="productions.html" class="btn btn-outline" style="text-align: center; justify-content: center; width: 100%;">← Back to Productions</a>
+            </div>
+            
+            <!-- Left Column: Synopsis & Reviews -->
+            <div class="play-content-body reveal" style="transition-delay: 0.15s;">
+                
+                <h3>Synopsis</h3>
+                <p class="play-synopsis-text">
+                    “Continuity” is a satirical and darkly comic tale about humanity’s yearning for immortality – and what happens when technology and vast wealth manipulate the very essence of what makes us human. In a world where the pace of change is unprecedented and our ability to adapt to that change is struggling to evolve, Continuity asks the existential questions: ‘What is the value of my continued existence? And, more importantly, can I get a better phone?’. David Sear’s new play could not be more relevant to a world where billionaires control 50% of global wealth and exercise ever increasing power over humanity.
+                </p>
+                
+                <h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>
+                <div class="reviews-list">
+                    
+                    <div class="review-quote-card">
+                        <p class="review-quote-text">"An intriguing and challenging work."</p>
+                        <span class="review-quote-author">— Simon Ward, The PEG</span>
+                    </div>
+                    
+                    <div class="review-quote-card">
+                        <p class="review-quote-text">"The piece raises challenging ethical questions."</p>
+                        <span class="review-quote-author">— John Cutler, The Reviews Hub</span>
+                    </div>
+                    
+                    <div class="review-quote-card">
+                        <p class="review-quote-text">"Christian Burton is excellent as the tech bro – arrogant, cunning, but ultimately evil."</p>
+                        <span class="review-quote-author">— Mike Levy, Cambridge Critique</span>
+                    </div>
+                    
+                    <div class="review-quote-card">
+                        <p class="review-quote-text">"The acting was authentic and delivered with superb intensity in key scenes..."</p>
+                        <span class="review-quote-author">— Alex Elbro, Cambridge Radio</span>
+                    </div>
+                    
+                    <div class="review-quote-card">
+                        <p class="review-quote-text">"Maynard carries the show, bombarded by the opinions of the others on his choices..."</p>
+                        <span class="review-quote-author">— Poppy Saunders, East Midland Theatre Reviews</span>
+                    </div>
+                    
+                    <div class="review-quote-card">
+                        <p class="review-quote-text">"The acting throughout is of a high standard, we get the characters quickly, and the discussions are heated and heartfelt."</p>
+                        <span class="review-quote-author">— Berenice Mann, Backstage View</span>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- Play Video Section (Dynamic) -->
+    <section class="container play-video-section reveal" style="padding-top: 0; margin-bottom: 4rem; display: none;">
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: normal; text-transform: uppercase; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Production Showreel</h2>
+        <div class="showcase-video-wrapper" style="max-width: 800px; margin: 0 auto; aspect-ratio: 16/9; position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #000;">
+            <video class="showcase-video-player" id="showcase-video-element" controls style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                Your browser does not support the HTML5 video tag.
+            </video>
+        </div>
+    </section>
+
+    <!-- Play Gallery Section -->
+    <section class="container play-gallery reveal">
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: normal; text-transform: uppercase; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Production Gallery</h2>
+        <div class="gallery-grid">
+            <div class="gallery-img-box">
+                <img src="https://truelifeproductions.co.uk/assets/images/gallery05/e67d526d.jpg?v=ba767609" alt="Continuity Cockpit">
+            </div>
+            <div class="gallery-img-box">
+                <img src="https://truelifeproductions.co.uk/assets/images/gallery06/a70bc4dd.jpg?v=ba767609" alt="Continuity Mumford">
+            </div>
+            <div class="gallery-img-box">
+                <img src="https://truelifeproductions.co.uk/assets/images/gallery08/559c5d74.jpg?v=ba767609" alt="Continuity Rehearsal">
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <h3>True Life Productions</h3>
+                <p>Creating truth-based theatrical performances and maximizing human connection. Nurturing local artistic talent in Cambridgeshire.</p>
+                <div class="footer-meta-info" id="footer-registration">Company number 16139873</div>
+            </div>
+            <div>
+                <h4>Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="productions.html">Productions</a></li>
+                    <li><a href="studio.html">TLP Studio</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="support.html">Support Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact Details</h4>
+                <p class="footer-meta-info" id="footer-email">hello@truelifeproductions.co.uk</p>
+                <p class="footer-meta-info" id="footer-phone">01763 241000</p>
+                <p class="footer-meta-info" id="footer-address">Royston, Hertfordshire</p>
+                <div style="margin-top: 1rem;"><a href="admin.html" class="footer-admin-link">Backend Portal</a></div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container footer-bottom-flex">
+                <p class="copyright-text">&copy; <span id="copyright-year">2026</span> True Life Productions. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Scripts -->
+    <script src="global.js"></script>
+    
+    <!-- Dynamic Play Rendering Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const playId = urlParams.get("id") || "continuity";
+            const play = TLP_DB.getProductions().find(p => p.id === playId);
+            
+            if (play) {
+                // Update Hero Background & Accent Colors
+                const heroBg = document.querySelector(".play-hero-bg");
+                if (heroBg && play.banner) {
+                    heroBg.style.backgroundImage = `url('${play.banner}')`;
+                }
+
+                // Update Hero Header & Tags
+                const titleTag = document.querySelector(".play-title-tag");
+                if (titleTag) {
+                    titleTag.textContent = play.isStudio ? "TLP Studio Production" : "Full TLP Production";
+                    titleTag.style.backgroundColor = play.isStudio ? "#dfb75c" : "#8f1b2c";
+                    titleTag.style.borderColor = play.isStudio ? "#dfb75c" : "#8f1b2c";
+                    titleTag.style.color = play.isStudio ? "#06070a" : "#ffffff";
+                    titleTag.style.fontWeight = "800";
+                }
+
+                const mainTitle = document.querySelector(".play-main-title");
+                if (mainTitle) mainTitle.textContent = play.title;
+
+                const mainSubtitle = document.querySelector(".play-main-subtitle");
+                if (mainSubtitle) {
+                    let subtitle = `By ${play.author}`;
+                    if (play.translator) subtitle += ` | Translated by ${play.translator}`;
+                    if (play.director) subtitle += ` | Directed by ${play.director}`;
+                    mainSubtitle.textContent = subtitle;
+                }
+
+                // Update Sidebar
+                const sidebarPanel = document.querySelector(".play-info-panel");
+                if (sidebarPanel) {
+                    let venuesList = play.venues.map(v => `${v.name}<br><small style="color:var(--text-muted);">${v.dates}</small>`).join("<br><br>");
+                    sidebarPanel.innerHTML = `
+                        <div class="play-info-item">
+                            <div class="play-info-label">Playwright</div>
+                            <div class="play-info-value">${play.author}</div>
+                        </div>
+                        ${play.translator ? `
+                        <div class="play-info-item">
+                            <div class="play-info-label">Translator</div>
+                            <div class="play-info-value">${play.translator}</div>
+                        </div>` : ''}
+                        <div class="play-info-item">
+                            <div class="play-info-label">Director</div>
+                            <div class="play-info-value">${play.director}</div>
+                        </div>
+                        ${play.cast ? `
+                        <div class="play-info-item">
+                            <div class="play-info-label">Starring Cast</div>
+                            <div class="play-info-value">${play.cast}</div>
+                        </div>` : ''}
+                        ${play.setDesign ? `
+                        <div class="play-info-item">
+                            <div class="play-info-label">Creative Team</div>
+                            <div class="play-info-value">Set Designer: ${play.setDesign}</div>
+                        </div>` : ''}
+                        <div class="play-info-item">
+                            <div class="play-info-label">Performance Venues</div>
+                            <div class="play-info-value">${venuesList}</div>
+                        </div>
+                    `;
+                }
+
+                // Update Action Button
+                const actionBtn = document.querySelector(".play-sidebar .btn-primary");
+                if (actionBtn) {
+                    if (play.detailsLink && play.detailsLink !== "#" && (play.detailsLink.startsWith("http") || play.detailsLink.includes(".html") && !play.detailsLink.startsWith("play-"))) {
+                        actionBtn.href = play.detailsLink;
+                        actionBtn.textContent = "Book Tickets Now";
+                        actionBtn.target = "_blank";
+                    } else {
+                        actionBtn.href = `contact.html?subject=Inquiry about ${encodeURIComponent(play.title)}`;
+                        actionBtn.textContent = play.pageType === "pre-prod" ? "Book / Enquire Now" : "Enquire About Production";
+                    }
+                }
+
+                // Update Synopsis
+                const synopsisText = document.querySelector(".play-synopsis-text");
+                if (synopsisText) synopsisText.textContent = play.synopsis;
+
+                // Update Showreel Video if present
+                const videoSection = document.querySelector(".play-video-section");
+                const videoElement = document.getElementById("showcase-video-element");
+                if (videoSection && videoElement && play.video) {
+                    videoElement.src = play.video;
+                    if (play.videoPoster) videoElement.poster = play.videoPoster;
+                    videoSection.style.display = "block";
+                }
+
+                // Update Reviews list based on Page Type
+                const bodyContainer = document.querySelector(".play-content-body");
+                if (bodyContainer) {
+                    // Remove old reviews headers & list if present to re-inject
+                    const oldReviewsHeader = bodyContainer.querySelector("h3:nth-of-type(2)");
+                    const oldReviewsList = bodyContainer.querySelector(".reviews-list");
+                    if (oldReviewsHeader) oldReviewsHeader.remove();
+                    if (oldReviewsList) oldReviewsList.remove();
+
+                    if (play.pageType === "pre-prod") {
+                        // Pre-Production Booking & Audition Panels
+                        const preProdHtml = `
+                            <div class="glass-card" style="padding: 2.2rem; margin-top: 3.5rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); text-align: left;">
+                                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 1rem; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Booking & Tickets</h4>
+                                <p style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6;">Tickets for upcoming runs are available directly through the Box Offices of our performing venues. You can pre-register or enquire below for group bookings, priority alerts, and cast updates.</p>
+                                <a href="contact.html?subject=Ticket%20Booking:%20${encodeURIComponent(play.title)}" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Enquire / Book Tickets</a>
+                            </div>
+
+                            <div class="glass-card" style="padding: 2.2rem; margin-top: 2rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); text-align: left;">
+                                <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 1rem; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Casting Calls & Auditions</h4>
+                                <p style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6;">We are currently casting and building the production crew for this show. If you are a performer, technician, or designer, click below to view open calls.</p>
+                                <a href="artists.html" class="btn btn-outline" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Auditions Board</a>
+                            </div>
+                        `;
+                        bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
+                    } else {
+                        // Post-Production Reviews grouped by location
+                        let reviewsHtml = `<h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
+                        let hasReviews = false;
+                        play.venues.forEach(v => {
+                            if (v.reviews && v.reviews.length > 0) {
+                                hasReviews = true;
+                                reviewsHtml += `
+                                    <div style="margin-top: 2.5rem; text-align: left;">
+                                        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.1em; font-weight: normal;">Critical Acclaim: ${v.name} (${v.dates})</h4>
+                                        <div class="reviews-list" style="display:flex; flex-direction:column; gap:1.5rem;">
+                                            ${v.reviews.map(r => `
+                                                <div class="review-quote-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 1.5rem 2rem; border-radius: 8px;">
+                                                    <p class="review-quote-text" style="font-style: italic; color: #fff; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.75rem;">"${r.quote}"</p>
+                                                    <span class="review-quote-author" style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">— ${r.reviewer}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        });
+                        
+                        if (!hasReviews) {
+                            reviewsHtml += `<p style="color:var(--text-muted);">No reviews posted for this production yet.</p>`;
+                        }
+                        
+                        bodyContainer.insertAdjacentHTML("beforeend", reviewsHtml);
+                    }
+                }
+
+                // Update Gallery
+                const gallerySection = document.querySelector(".play-gallery");
+                if (gallerySection) {
+                    const galleryGrid = gallerySection.querySelector(".gallery-grid");
+                    const galleryHeader = gallerySection.querySelector("h2");
+                    
+                    if (play.pageType === "pre-prod") {
+                        galleryHeader.textContent = "Production Design & Teasers";
+                        if (galleryGrid) {
+                            galleryGrid.innerHTML = `
+                                <div class="gallery-img-box" style="aspect-ratio: 16/9; max-height: 400px; grid-column: span 3; width: 100%;">
+                                    <img src="${play.image}" alt="${play.title} Poster" style="object-fit: cover; width: 100%; height: 100%;">
+                                </div>
+                            `;
+                        }
+                    } else {
+                        galleryHeader.textContent = "Production Gallery";
+                        const allImages = play.venues.flatMap(v => v.images || []);
+                        if (galleryGrid) {
+                            galleryGrid.innerHTML = "";
+                            if (allImages.length === 0) {
+                                galleryGrid.innerHTML = `<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">Production gallery images coming soon.</p>`;
+                            } else {
+                                allImages.forEach(img => {
+                                    galleryGrid.innerHTML += `
+                                        <div class="gallery-img-box">
+                                            <img src="${img}" alt="${play.title} Scene">
+                                        </div>
+                                    `;
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- Local stage effects script for Continuity (Tech Connected Particle Lines) -->
+    <script>
+        const canvas = document.getElementById("digital-canvas");
+        const ctx = canvas.getContext("2d");
+
+        let width = canvas.width = canvas.offsetWidth;
+        let height = canvas.height = canvas.offsetHeight;
+
+        window.addEventListener("resize", () => {
+            width = canvas.width = canvas.offsetWidth;
+            height = canvas.height = canvas.offsetHeight;
+        });
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2 + 1;
+                this.vx = Math.random() * 0.4 - 0.2;
+                this.vy = Math.random() * 0.4 - 0.2;
+                this.alpha = Math.random() * 0.5 + 0.3;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const particles = Array.from({ length: 45 }, () => new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw connecting lines
+            particles.forEach((p, idx) => {
+                p.update();
+                p.draw();
+
+                for (let j = idx + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if (dist < 100) {
+                        const alpha = (1 - dist / 100) * 0.15;
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

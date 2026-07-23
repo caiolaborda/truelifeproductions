@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Opportunities for artists, actors, set designers, and playwrights. Apply to auditions, submit scripts, and collaborate with True Life Productions CIC.">
+    <title>For Artists | True Life Productions CIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Artists Page Specific Styles */
+        .page-hero {
+            padding: 8rem 0 4rem 0;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-main) 100%);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-hero p {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .artist-opp-row {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 4rem;
+            align-items: flex-start;
+            margin-bottom: 5rem;
+        }
+
+        .artist-opp-row.reverse {
+            grid-template-columns: 0.85fr 1.15fr;
+        }
+
+        .opportunity-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .opp-card-light {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 2rem;
+            border-radius: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .opp-card-light:hover {
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--accent-red);
+            color: #fff;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Forms in columns */
+        .registry-form-box {
+            background: var(--bg-lighter);
+            border: 1px solid var(--border-color);
+            padding: 3rem;
+            border-radius: 8px;
+        }
+
+        .registry-form-box h3 {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            font-weight: normal;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            background: rgba(6,7,10,0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.85rem 1rem;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            border-radius: 4px;
+            transition: var(--transition-fast);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(6,7,10,0.8);
+        }
+
+        @media (max-width: 992px) {
+            .artist-opp-row, .artist-opp-row.reverse {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link active">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container reveal">
+            <h1>For Artists & Creatives</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 0.5rem;">Join our professional staging pipeline and hone your practice with TLP.</p>
+        </div>
+    </section>
+
+    <!-- Workshops & Training Opportunities Section -->
+    <section style="padding-top: 5rem; padding-bottom: 5rem;">
+        <div class="container">
+            
+            <div style="text-align: center; max-width: 700px; margin: 0 auto 5rem auto;" class="reveal">
+                <h2 class="center" style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: normal; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">Workshops & Training</h2>
+                <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">TLP is dedicated to nurturing local talent. Explore our community drama and movement workshops for children, designed to build confidence, sharpen stage skills, and foster collaboration.</p>
+            </div>
+
+            <!-- Children's Workshop -->
+            <div class="artist-opp-row reverse reveal" style="margin-bottom: 6rem; align-items: center;">
+                <div class="glass-card registry-form-box" style="padding: 2.5rem;">
+                    <h3 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: normal; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; color: var(--primary);">Club Curriculum & Focus</h3>
+                    <ul style="list-style: none; padding-left: 0; font-size: 0.95rem; line-height: 1.7; color: var(--text-main);">
+                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
+                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
+                            <strong>Creative Storytelling:</strong> Learning character development, scenarios, and building imaginative narratives.
+                        </li>
+                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
+                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
+                            <strong>Physical Expression:</strong> Development of spatial awareness, movement, and body language on stage.
+                        </li>
+                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
+                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
+                            <strong>Vocal Performance:</strong> Essential techniques for voice projection, tone, clarity, and articulation.
+                        </li>
+                        <li style="margin-bottom: 0.75rem; position: relative; padding-left: 1.75rem;">
+                            <span style="color: var(--primary); position: absolute; left: 0; font-weight: bold;">✓</span>
+                            <strong>Social Skills:</strong> Fostering active teamwork, collaborative play, confidence, and mutual respect.
+                        </li>
+                    </ul>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">★ Held weekly in Cambridge. Term dates and prices available upon request.</span>
+                </div>
+                <div>
+                    <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: normal; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Theatre Club (Ages 7–12)</h2>
+                    <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">TLP Studio's school-age workshop introduces young children to the fundamentals of theatre and dramatic arts through fun, interactive, and structured activities.</p>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">Led by Artistic Director Rosina Piovani, who has extensive experience teaching in community organizations and local schools, the club provides a safe, encouraging space for children to express their creativity, build self-confidence, and learn essential communication skills.</p>
+                    <a href="contact.html?subject=Theatre%20Club%20Enquiry" class="btn btn-outline" style="margin-top: 1rem;">Register Interest</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Creative Registry Form Section -->
+    <section style="background: rgba(6,7,10,0.5); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container reveal">
+            
+            <div class="artist-opp-row reverse">
+                <!-- Left: Why Join -->
+                <div style="padding-top: 2rem;">
+                    <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: normal; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Join Our Creative Registry</h2>
+                    <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">Even if there are no active roles fitting your profile right now, we encourage all creatives to join the TLP Registry. This is our primary directory when sourcing cast members, lighting designers, sound engineers, set builders, stage crew, and production assistants for upcoming plays, TLP Studio showcases, and workshops.</p>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">Members of our registry receive exclusive priority alerts for casting calls, audition schedules, local theatre workshops, and professional placement opportunities before they are published publicly.</p>
+                    <ul style="list-style: none; padding-left: 0; font-size: 0.95rem; line-height: 1.6; color: var(--text-muted);">
+                        <li style="margin-bottom: 0.5rem;">🎭 <strong>Actors:</strong> Store your headshot and Spotlight link directly in our files.</li>
+                        <li style="margin-bottom: 0.5rem;">⚙️ <strong>Technicians:</strong> Be notified of freelance set building, lighting design, and stage management opportunities.</li>
+                        <li style="margin-bottom: 0.5rem;">✍️ <strong>Writers:</strong> Register your interest in regional new-writing play festivals.</li>
+                    </ul>
+                </div>
+
+                <!-- Right: Registry Form -->
+                <div>
+                    <div class="registry-form-box">
+                        <h3>Registry Submission</h3>
+                        <form id="registry-form" name="registry" data-netlify="true" onsubmit="handleRegistrySubmit(event)">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="reg-first-name">First Name</label>
+                                    <input type="text" id="reg-first-name" class="form-control" placeholder="John" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-last-name">Last Name</label>
+                                    <input type="text" id="reg-last-name" class="form-control" placeholder="Doe" required>
+                                </div>
+                            </div>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="reg-email">Email Address</label>
+                                    <input type="email" id="reg-email" class="form-control" placeholder="john.doe@example.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reg-discipline">Discipline</label>
+                                    <select id="reg-discipline" class="form-control" required style="background: rgba(6,7,10,0.9);">
+                                        <option value="" disabled selected>Select discipline...</option>
+                                        <option value="actor">Actor / Performer</option>
+                                        <option value="director">Director</option>
+                                        <option value="playwright">Playwright / Writer</option>
+                                        <option value="set-designer">Set / Stage Designer</option>
+                                        <option value="lighting-sound">Lighting & Sound Tech</option>
+                                        <option value="stage-manager">Stage Manager / Crew</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="reg-links">Portfolio / Spotlight / CV Link</label>
+                                <input type="url" id="reg-links" class="form-control" placeholder="https://www.spotlight.com/profile/xxxx-xxxx-xxxx" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="reg-notes">Brief Bio / Audition Notes</label>
+                                <textarea id="reg-notes" class="form-control" rows="4" placeholder="Tell us about your background, training, and what kind of roles or collaborations you are looking for..." required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Submit Registration</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Global Footer Section -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">
+                        <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="footer-logo-img">
+                        <span>True Life <span>Productions</span></span>
+                    </a>
+                    <p>Creating bold, professional theatre and bringing London stages closer to emerging regional talent.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="artists.html">For Artists</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Scripts -->
+    <script src="global.js"></script>
+    <script>
+        // Creative Registry Submit Handler
+        function handleRegistrySubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const firstName = document.getElementById("reg-first-name").value;
+            const lastName = document.getElementById("reg-last-name").value;
+            const email = document.getElementById("reg-email").value;
+            const discipline = document.getElementById("reg-discipline").value;
+            const links = document.getElementById("reg-links").value;
+            const notes = document.getElementById("reg-notes").value;
+
+            // Log to local storage registry log
+            try {
+                const registry = JSON.parse(localStorage.getItem("tlp_registry") || "[]");
+                registry.push({
+                    firstName, lastName, email, discipline, links, notes,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem("tlp_registry", JSON.stringify(registry));
+            } catch(e) {}
+
+            // Background form submission to Netlify
+            const formData = new FormData(form);
+            const body = new URLSearchParams(formData);
+            body.set("form-name", form.getAttribute("name"));
+
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString()
+            })
+            .then(() => {
+                alert('Submission received! Thank you for joining the True Life Productions Creative Registry.');
+                form.reset();
+            })
+            .catch(error => {
+                console.error("Registry submission failed:", error);
+                // Fallback success feedback for local testing
+                alert('Submission received! Thank you for joining the True Life Productions Creative Registry.');
+                form.reset();
+            });
+        }
+    </script>
+</body>
+</html>

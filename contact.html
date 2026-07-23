@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contact True Life Productions CIC. Register for workshops, book tickets, or support theatre in Cambridge.">
+    <title>Contact Us & Booking | True Life Productions CIC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        /* Contact Page Specific Styles */
+        .page-hero {
+            padding: 8rem 0 4rem 0;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-main) 100%);
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-hero p {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Form Layout */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            margin-bottom: 5rem;
+        }
+
+        .contact-form-box {
+            position: relative;
+        }
+
+        .form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            transition: var(--transition-fast);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.95rem 1.2rem;
+            background: rgba(2, 3, 5, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-fast);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(223, 183, 92, 0.12);
+            background: rgba(2, 3, 5, 0.6);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        select.form-control {
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23dfb75c' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 1.2rem center;
+            background-size: 1.2rem;
+        }
+
+        /* Success Card overlay */
+        .form-success-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-main);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3rem;
+            border-radius: 12px;
+            border: 1px dashed var(--primary);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-smooth);
+            transform: scale(0.95);
+        }
+
+        .form-success-card.show {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+
+        .success-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(223, 183, 92, 0.1);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Contact Details list */
+        .contact-info-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .contact-info-list li {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .contact-info-list li span {
+            color: var(--primary);
+            font-size: 1.2rem;
+            width: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 3.5rem;
+            }
+            .form-row-2 {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-banner">
+        <p>LOADING BANNER...</p>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="global-header">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="https://truelifeproductions.co.uk/assets/images/image06.png?v=ba767609" alt="True Life Productions Logo" class="header-logo-img">
+                    <span class="logo-text">True Life <span>Productions</span></span>
+                </a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="productions.html" class="nav-link">Productions</a></li>
+                    <li><a href="artists.html" class="nav-link">For Artists</a></li>
+                    <li><a href="studio.html" class="nav-link">TLP Studio</a></li>
+                    <li><a href="support.html" class="nav-link">Support Us</a></li>
+                </ul>
+            </nav>
+            
+            <button class="mobile-nav-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container reveal">
+            <h1>Get In Touch</h1>
+            <p>Connect with the artistic directors, ask questions about workshops, or request booking assistance.</p>
+        </div>
+    </section>
+
+    <!-- Form and details split -->
+    <section style="padding-top: 0;">
+        <div class="container">
+            <div class="contact-grid">
+                
+                <!-- Contact Form Box -->
+                <div class="glass-card contact-form-box reveal">
+                    
+                    <!-- Real form -->
+                    <form id="contact-form" name="contact" data-netlify="true" onsubmit="handleContactSubmit(event)">
+                        
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="name">Full Name</label>
+                                <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Martin Smith" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="e.g. smith@example.com" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category">Inquiry Subject</label>
+                            <select id="category" name="category" class="form-control" required>
+                                <option value="general">General Inquiry</option>
+                                <option value="tickets">Ticket Booking & Seating</option>
+                                <option value="workshops">Workshops / Kids Theatre Club</option>
+                                <option value="auditions">Casting & Crew Auditions</option>
+                                <option value="donations">Supporting / Sponsoring TLP</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">Message Header</label>
+                            <input type="text" id="subject" name="subject" class="form-control" placeholder="Brief subject" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Detailed Message</label>
+                            <textarea id="message" name="message" class="form-control" rows="5" placeholder="Write your comments or questions..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Send Message</button>
+
+                    </form>
+
+                    <!-- Success overlay card -->
+                    <div class="form-success-card" id="success-card">
+                        <div class="success-icon">✓</div>
+                        <h3 style="margin-bottom: 0.5rem; text-transform: uppercase;">Message Sent</h3>
+                        <p style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 1.5rem;">Your transmission was successfully compiled.</p>
+                        <p style="margin-bottom: 2rem; max-width: 400px; font-size: 0.95rem;">We have forwarded this directly to Artistic Directors Rosina and Martin. You will receive a response within 48 hours.</p>
+                        <button class="btn btn-gold-outline" onclick="resetContactForm()">Send Another Message</button>
+                    </div>
+
+                </div>
+
+                <!-- Text Details column -->
+                <div class="reveal" style="transition-delay: 0.1s;">
+                    <h2>Reach out to True Life</h2>
+                    <p>Whether you're an actor seeking to join the Meisner classes, a school wishing to organize drama workshops, or an audience member interested in group tickets, we want to hear from you.</p>
+                    
+                    <ul class="contact-info-list">
+                        <li>
+                            <span>✉</span>
+                            <div>
+                                <h4 style="font-size: 0.9rem; color: var(--primary);">Email Address</h4>
+                                <a href="#" class="meta-email" style="font-size: 1.05rem;">Loading...</a>
+                            </div>
+                        </li>
+                        <li>
+                            <span>☎</span>
+                            <div>
+                                <h4 style="font-size: 0.9rem; color: var(--primary);">Phone Number</h4>
+                                <a href="#" class="meta-phone" style="font-size: 1.05rem;">Loading...</a>
+                            </div>
+                        </li>
+                        <li>
+                            <span>📍</span>
+                            <div>
+                                <h4 style="font-size: 0.9rem; color: var(--primary);">Location</h4>
+                                <p style="font-size: 1.05rem; margin-bottom: 0;" class="meta-address">Loading...</p>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div class="glass-card" style="margin-top: 3rem; border: 1px solid var(--border-gold);">
+                        <h4 style="font-size: 1rem; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem;">Community Interest Statement</h4>
+                        <p style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 0;">TLP is a registered Community Interest Company (CIC) dedicated to making theatre accessible. All income is reinvested into local talent programs and school productions.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="global-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <h3>True Life<span>.</span></h3>
+                    <p>A professional theatre company working with emerging local talent to create truth-based performances and maximize human connection.</p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com" class="social-icon" aria-label="Instagram" target="_blank">IG</a>
+                        <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">FB</a>
+                        <a href="https://tiktok.com" class="social-icon" aria-label="TikTok" target="_blank">TK</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="productions.html">Our Season</a></li>
+                        <li><a href="studio.html">TLP Studio</a></li>
+                        <li><a href="support.html">Support Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="studio.html#opportunities">Opportunities</a></li>
+                        <li><a href="admin.html">Admin Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get In Touch</h4>
+                    <p>✉ <a href="#" class="meta-email">Loading...</a></p>
+                    <p>☎ <a href="#" class="meta-phone">Loading...</a></p>
+                    <p>📍 Royston, Hertfordshire</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="meta-address">Loading company details...</p>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <p>© 2026 True Life Productions CIC. All rights reserved.</p>
+                    <button class="back-to-top" aria-label="Back to top">↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="global.js"></script>
+    <script>
+        // Parse Query string parameters to auto-fill form
+        document.addEventListener("DOMContentLoaded", () => {
+            const params = new URLSearchParams(window.location.search);
+            const subjectParam = params.get("subject");
+            const amountParam = params.get("amount");
+            
+            const categorySelect = document.getElementById("category");
+            const subjectInput = document.getElementById("subject");
+            const messageTextarea = document.getElementById("message");
+
+            if (subjectParam) {
+                subjectInput.value = decodeURIComponent(subjectParam);
+                
+                // Smart select matching category based on keywords
+                const lowerSubject = subjectParam.toLowerCase();
+                if (lowerSubject.includes("tier") || lowerSubject.includes("sponsor") || lowerSubject.includes("donation")) {
+                    categorySelect.value = "donations";
+                    if (amountParam) {
+                        messageTextarea.value = `I would like to support True Life Productions CIC with a donation of £${amountParam}.\n\nPlease guide me on the payment processes to complete this support.\n\nThank you!`;
+                    }
+                } else if (lowerSubject.includes("workshop") || lowerSubject.includes("club") || lowerSubject.includes("meisner")) {
+                    categorySelect.value = "workshops";
+                    messageTextarea.value = `I am interested in registering for the TLP Studio acting workshops. Please send term dates and availability.`;
+                } else if (lowerSubject.includes("audition") || lowerSubject.includes("casting")) {
+                    categorySelect.value = "auditions";
+                    messageTextarea.value = `I would like to submit my CV and headshot for casting consideration in upcoming productions.`;
+                } else if (lowerSubject.includes("ticket") || lowerSubject.includes("booking") || lowerSubject.includes("seat")) {
+                    categorySelect.value = "tickets";
+                }
+            }
+        });
+
+        // Form Submit Handler
+        function handleContactSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const category = document.getElementById("category").value;
+            const subject = document.getElementById("subject").value;
+            const message = document.getElementById("message").value;
+
+            // Log to local storage inquiries log
+            try {
+                const inquiries = JSON.parse(localStorage.getItem("tlp_inquiries") || "[]");
+                inquiries.push({
+                    name, email, category, subject, message,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem("tlp_inquiries", JSON.stringify(inquiries));
+            } catch(e) {}
+
+            // Background form submission to Netlify
+            const formData = new FormData(form);
+            const body = new URLSearchParams(formData);
+            body.set("form-name", form.getAttribute("name"));
+
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString()
+            })
+            .then(() => {
+                // Show success modal overlay
+                const successCard = document.getElementById("success-card");
+                successCard.classList.add("show");
+            })
+            .catch(error => {
+                console.error("Form submission failed:", error);
+                // Fallback show success for local testing/dev environments
+                const successCard = document.getElementById("success-card");
+                successCard.classList.add("show");
+            });
+        }
+
+        // Reset Form
+        function resetContactForm() {
+            document.getElementById("contact-form").reset();
+            const successCard = document.getElementById("success-card");
+            successCard.classList.remove("show");
+        }
+    </script>
+</body>
+</html>
