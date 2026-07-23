@@ -1095,9 +1095,11 @@
                         if (isPast) {
                             buttonsHtml = `<a href="${detailLink}#reviews" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; width: 100%; text-align: center; display: block; border-color: rgba(255,255,255,0.2); color: #ffffff;">See Reviews</a>`;
                         } else {
+                            const bookLink = (p.detailsLink && p.detailsLink.startsWith("http")) ? p.detailsLink : `contact.html?subject=Tickets: ${encodeURIComponent(p.title)}`;
+                            const isExternal = (p.detailsLink && p.detailsLink.startsWith("http")) ? `target="_blank"` : "";
                             buttonsHtml = `
                                 <a href="${detailLink}" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem;">More Info</a>
-                                <a href="contact.html?subject=Tickets: ${encodeURIComponent(p.title)}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>
+                                <a href="${bookLink}" ${isExternal} class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>
                             `;
                         }
 

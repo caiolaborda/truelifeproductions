@@ -181,7 +181,7 @@ const DEFAULT_PRODUCTIONS = [
         banner: "play-mary.jpg",
         accent: "#6c5b7b", // Royal Purple
         animationType: "royal-embers",
-        detailsLink: "https://www.ticketsource.co.uk/",
+        detailsLink: "https://www.ticketsource.com/peterborough-cathedral-events/john-drinkwaters-mary-stuart-by-rosina-piovani/p-lowxd",
         showInHero: true,
         isStudio: false,
         pageType: "pre-prod",
