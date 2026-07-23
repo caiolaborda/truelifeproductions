@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (slide.venues && slide.venues.length > 0) {
                 const venue = slide.venues[0];
                 venueInfo = `
-                    <p class="slide-venue-info" style="font-family: var(--font-heading); font-size: 0.95rem; color: #a5a9b4; margin-bottom: 1.5rem; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <p class="slide-venue-info" style="font-family: var(--font-heading); font-size: 0.95rem; color: #ffffff; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
                         <span>📍 ${venue.name}</span>
                         <span style="color: var(--primary);">|</span>
                         <span>📅 ${venue.dates}</span>
