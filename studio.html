@@ -298,11 +298,7 @@
                 if (p.director) creditsHtml += ` | Directed by ${p.director}`;
                 if (p.cast) creditsHtml += `<br>Cast: ${p.cast}`;
                 
-                let detailLink = p.detailsLink || "#";
-                if (p.id === "poison") detailLink = "play-poison.html?id=poison";
-                else if (p.id === "continuity") detailLink = "play-continuity.html?id=continuity";
-                else if (p.pageType === "pre-prod") detailLink = `play-ernest.html?id=${p.id}`;
-                else if (detailLink === "#") detailLink = `contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}`;
+                let detailLink = `play-${p.id}.html?id=${p.id}`;
 
                 // Generate status color matching productions.html
                 let tagBg = "var(--primary)";

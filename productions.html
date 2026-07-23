@@ -397,11 +397,7 @@
                     }
 
                     // Map production ID to custom detail page URLs
-                    let detailLink = p.detailsLink || "#";
-                    if (p.id === "poison") detailLink = "play-poison.html?id=poison";
-                    else if (p.id === "continuity") detailLink = "play-continuity.html?id=continuity";
-                    else if (p.pageType === "pre-prod") detailLink = `play-ernest.html?id=${p.id}`;
-                    else if (detailLink === "#") detailLink = `contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}`;
+                    let detailLink = `play-${p.id}.html?id=${p.id}`;
 
                     const tagText = p.isStudio ? "TLP Studio Production" : "Full TLP Production";
                     const tagStyle = p.isStudio 

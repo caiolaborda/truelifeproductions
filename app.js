@@ -34,11 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;";
             
             // Map production ID to custom detail page URLs
-            let detailLink = slide.detailsLink || "#";
-            if (slide.id === "poison") detailLink = "play-poison.html?id=poison";
-            else if (slide.id === "continuity") detailLink = "play-continuity.html?id=continuity";
-            else if (slide.pageType === "pre-prod") detailLink = `play-ernest.html?id=${slide.id}`;
-            else if (detailLink === "#") detailLink = `contact.html?subject=Inquiry about ${encodeURIComponent(slide.title)}`;
+            let detailLink = `play-${slide.id}.html?id=${slide.id}`;
 
             // Dynamic Booking Link (goes to ticketing website if setup, otherwise falls back to booking inquiry)
             let ticketLink = slide.detailsLink || "#";

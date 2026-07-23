@@ -1048,7 +1048,7 @@
                         const isStudioBg = p.isStudio ? "#dfb75c" : "#8f1b2c";
                         const isStudioColor = p.isStudio ? "#06070a" : "#ffffff";
                         const isStudioBorder = p.isStudio ? "1px solid #dfb75c" : "1px solid #8f1b2c";
-                        const detailLink = p.pageType === "pre-prod" ? `play-ernest.html?id=${p.id}` : `play-poison.html?id=${p.id}`;
+                        const detailLink = `play-${p.id}.html?id=${p.id}`;
                         const venueName = p.venues && p.venues[0] ? p.venues[0].name.split("(")[0].trim() : 'TLP Stage';
                         
                         const card = document.createElement("div");
