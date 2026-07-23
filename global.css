@@ -329,13 +329,14 @@ header.global-header.scrolled {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.8);
     position: relative;
     padding: 0.5rem 0;
+    transition: color 0.2s ease;
 }
 
 .nav-link:hover, .nav-link.active {
-    color: var(--text-main);
+    color: var(--primary);
 }
 
 .nav-link::after {
@@ -678,7 +679,7 @@ body.mouse-active .mouse-spotlight {
 }
 
 /* Modern link hover adjustments */
-.nav-link:hover, .btn:hover {
+.btn:hover {
     letter-spacing: 0.12em; /* Fluid layout text expanding micro-moment */
 }
 
