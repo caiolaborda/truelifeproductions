@@ -282,12 +282,13 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "2.5";
+        const CURRENT_DB_VERSION = "2.6";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
             localStorage.setItem("tlp_productions", JSON.stringify(DEFAULT_PRODUCTIONS));
             localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
+            localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
             localStorage.setItem("tlp_db_version", CURRENT_DB_VERSION);
         }
 
