@@ -154,7 +154,27 @@
                 gap: 3rem;
             }
             .play-hero {
-                height: 50vh;
+                height: 45vh;
+                min-height: 320px;
+                margin: 1.5rem 1.5rem 0 1.5rem;
+                border-radius: 12px;
+                padding-bottom: 2.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .play-hero {
+                margin: 1rem 1rem 0 1rem;
+                border-radius: 8px;
+                height: 40vh;
+                min-height: 280px;
+                padding-bottom: 2rem;
+            }
+            .play-main-title {
+                font-size: 2rem;
+            }
+            .play-main-subtitle {
+                font-size: 0.95rem;
             }
         }
     </style>
