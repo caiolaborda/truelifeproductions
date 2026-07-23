@@ -347,7 +347,7 @@
                     A marriage destroyed by grief. A former husband and wife are reunited after ten years to protect the memory of their lost child. Lot Vekemans’ play is raw and emotionally intense and asks a simple question: is it possible to move on? Martin Maynard and Lynne Livingstone star in this compelling story, directed by Rosina Piovani. True Life Productions brings “Poison” to the stage hoping to create space for collective reflection, honesty, opening and healing.
                 </p>
                 
-                <h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>
+                <h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>
                 <div class="reviews-list">
                     
                     <div class="review-quote-card">
@@ -571,7 +571,7 @@
                         bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
                     } else {
                         // Post-Production Reviews grouped by location
-                        let reviewsHtml = `<h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
+                        let reviewsHtml = `<h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
                         let hasReviews = false;
                         play.venues.forEach(v => {
                             if (v.reviews && v.reviews.length > 0) {

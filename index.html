@@ -900,7 +900,7 @@
                 <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 5rem; align-items: center;" class="home-portals-grid">
                     
                     <!-- Left: Newsletter -->
-                    <div>
+                    <div id="newsletter">
                         <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">Newsletter</span>
                         <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: normal; margin-bottom: 1.25rem; color: #ffffff;">Stay in the Loop</h2>
                         <p style="color: var(--text-muted); font-size: 1.02rem; line-height: 1.65; margin-bottom: 2rem;">Subscribe for priority ticket releases, season announcements, and regional workshop schedules directly to your inbox.</p>
@@ -912,7 +912,7 @@
                     </div>
 
                     <!-- Right: Support / Donate -->
-                    <div style="border-left: 1px solid rgba(255, 255, 255, 0.06); padding-left: 5rem;" class="footer-cta-divider">
+                    <div id="support-cta" style="border-left: 1px solid rgba(255, 255, 255, 0.06); padding-left: 5rem;" class="footer-cta-divider">
                         <span style="color: var(--primary); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.75rem;">Support Our Mission</span>
                         <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: normal; margin-bottom: 1.25rem; color: #ffffff;">Get Involved</h2>
                         <p style="color: var(--text-muted); font-size: 1.02rem; line-height: 1.65; margin-bottom: 2rem;">As a Community Interest Company, TLP relies on donations and partnerships to run youth drama programs and support regional talent.</p>
@@ -1093,7 +1093,7 @@
                         
                         let buttonsHtml = "";
                         if (isPast) {
-                            buttonsHtml = `<a href="${detailLink}#reviews" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700; background: var(--primary); border: 1px solid var(--primary); color: #06070a; width: 100%; text-align: center; display: block;">See Reviews</a>`;
+                            buttonsHtml = `<a href="${detailLink}#reviews" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; width: 100%; text-align: center; display: block; border-color: rgba(255,255,255,0.2); color: #ffffff;">See Reviews</a>`;
                         } else {
                             buttonsHtml = `
                                 <a href="${detailLink}" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem;">More Info</a>

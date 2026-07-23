@@ -346,7 +346,7 @@
                     “Continuity” is a satirical and darkly comic tale about humanity’s yearning for immortality – and what happens when technology and vast wealth manipulate the very essence of what makes us human. In a world where the pace of change is unprecedented and our ability to adapt to that change is struggling to evolve, Continuity asks the existential questions: ‘What is the value of my continued existence? And, more importantly, can I get a better phone?’. David Sear’s new play could not be more relevant to a world where billionaires control 50% of global wealth and exercise ever increasing power over humanity.
                 </p>
                 
-                <h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>
+                <h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>
                 <div class="reviews-list">
                     
                     <div class="review-quote-card">
@@ -575,7 +575,7 @@
                         bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
                     } else {
                         // Post-Production Reviews grouped by location
-                        let reviewsHtml = `<h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
+                        let reviewsHtml = `<h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
                         let hasReviews = false;
                         play.venues.forEach(v => {
                             if (v.reviews && v.reviews.length > 0) {

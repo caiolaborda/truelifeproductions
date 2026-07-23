@@ -428,7 +428,7 @@
                         bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
                     } else {
                         // Post-Production Reviews grouped by location
-                        let reviewsHtml = `<h3 style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
+                        let reviewsHtml = `<h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
                         let hasReviews = false;
                         play.venues.forEach(v => {
                             if (v.reviews && v.reviews.length > 0) {
