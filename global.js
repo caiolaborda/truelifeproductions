@@ -5,7 +5,7 @@
 // Default Local Storage Database Seeding
 const DEFAULT_SITE_SETTINGS = {
     title: "True Life Productions",
-    email: "caiolaborda@gmail.com",
+    email: "hello@truelifeproductions.co.uk",
     phone: "01763 241000",
     registration: "Company number 16139873",
     address: "Royston, Hertfordshire",
@@ -285,7 +285,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.1";
+        const CURRENT_DB_VERSION = "3.2";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
