@@ -159,6 +159,7 @@ const DEFAULT_PRODUCTIONS = [
         showInHero: true,
         isStudio: false,
         pageType: "pre-prod",
+        mobileHeroAlign: "right",
         venues: [
             {
                 name: "The Space Theatre, London",
@@ -185,6 +186,7 @@ const DEFAULT_PRODUCTIONS = [
         showInHero: true,
         isStudio: false,
         pageType: "pre-prod",
+        mobileHeroAlign: "right",
         venues: [
             {
                 name: "Peterborough Cathedral",
@@ -212,6 +214,7 @@ const DEFAULT_PRODUCTIONS = [
         showInHero: true,
         isStudio: true,
         pageType: "pre-prod",
+        mobileHeroAlign: "right",
         venues: [
             {
                 name: "ADC Theatre, Cambridge",
@@ -282,7 +285,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.0";
+        const CURRENT_DB_VERSION = "3.1";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
@@ -327,12 +330,8 @@ const TLP_DB = new DatabasePortal();
 
 // Setup UI Interaction on Page Load
 document.addEventListener("DOMContentLoaded", () => {
-    // 0. Inject Theatrical FX: Curtains (only on session initial start) and Mouse Spotlight
-    const isInitialStart = !sessionStorage.getItem("tlp_curtains_played");
-    if (isInitialStart) {
-        injectTheatricalFX();
-        sessionStorage.setItem("tlp_curtains_played", "true");
-    }
+    // 0. Inject Theatrical FX: Mouse Spotlight
+    injectTheatricalFX();
     setupPageTransitionLinkInterceptors();
     setupMouseSpotlight();
 
@@ -454,26 +453,11 @@ document.addEventListener("DOMContentLoaded", () => {
    ========================================================================== */
 
 function injectTheatricalFX() {
-    // Curtains Overlay
-    const curtains = document.createElement("div");
-    curtains.className = "theater-curtains-wrapper";
-    curtains.id = "page-curtains";
-    curtains.innerHTML = `
-        <div class="curtain-panel left"></div>
-        <div class="curtain-panel right"></div>
-    `;
-    document.body.prepend(curtains);
-
     // Mouse Spotlight Overlay
     const spotlight = document.createElement("div");
     spotlight.className = "mouse-spotlight";
     spotlight.id = "mouse-spotlight";
     document.body.appendChild(spotlight);
-
-    // Slide curtains open after layout settles
-    setTimeout(() => {
-        curtains.classList.add("reveal-stage");
-    }, 150);
 }
 
 function setupPageTransitionLinkInterceptors() {
