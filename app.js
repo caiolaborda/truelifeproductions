@@ -27,7 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
         accent: "#dfb75c",
         animationType: "stage-glow",
         isStudio: false,
-        isShowreel: true
+        isShowreel: true,
+        videoPreview: "assets/videos/video02.mp4"
     };
     
     const finalSlides = [showreelSlide, ...slidesData];
@@ -42,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
             slideItem.className = `hero-slide ${idx === 0 ? 'active' : ''}`;
             slideItem.setAttribute("data-animation", slide.animationType || "none");
             slideItem.setAttribute("data-accent", slide.accent || "#dfb75c");
+            slideItem.setAttribute("data-video-preview", slide.videoPreview || "");
             
             // Build the tag text depending on studio/full production
             let tagText = slide.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
@@ -210,19 +212,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 slide.classList.add("active");
                 dots[idx].classList.add("active");
                 
-                // Mount YouTube loop preview if active
+                // Mount HTML5 loop video preview if active
                 if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
-                    if (!videoContainer.querySelector("iframe")) {
+                    if (!videoContainer.querySelector("video")) {
+                        const videoSrc = slideItem.getAttribute("data-video-preview") || "assets/videos/video02.mp4";
                         videoContainer.innerHTML = `
-                            <iframe src="https://www.youtube.com/embed/GyI6HRA3uzU?autoplay=1&mute=1&loop=1&playlist=GyI6HRA3uzU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1" 
-                                    frameborder="0" 
-                                    allow="autoplay; encrypted-media"></iframe>
+                            <video src="${videoSrc}" autoplay loop muted playsinline></video>
                         `;
-                        // Fade in the iframe opacity smoothly
-                        setTimeout(() => {
-                            const iframe = videoContainer.querySelector("iframe");
-                            if (iframe) iframe.style.opacity = "0.55";
-                        }, 300);
+                        const video = videoContainer.querySelector("video");
+                        if (video) {
+                            video.addEventListener("canplay", () => {
+                                video.style.opacity = "0.55";
+                            });
+                        }
                     }
                 }
                 
