@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             slideItem.innerHTML = `
                 <div class="hero-bg-image" style="background-image: linear-gradient(180deg, rgba(6, 7, 10, 0.4) 0%, rgba(6, 7, 10, 0.95) 100%), url('${slide.image}');"></div>
+                ${slide.isShowreel ? '<div class="hero-bg-video-container" id="showreel-video-container"></div>' : ''}
                 <div class="container hero-content-wrapper">
                     <div class="hero-text-content">
                         <span class="slide-tag" style="${tagStyle}">${tagText}</span>
@@ -182,6 +183,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Clicking anywhere on the showreel slide background opens the fullscreen lightbox
+    document.addEventListener("click", (e) => {
+        const slide = e.target.closest(".hero-slide");
+        if (slide && slide.getAttribute("data-animation") === "stage-glow") {
+            // Ignore if clicking action buttons or links
+            if (e.target.closest(".hero-actions") || e.target.closest("a") || e.target.closest("button")) return;
+            
+            const btn = slide.querySelector(".play-showreel-btn");
+            if (btn) btn.click();
+        }
+    });
+
     // 3. Slider Navigation Controls
     let currentSlide = 0;
     const slides = document.querySelectorAll(".hero-slide");
@@ -192,9 +205,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateSlider() {
         slides.forEach((slide, idx) => {
+            const videoContainer = document.getElementById("showreel-video-container");
             if (idx === currentSlide) {
                 slide.classList.add("active");
                 dots[idx].classList.add("active");
+                
+                // Mount YouTube loop preview if active
+                if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
+                    if (!videoContainer.querySelector("iframe")) {
+                        videoContainer.innerHTML = `
+                            <iframe src="https://www.youtube.com/embed/GyI6HRA3uzU?autoplay=1&mute=1&loop=1&playlist=GyI6HRA3uzU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1" 
+                                    frameborder="0" 
+                                    allow="autoplay; encrypted-media"></iframe>
+                        `;
+                        // Fade in the iframe opacity smoothly
+                        setTimeout(() => {
+                            const iframe = videoContainer.querySelector("iframe");
+                            if (iframe) iframe.style.opacity = "0.55";
+                        }, 300);
+                    }
+                }
                 
                 // Trigger canvas effect update
                 const animType = slide.getAttribute("data-animation");
@@ -205,6 +235,11 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 slide.classList.remove("active");
                 dots[idx].classList.remove("active");
+                
+                // Unmount YouTube loop preview if inactive to save resources
+                if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
+                    videoContainer.innerHTML = "";
+                }
             }
         });
     }
