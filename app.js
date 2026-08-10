@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Mount HTML5 loop video preview if active
                 if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
                     if (!videoContainer.querySelector("video")) {
-                        const videoSrc = slideItem.getAttribute("data-video-preview") || "assets/videos/continuity_preview.mp4";
+                        const videoSrc = slide.getAttribute("data-video-preview") || "assets/videos/continuity_preview.mp4";
                         videoContainer.innerHTML = `
                             <video src="${videoSrc}" autoplay loop muted playsinline></video>
                         `;
