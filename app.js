@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentSlide = 0;
     const slides = document.querySelectorAll(".hero-slide");
     const dots = document.querySelectorAll(".slider-dot");
-    let slideInterval;
+    let slideTimeout;
     const intervalTime = 8000; // 8 seconds per slide
     const canvasEl = document.getElementById("hero-effect-canvas");
 
@@ -238,12 +238,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 slide.classList.remove("active");
                 dots[idx].classList.remove("active");
                 
-                // Unmount YouTube loop preview if inactive to save resources
+                // Unmount loop preview after transition finishes to save resources
                 if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
-                    videoContainer.innerHTML = "";
+                    setTimeout(() => {
+                        if (!slide.classList.contains("active")) {
+                            videoContainer.innerHTML = "";
+                        }
+                    }, 1000);
                 }
             }
         });
+
+        // Automatically reschedule slide transition timer
+        if (slides.length > 1) {
+            resetTimer();
+        }
     }
 
     function transitionToSlide(index) {
@@ -274,15 +283,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function goToSlide(index) {
         transitionToSlide(index);
-        resetTimer();
     }
 
     function startTimer() {
-        slideInterval = setInterval(nextSlide, intervalTime);
+        clearTimeout(slideTimeout);
+        
+        // Determine duration for the current active slide
+        const activeSlide = slides[currentSlide];
+        let duration = intervalTime; // Default 8000ms
+        
+        // If it's the featured play / showreel slide, make it stay longer (12 seconds)
+        if (activeSlide && activeSlide.getAttribute("data-animation") === "stage-glow") {
+            duration = 12000; // 12 seconds
+        }
+        
+        slideTimeout = setTimeout(nextSlide, duration);
     }
 
     function resetTimer() {
-        clearInterval(slideInterval);
+        clearTimeout(slideTimeout);
         startTimer();
     }
 
@@ -292,17 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (prevBtn && nextBtn) {
         prevBtn.addEventListener("click", () => {
             prevSlide();
-            resetTimer();
         });
         nextBtn.addEventListener("click", () => {
             nextSlide();
-            resetTimer();
         });
-    }
-
-    // Start auto-slide if we have more than 1 slide
-    if (slides.length > 1) {
-        startTimer();
     }
 
     // Run initial slider update to mount background video and trigger stage canvas glow
