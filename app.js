@@ -18,12 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Create static Showreel slide as the initial slide
     const showreelSlide = {
-        id: "showreel",
-        title: "True Life Productions",
-        author: "Honest, Truth-Based Theatre in Cambridge & London",
+        id: "continuity",
+        title: "Continuity (7)",
+        author: "By David Sear | Directed by Rosina Piovani",
         director: "",
-        synopsis: "Watch our theatrical showreel to see how we bring truth-based storytelling, school workshops, and community festivals to life.",
-        image: "assets/images/tlp_stage_background.jpg",
+        synopsis: "What happens when billionaires don't just control your life, they control your very existence? Stream our world-premiere production recorded live at The Cockpit London free in UHD.",
+        image: "assets/images/play-continuity-banner.jpg",
         accent: "#dfb75c",
         animationType: "stage-glow",
         isStudio: false,
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;";
             
             if (slide.isShowreel) {
-                tagText = "TLP SHOWREEL";
+                tagText = "FREE FULL PLAY";
                 tagStyle = "background: var(--primary); border: 1px solid var(--primary); color: #06070a; font-weight: 800;";
             }
             
@@ -84,9 +84,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (slide.isShowreel) {
                 actionsHtml = `
                     <button class="btn btn-primary play-showreel-btn" style="box-shadow: 0 4px 15px rgba(223, 183, 92, 0.35); display: flex; align-items: center; gap: 0.75rem;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M8 5v14l11-7z"/></svg> Watch Showreel
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M8 5v14l11-7z"/></svg> Watch Free Play
                     </button>
-                    <a href="#whats-on-grid" class="btn btn-outline scroll-to-season">Explore Season</a>
+                    <a href="${detailLink}" class="btn btn-outline">Explore Production</a>
                 `;
             } else {
                 actionsHtml = `
