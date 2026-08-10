@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
         animationType: "stage-glow",
         isStudio: false,
         isShowreel: true,
-        videoPreview: "assets/videos/video02.mp4"
+        videoPreview: "assets/videos/continuity_preview.mp4"
     };
     
     const finalSlides = [showreelSlide, ...slidesData];
@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Mount HTML5 loop video preview if active
                 if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
                     if (!videoContainer.querySelector("video")) {
-                        const videoSrc = slideItem.getAttribute("data-video-preview") || "assets/videos/video02.mp4";
+                        const videoSrc = slideItem.getAttribute("data-video-preview") || "assets/videos/continuity_preview.mp4";
                         videoContainer.innerHTML = `
                             <video src="${videoSrc}" autoplay loop muted playsinline></video>
                         `;
