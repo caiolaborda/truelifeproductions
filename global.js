@@ -237,7 +237,7 @@ const DEFAULT_PRODUCTIONS = [
         banner: "play-ernest.jpg",
         accent: "#dfb75c", // Gold / Studio accent
         animationType: "rose-petals",
-        detailsLink: "#",
+        detailsLink: "https://www.ticketsource.com/true-life-productions-cic/the-importance-of-being-earnest/e-xmapgr",
         showInHero: true,
         isStudio: true,
         pageType: "pre-prod",
@@ -285,7 +285,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.2";
+        const CURRENT_DB_VERSION = "3.3";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
