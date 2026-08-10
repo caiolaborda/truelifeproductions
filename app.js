@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${slide.isShowreel ? '<div class="hero-bg-video-container" id="showreel-video-container"></div>' : ''}
                 <div class="container hero-content-wrapper">
                     <div class="hero-text-content">
-                        <span class="slide-tag" style="${tagStyle}">${tagText}</span>
+                        ${slide.isShowreel ? '' : `<span class="slide-tag" style="${tagStyle}">${tagText}</span>`}
                         <h1 class="slide-title">${slide.title}</h1>
                         ${authorLine}
                         ${venueInfo}
