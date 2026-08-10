@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const video = videoContainer.querySelector("video");
                         if (video) {
                             video.addEventListener("canplay", () => {
-                                video.style.opacity = "0.85";
+                                video.style.opacity = "1";
                             });
                         }
                     }
