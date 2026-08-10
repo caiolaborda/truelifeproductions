@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const video = videoContainer.querySelector("video");
                         if (video) {
                             video.addEventListener("canplay", () => {
-                                video.style.opacity = "0.55";
+                                video.style.opacity = "0.85";
                             });
                         }
                     }
@@ -304,6 +304,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (slides.length > 1) {
         startTimer();
     }
+
+    // Run initial slider update to mount background video and trigger stage canvas glow
+    updateSlider();
 
     // 4. Stage Effects Canvas Manager
     class StageEffectsCanvas {
