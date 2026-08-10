@@ -16,11 +16,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const sliderContainer = document.getElementById("hero-slider");
     const dotsContainer = document.getElementById("hero-dots");
     
+    // Create static Showreel slide as the initial slide
+    const showreelSlide = {
+        id: "showreel",
+        title: "True Life Productions",
+        author: "Honest, Truth-Based Theatre in Cambridge & London",
+        director: "",
+        synopsis: "Watch our theatrical showreel to see how we bring truth-based storytelling, school workshops, and community festivals to life.",
+        image: "assets/images/tlp_stage_background.jpg",
+        accent: "#dfb75c",
+        animationType: "stage-glow",
+        isStudio: false,
+        isShowreel: true
+    };
+    
+    const finalSlides = [showreelSlide, ...slidesData];
+    
     if (sliderContainer && dotsContainer) {
         sliderContainer.innerHTML = "";
         dotsContainer.innerHTML = "";
         
-        slidesData.forEach((slide, idx) => {
+        finalSlides.forEach((slide, idx) => {
             // Slide Item
             const slideItem = document.createElement("div");
             slideItem.className = `hero-slide ${idx === 0 ? 'active' : ''}`;
@@ -28,10 +44,15 @@ document.addEventListener("DOMContentLoaded", () => {
             slideItem.setAttribute("data-accent", slide.accent || "#dfb75c");
             
             // Build the tag text depending on studio/full production
-            const tagText = slide.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
-            const tagStyle = slide.isStudio 
+            let tagText = slide.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
+            let tagStyle = slide.isStudio 
                 ? "background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; font-weight: 800;"
                 : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;";
+            
+            if (slide.isShowreel) {
+                tagText = "TLP SHOWREEL";
+                tagStyle = "background: var(--primary); border: 1px solid var(--primary); color: #06070a; font-weight: 800;";
+            }
             
             // Map production ID to custom detail page URLs
             let detailLink = `play-${slide.id}.html?id=${slide.id}`;
@@ -55,18 +76,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             }
 
+            const authorLine = slide.isShowreel
+                ? `<p class="slide-author">${slide.author}</p>`
+                : `<p class="slide-author">By ${slide.author} ${slide.director ? `| Directed by ${slide.director}` : ''}</p>`;
+
+            let actionsHtml = "";
+            if (slide.isShowreel) {
+                actionsHtml = `
+                    <button class="btn btn-primary play-showreel-btn" style="box-shadow: 0 4px 15px rgba(223, 183, 92, 0.35); display: flex; align-items: center; gap: 0.75rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><path d="M8 5v14l11-7z"/></svg> Watch Showreel
+                    </button>
+                    <a href="#whats-on-grid" class="btn btn-outline scroll-to-season">Explore Season</a>
+                `;
+            } else {
+                actionsHtml = `
+                    <a href="${ticketLink}" class="btn btn-primary" style="box-shadow: 0 4px 15px ${slide.accent}55;" ${ticketLink.startsWith("http") ? 'target="_blank"' : ''}>Book Tickets</a>
+                    <a href="${detailLink}" class="btn btn-outline">Explore Production</a>
+                `;
+            }
+
             slideItem.innerHTML = `
                 <div class="hero-bg-image" style="background-image: linear-gradient(180deg, rgba(6, 7, 10, 0.4) 0%, rgba(6, 7, 10, 0.95) 100%), url('${slide.image}');"></div>
                 <div class="container hero-content-wrapper">
                     <div class="hero-text-content">
                         <span class="slide-tag" style="${tagStyle}">${tagText}</span>
                         <h1 class="slide-title">${slide.title}</h1>
-                        <p class="slide-author">By ${slide.author} ${slide.director ? `| Directed by ${slide.director}` : ''}</p>
+                        ${authorLine}
                         ${venueInfo}
                         <p class="slide-synopsis">${slide.synopsis}</p>
                         <div class="hero-actions">
-                            <a href="${ticketLink}" class="btn btn-primary" style="box-shadow: 0 4px 15px ${slide.accent}55;" ${ticketLink.startsWith("http") ? 'target="_blank"' : ''}>Book Tickets</a>
-                            <a href="${detailLink}" class="btn btn-outline">Explore Production</a>
+                            ${actionsHtml}
                         </div>
                     </div>
                 </div>
@@ -81,6 +120,67 @@ document.addEventListener("DOMContentLoaded", () => {
             dotsContainer.appendChild(dot);
         });
     }
+
+    // Lightbox Logic for Homepage YouTube Showreel
+    const lightbox = document.getElementById("gallery-lightbox");
+    const lightboxContent = lightbox ? lightbox.querySelector(".lightbox-content") : null;
+    const lightboxClose = lightbox ? lightbox.querySelector(".lightbox-close") : null;
+
+    if (lightbox && lightboxContent && lightboxClose) {
+        // Event delegation for dynamically created play buttons
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest(".play-showreel-btn");
+            if (btn) {
+                e.preventDefault();
+                // Inject the YouTube iframe
+                lightboxContent.innerHTML = `
+                    <iframe src="https://www.youtube.com/embed/GyI6HRA3uzU?autoplay=1&mute=0" 
+                            title="True Life Productions Showreel" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen></iframe>
+                `;
+                lightbox.style.display = "flex";
+                lightbox.style.opacity = "0";
+                setTimeout(() => {
+                    lightbox.style.opacity = "1";
+                }, 10);
+            }
+        });
+
+        // Close Lightbox
+        lightboxClose.addEventListener("click", () => {
+            lightbox.style.opacity = "0";
+            setTimeout(() => {
+                lightbox.style.display = "none";
+                lightboxContent.innerHTML = ""; // Stop the video
+            }, 300);
+        });
+
+        // Close on overlay click
+        lightbox.addEventListener("click", (e) => {
+            if (e.target === lightbox) {
+                lightboxClose.click();
+            }
+        });
+    }
+
+    // Smooth scroll for "Explore Season" button
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".scroll-to-season");
+        if (btn) {
+            e.preventDefault();
+            const target = document.getElementById("whats-on-grid");
+            if (target) {
+                const headerHeight = document.querySelector(".global-header")?.offsetHeight || 90;
+                const targetPosition = target.getBoundingClientRect().top + window.scrollY - headerHeight;
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: "smooth"
+                });
+            }
+        }
+    });
 
     // 3. Slider Navigation Controls
     let currentSlide = 0;
