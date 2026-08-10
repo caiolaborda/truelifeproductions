@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
             slideItem.setAttribute("data-video-preview", slide.videoPreview || "");
             
             // Build the tag text depending on studio/full production
-            let tagText = slide.isStudio ? "TLP STUDIO PRODUCTION" : "FULL TLP PRODUCTION";
+            let tagText = slide.isStudio ? "TLP STUDIO PRODUCTION" : "TLP PRODUCTION";
             let tagStyle = slide.isStudio 
                 ? "background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; font-weight: 800;"
                 : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;";
