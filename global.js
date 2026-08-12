@@ -6,7 +6,7 @@
 const DEFAULT_SITE_SETTINGS = {
     title: "True Life Productions",
     email: "hello@truelifeproductions.co.uk",
-    phone: "01763 241000",
+    phone: "",
     registration: "Company number 16139873",
     address: "Royston, Hertfordshire",
     announcement: ""
@@ -73,7 +73,7 @@ const DEFAULT_PRODUCTIONS = [
         title: "Continuity (7)",
         author: "David Sear",
         director: "Rosina Piovani",
-        cast: "Christian Burton, Martin Maynard, Guy, Catherine Watson, Geraldine Hindley, Iain Mahony",
+        cast: "Christian Burton, Martin Maynard, Guy Asher, Catherine Watson, Geraldine Hindley, Iain Mahony, Michael Flintoff",
         year: "2025",
         status: "past",
         synopsis: "A satirical and darkly comic tale about humanity’s yearning for immortality – and what happens when technology and vast wealth manipulate the very essence of what makes us human. In a world where the pace of change is unprecedented and our ability to adapt to that change is struggling to evolve, Continuity asks the existential questions: 'What is the value of my continued existence? And, can I get a better phone?'",
@@ -150,7 +150,7 @@ const DEFAULT_PRODUCTIONS = [
         setDesign: "Playwright & Director: Victoria Vera<br>Performer & Choreographer: Carolina Piñeyro Duarte<br>Local UK Producer: Rosina Piovani (True Life Productions)<br>Stage Design: Malena Paz<br>Assistant Director: Valeria de Souza<br>Audiovisual: María Victoria Parada<br>Graphic Design: Natalia Vera<br>Sound Design: Romina Peluffo & Gonzalo Silva<br>Audio Description: Graciana Albertoni",
         year: "November 2026",
         status: "upcoming",
-        synopsis: "A raw and poetic exploration of motherhood, this one-night-only performance arrives in the UK directly from a hugely successful run in Uruguay. A haunting, unfiltered portrait of motherhood, identity, and the invisible storms we carry. Through memory and confession, the play confronts the invisible labour of parenting, the relentless pressure to be everything to everyone, and the longing to be truly seen.",
+        synopsis: "A raw and poetic exploration of motherhood, this one-night-only performance arrives in the UK directly from a hugely successful run in Uruguay. A haunting, unfiltered portrait of motherhood, identity, and the invisible storms we carry. Through memory and confession, the play confronts the invisible labour of parenting, the relentless pressure to be everything to everyone, and the longing to be truly seen. True Life Productions brings this play from Uruguay to the London the Voila! Theatre Festival produced by The Cockpit.",
         image: "play-how-to-cry.jpg",
         banner: "play-how-to-cry.jpg",
         accent: "#8f1b2c", // Crimson red
@@ -285,7 +285,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.3";
+        const CURRENT_DB_VERSION = "3.4";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
@@ -364,8 +364,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.tagName === "A") el.href = `mailto:${settings.email}`;
     });
     document.querySelectorAll(".meta-phone").forEach(el => {
-        el.textContent = settings.phone;
-        if (el.tagName === "A") el.href = `tel:${settings.phone.replace(/\s+/g, '')}`;
+        if (!settings.phone) {
+            const parentLi = el.closest("li");
+            const parentP = el.closest("p");
+            if (parentLi) parentLi.style.display = "none";
+            else if (parentP) parentP.style.display = "none";
+            else el.style.display = "none";
+        } else {
+            el.textContent = settings.phone;
+            if (el.tagName === "A") el.href = `tel:${settings.phone.replace(/\s+/g, '')}`;
+        }
     });
     document.querySelectorAll(".meta-address").forEach(el => {
         el.textContent = `${settings.address}, ${settings.registration}`;

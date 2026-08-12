@@ -944,3 +944,27 @@ body.mouse-active .mouse-spotlight {
     }
 }
 
+/* ==========================================================================
+   PLAY DETAILS PAGE - FONT SIZE ENLARGEMENT OVERRIDES
+   ========================================================================== */
+.play-info-label {
+    font-size: 0.85rem !important;
+}
+.play-info-value {
+    font-size: 1.15rem !important;
+}
+.play-synopsis-text {
+    font-size: 1.25rem !important;
+    line-height: 1.8 !important;
+}
+.play-content-body p, 
+.play-content-body li {
+    font-size: 1.15rem !important;
+    line-height: 1.8 !important;
+}
+.review-quote-text {
+    font-size: 1.2rem !important;
+    line-height: 1.7 !important;
+}
+
+
