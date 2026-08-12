@@ -153,15 +153,18 @@
 
         @media (max-width: 992px) {
             .prod-row, .prod-row.reverse {
-                grid-template-columns: 1fr;
+                display: flex;
+                flex-direction: column;
                 gap: 2.5rem;
             }
-            .prod-image-box {
+            .prod-row .prod-image-box,
+            .prod-row.reverse .prod-image-box {
                 aspect-ratio: 16/9;
-                order: -1; /* Keep image on top on mobile */
+                order: 1 !important;
             }
-            .prod-info-box {
-                order: 0;
+            .prod-row .prod-info-box,
+            .prod-row.reverse .prod-info-box {
+                order: 2 !important;
             }
         }
 
