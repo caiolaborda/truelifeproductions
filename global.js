@@ -74,7 +74,7 @@ const DEFAULT_PRODUCTIONS = [
         author: "David Sear",
         director: "Rosina Piovani",
         cast: "Christian Burton, Martin Maynard, Guy Asher, Catherine Watson, Geraldine Hindley, Iain Mahony, Michael Flintoff",
-        year: "2026",
+        year: "2025",
         status: "past",
         synopsis: "A satirical and darkly comic tale about humanity’s yearning for immortality – and what happens when technology and vast wealth manipulate the very essence of what makes us human. In a world where the pace of change is unprecedented and our ability to adapt to that change is struggling to evolve, Continuity asks the existential questions: 'What is the value of my continued existence? And, can I get a better phone?'",
         image: "assets/images/play-continuity-banner.jpg",
@@ -90,7 +90,7 @@ const DEFAULT_PRODUCTIONS = [
         venues: [
             {
                 name: "London Cockpit Theatre",
-                dates: "Summer 2026",
+                dates: "Summer 2025",
                 reviews: [
                     { quote: "An intriguing and challenging work.", reviewer: "Simon Ward, The PEG" },
                     { quote: "The piece raises challenging ethical questions.", reviewer: "John Cutler, The Reviews Hub" },
@@ -269,7 +269,7 @@ const DEFAULT_TEAM = [
         name: "David Sear",
         role: "Playwright & Director",
         image: "assets/images/david_sear.jpg",
-        bio: "David is an English graduate who began writing during lockdown having had a successful career as a technology entrepreneur. His first play, The Medici Stars, won the Cambridge Festival of Drama in 2022, and his second, Horrox, was the lead production in the Cambridge Festival 2023, and was featured in The Guardian. Continuity(7) a dystopian parable about the power of billionaires, transferred in 2026 from Cambridge to The Cockpit in Marylebone for TLP. He is also an experienced director having recently directed Present Laughter, Rosencrantz and Guildenstern are Dead, Horrox, A Winter’s Tale and A Few Good Men all at the ADC Theatre."
+        bio: "David is an English graduate who began writing during lockdown having had a successful career as a technology entrepreneur. His first play, The Medici Stars, won the Cambridge Festival of Drama in 2022, and his second, Horrox, was the lead production in the Cambridge Festival 2023, and was featured in The Guardian. Continuity(7) a dystopian parable about the power of billionaires, transferred in 2025 from Cambridge to The Cockpit in Marylebone for TLP. He is also an experienced director having recently directed Present Laughter, Rosencrantz and Guildenstern are Dead, Horrox, A Winter’s Tale and A Few Good Men all at the ADC Theatre."
     },
     {
         name: "Suzanne Emerson",
@@ -291,7 +291,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.8";
+        const CURRENT_DB_VERSION = "3.9";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {

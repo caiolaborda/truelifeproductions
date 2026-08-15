@@ -110,7 +110,11 @@
             z-index: 2;
             padding: 2rem;
             width: 100%;
-            transform: translateY(115px); /* slide offset hides bio initially */
+            height: 270px; /* Constant height ensures top elements align perfectly */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transform: translateY(175px); /* Move down by standard offset to hide bios */
             transition: var(--transition-smooth);
         }
 
