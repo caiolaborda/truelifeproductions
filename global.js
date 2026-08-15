@@ -255,13 +255,13 @@ const DEFAULT_PRODUCTIONS = [
 const DEFAULT_TEAM = [
     {
         name: "Rosina Piovani",
-        role: "Artistic Director",
+        role: "Co-Founder & Artistic Director",
         image: "assets/images/image02.jpg",
         bio: "Rosina Piovani (1982) is a theatre director, actor and producer. She holds a Bsc. in Drama from the Escuela Multidisciplinaria de Arte Dramatico Margarita Xirgu, from her native Uruguay and has been working in theatre professionally and semi-professionally since 2007. Working with TLP she directed Continuity(7) in 2025 (TLP's debut) and directed Poison in 2026. Rosina is also the lead of teaching at TLP, running all the school workshops."
     },
     {
         name: "Martin Maynard",
-        role: "Co-Founder & Actor",
+        role: "Co-Founder & Artistic Director",
         image: "assets/images/image21.jpg",
         bio: "After studying acting at The Royal Central School of Speech and Drama, Martin worked in Stage, TV, Film and Radio - notably in Peter Kosminsky’s BAFTA winning 'The Government Inspector'. In 2024 Martin co-founded True Life Productions. He also leads the Cambridge Meisner Studio to pass on acting knowledge to the next generation."
     },
@@ -285,7 +285,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.5";
+        const CURRENT_DB_VERSION = "3.6";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {

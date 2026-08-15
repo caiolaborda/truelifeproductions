@@ -52,8 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;";
             
             if (slide.isShowreel) {
-                tagText = "FREE FULL PLAY";
-                tagStyle = "background: var(--primary); border: 1px solid var(--primary); color: #06070a; font-weight: 800;";
+                tagText = "PAST PRODUCTION";
+                tagStyle = "background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #ffffff; font-weight: 800;";
             }
             
             // Map production ID to custom detail page URLs
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${slide.isShowreel ? '<div class="hero-bg-video-container" id="showreel-video-container"></div>' : ''}
                 <div class="container hero-content-wrapper">
                     <div class="hero-text-content">
-                        ${slide.isShowreel ? '' : `<span class="slide-tag" style="${tagStyle}">${tagText}</span>`}
+                        <span class="slide-tag" style="${tagStyle}">${tagText}</span>
                         <h1 class="slide-title">${slide.title}</h1>
                         ${authorLine}
                         ${venueInfo}
