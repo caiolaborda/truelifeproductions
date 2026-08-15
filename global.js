@@ -151,8 +151,8 @@ const DEFAULT_PRODUCTIONS = [
         year: "November 2026",
         status: "upcoming",
         synopsis: "A raw and poetic exploration of motherhood, this one-night-only performance arrives in the UK directly from a hugely successful run in Uruguay. A haunting, unfiltered portrait of motherhood, identity, and the invisible storms we carry. Through memory and confession, the play confronts the invisible labour of parenting, the relentless pressure to be everything to everyone, and the longing to be truly seen. True Life Productions brings this play from Uruguay to the London the Voila! Theatre Festival produced by The Cockpit.",
-        image: "play-how-to-cry-v2.jpg",
-        banner: "play-how-to-cry-v2.jpg",
+        image: "play-how-to-cry-v3.jpg",
+        banner: "play-how-to-cry-v3.jpg",
         accent: "#8f1b2c", // Crimson red
         animationType: "dripping-rain",
         detailsLink: "#",
@@ -165,7 +165,7 @@ const DEFAULT_PRODUCTIONS = [
                 name: "The Space Theatre, London",
                 dates: "6th November 2026 (Voila! Theatre Festival by The Cockpit)",
                 reviews: [],
-                images: ["play-how-to-cry-v2.jpg"]
+                images: ["play-how-to-cry-v3.jpg"]
             }
         ]
     },
@@ -291,7 +291,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.9";
+        const CURRENT_DB_VERSION = "4.0";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
