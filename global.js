@@ -266,6 +266,12 @@ const DEFAULT_TEAM = [
         bio: "After studying acting at The Royal Central School of Speech and Drama, Martin worked in Stage, TV, Film and Radio - notably in Peter Kosminsky’s BAFTA winning 'The Government Inspector'. In 2024 Martin co-founded True Life Productions. He also leads the Cambridge Meisner Studio to pass on acting knowledge to the next generation."
     },
     {
+        name: "David Sear",
+        role: "Playwright & Director",
+        image: "assets/images/david_sear.jpg",
+        bio: "David is an English graduate who began writing during lockdown having had a successful career as a technology entrepreneur. His first play, The Medici Stars, won the Cambridge Festival of Drama in 2022, and his second, Horrox, was the lead production in the Cambridge Festival 2023, and was featured in The Guardian. Continuity(7) a dystopian parable about the power of billionaires, transferred in 2026 from Cambridge to The Cockpit in Marylebone for TLP. He is also an experienced director having recently directed Present Laughter, Rosencrantz and Guildenstern are Dead, Horrox, A Winter’s Tale and A Few Good Men all at the ADC Theatre."
+    },
+    {
         name: "Suzanne Emerson",
         role: "Set Designer",
         image: "assets/images/image17.jpg",
@@ -285,7 +291,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "3.6";
+        const CURRENT_DB_VERSION = "3.7";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
