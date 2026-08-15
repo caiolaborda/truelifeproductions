@@ -135,14 +135,14 @@
         }
 
         .team-card-bio {
-            font-size: 0.9rem;
-            line-height: 1.6;
+            font-size: 0.85rem;
+            line-height: 1.5;
             color: var(--text-muted);
             opacity: 0;
             max-height: 0;
             overflow-y: auto;
             margin-top: 0;
-            transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
+            transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease, padding-top 0.4s ease;
             scrollbar-width: none; /* Hide scrollbar for clean aesthetic */
         }
 
@@ -165,10 +165,14 @@
             background: linear-gradient(180deg, rgba(6,7,10,0.3) 0%, rgba(6,7,10,0.98) 50%);
         }
 
+        .team-card:hover .team-card-content {
+            padding: 1.5rem 2rem 1.25rem 2rem; /* Condense padding on hover to maximize vertical space */
+        }
+
         .team-card:hover .team-card-bio {
             opacity: 1;
-            max-height: 240px; /* Comfortably displays David's bio without clipping */
-            margin-top: 1.25rem;
+            max-height: 280px; /* Comfortably displays David's bio completely without scrolling */
+            margin-top: 1rem;
             transition-delay: 0.1s;
         }
 
