@@ -968,3 +968,17 @@ body.mouse-active .mouse-spotlight {
 }
 
 
+
+/* Responsive Grid Overrides */
+@media (max-width: 992px) {
+    .home-portals-grid {
+        grid-template-columns: 1fr !important;
+        gap: 3rem !important;
+    }
+    .footer-cta-divider {
+        border-left: none !important;
+        padding-left: 0 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 3rem;
+    }
+}

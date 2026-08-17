@@ -195,6 +195,10 @@
             .team-card::after {
                 background: linear-gradient(180deg, rgba(6,7,10,0.2) 0%, rgba(6,7,10,0.95) 60%);
             }
+            .about-video-grid {
+                grid-template-columns: 1fr !important;
+                gap: 2.5rem !important;
+            }
         }
     </style>
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
@@ -263,7 +267,7 @@
                         "Aiming to link communities with performing arts, creating safe places for expression, building emotional connections, and celebrating local identities. We prioritize human connection and the search for truth in every actor's work."
                     </p>
                     <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">True Life Productions CIC Charter</span>
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">True Life Productions CIC</span>
                     </div>
                 </div>
             </div>
@@ -274,9 +278,9 @@
     <section style="background: rgba(223, 183, 92, 0.02); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
         <div class="spotlight-glow" style="top: 10%; right: 5%;"></div>
         <div class="container">
-            <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 4rem; align-items: center;" class="reveal">
+            <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 4rem; align-items: center;" class="about-video-grid reveal">
                 <div class="video-player-container" style="position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 15px 35px rgba(0,0,0,0.6); aspect-ratio: 16/9; background: var(--bg-darker);">
-                    <video id="about-showreel" controls style="width: 100%; height: 100%; object-fit: cover;" poster="assets/videos/video03_poster.jpg">
+                    <video id="about-showreel" controls playsinline preload="metadata" style="width: 100%; height: 100%; object-fit: cover;" poster="assets/videos/video03_poster.jpg">
                         <source src="assets/videos/video03.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
