@@ -313,16 +313,23 @@
                 let year = yearMatch ? parseInt(yearMatch[0]) : 2026;
                 
                 let seasonOffset = 0;
-                if (str.includes("spring")) {
-                    seasonOffset = 0.25;
-                } else if (str.includes("summer")) {
-                    seasonOffset = 0.5;
-                } else if (str.includes("autumn") || str.includes("fall")) {
-                    seasonOffset = 0.75;
-                } else if (str.includes("winter")) {
-                    seasonOffset = 0.9;
-                } else if (str.includes("-")) {
-                    seasonOffset = 0.8;
+                const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+                months.forEach((m, i) => {
+                    if (str.includes(m)) seasonOffset = (i + 1) / 12;
+                });
+                
+                if (seasonOffset === 0) {
+                    if (str.includes("spring")) {
+                        seasonOffset = 0.25;
+                    } else if (str.includes("summer")) {
+                        seasonOffset = 0.5;
+                    } else if (str.includes("autumn") || str.includes("fall")) {
+                        seasonOffset = 0.75;
+                    } else if (str.includes("winter")) {
+                        seasonOffset = 0.9;
+                    } else if (str.includes("-")) {
+                        seasonOffset = 0.8;
+                    }
                 }
                 return year + seasonOffset;
             }

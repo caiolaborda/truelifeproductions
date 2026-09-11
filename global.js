@@ -175,7 +175,7 @@ const DEFAULT_PRODUCTIONS = [
         author: "John Drinkwater",
         director: "Rosina Piovani",
         setDesign: "Adapted and directed by Rosina Piovani (True Life Productions)<br>Produced by Dan Lentell (49Knights)",
-        year: "October 2, 2026",
+        year: "2nd & 3rd October 2026",
         status: "upcoming",
         synopsis: "True Life Productions, in collaboration with 49Knights, presents a compelling new adaptation of John Drinkwater's classic historical drama. This 60-minute live radio drama (performed before an audience) brings fresh life and a contemporary perspective to a classic. It's a powerful character study exploring the tensions between love, power, and destiny through Mary Stuart's relationships with David Riccio, Lord Darnley, and the Earl of Bothwell.",
         image: "play-mary.jpg",
@@ -190,7 +190,7 @@ const DEFAULT_PRODUCTIONS = [
         venues: [
             {
                 name: "Peterborough Cathedral",
-                dates: "2nd October 2026",
+                dates: "2nd & 3rd October 2026",
                 reviews: [],
                 images: ["play-mary.jpg"]
             }
@@ -291,7 +291,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "4.0";
+        const CURRENT_DB_VERSION = "4.1";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
