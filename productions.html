@@ -422,16 +422,14 @@
                                     <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">See Reviews</a>
                                     <button class="btn btn-outline gallery-trigger" data-id="${p.id}" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15); cursor: pointer;">Gallery</button>
                                 `;
-                            } else {
-                                let bookingBtn = "";
-                                if (p.detailsLink && p.detailsLink.startsWith("http")) {
-                                    bookingBtn = `<a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>`;
-                                } else {
-                                    bookingBtn = `<a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>`;
-                                }
+                            } else if (p.detailsLink && p.detailsLink.startsWith("http")) {
                                 actionButtonsHtml = `
                                     <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">View Details</a>
-                                    ${bookingBtn}
+                                    <a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>
+                                `;
+                            } else {
+                                actionButtonsHtml = `
+                                    <a href="${detailLink}" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
                                 `;
                             }
 
@@ -441,7 +439,7 @@
                             card.innerHTML = `
                                 <div class="prod-image-box">
                                     <img src="${p.image}" alt="${p.title}">
-                                    <span class="prod-status-tag" style="background: ${tagBg}">${p.status}</span>
+                                    <span class="prod-status-tag" style="background: ${p.accent || tagBg}">${p.customStatus || p.status}</span>
                                 </div>
                                 <div class="prod-info-box">
                                     <span style="${tagStyle}">${tagText}</span>

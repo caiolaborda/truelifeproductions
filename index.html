@@ -1041,6 +1041,8 @@
                         let statusTagHtml = "";
                         if (isPast) {
                             statusTagHtml = `<span style="background: rgba(2,3,5,0.75); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">Past Run</span>`;
+                        } else if (p.customStatus) {
+                            statusTagHtml = `<span style="background: #6c5b7b; border: 1px solid #6c5b7b; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase;">${p.customStatus}</span>`;
                         } else if (isNext) {
                             statusTagHtml = `<span style="background: #5c3ce6; border: 1px solid #5c3ce6; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 2px 8px rgba(92,60,230,0.45);">Next Show</span>`;
                         }
@@ -1069,12 +1071,14 @@
                         let buttonsHtml = "";
                         if (isPast) {
                             buttonsHtml = `<a href="${detailLink}#reviews" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; width: 100%; text-align: center; display: block; border-color: rgba(255,255,255,0.2);">See Images and Reviews</a>`;
-                        } else {
-                            const bookLink = (p.detailsLink && p.detailsLink.startsWith("http")) ? p.detailsLink : `contact.html?subject=Tickets: ${encodeURIComponent(p.title)}`;
-                            const isExternal = (p.detailsLink && p.detailsLink.startsWith("http")) ? `target="_blank"` : "";
+                        } else if (p.detailsLink && p.detailsLink.startsWith("http")) {
                             buttonsHtml = `
                                 <a href="${detailLink}" class="btn btn-outline" style="padding: 0.5rem 1.2rem; font-size: 0.75rem;">More Info</a>
-                                <a href="${bookLink}" ${isExternal} class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>
+                                <a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700;">Book Now</a>
+                            `;
+                        } else {
+                            buttonsHtml = `
+                                <a href="${detailLink}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.75rem; font-weight: 700; width: 100%; text-align: center;">Explore Production</a>
                             `;
                         }
 

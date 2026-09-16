@@ -229,7 +229,7 @@
         <canvas class="play-hero-canvas" id="embers-canvas"></canvas>
         
         <div class="container play-hero-content reveal">
-            <span class="play-title-tag">Upcoming Production</span>
+            <span class="play-title-tag">Soon on platforms, stay tuned for more info</span>
             <h1 class="play-main-title">Mary Stuart</h1>
             <p class="play-main-subtitle">By John Drinkwater | Directed by Rosina Piovani</p>
         </div>
@@ -245,7 +245,7 @@
                     <!-- Loaded dynamically -->
                 </div>
                 
-                <a href="#" class="btn btn-primary" style="text-align: center; justify-content: center; width: 100%;">Book / Enquire Now</a>
+                <a href="index.html#newsletter" class="btn btn-primary" style="text-align: center; justify-content: center; width: 100%;">Stay Tuned for Updates</a>
                 <a href="productions.html" class="btn btn-outline" style="text-align: center; justify-content: center; width: 100%;">← Back to Productions</a>
             </div>
             
@@ -320,11 +320,14 @@
                 // Update Hero Header & Tags
                 const titleTag = document.querySelector(".play-title-tag");
                 if (titleTag) {
-                    titleTag.textContent = play.isStudio ? "TLP Studio Production" : "TLP Production";
-                    titleTag.style.backgroundColor = play.isStudio ? "#dfb75c" : "#8f1b2c";
-                    titleTag.style.borderColor = play.isStudio ? "#dfb75c" : "#8f1b2c";
-                    titleTag.style.color = play.isStudio ? "#06070a" : "#ffffff";
-                    titleTag.style.fontWeight = "800";
+                    titleTag.textContent = play.customTag || "Soon on platforms, stay tuned for more info";
+                    titleTag.style.backgroundColor = "rgba(108, 91, 123, 0.4)";
+                    titleTag.style.borderColor = "#6c5b7b";
+                    titleTag.style.color = "#ffffff";
+                    titleTag.style.fontWeight = "700";
+                    titleTag.style.letterSpacing = "0.08em";
+                    titleTag.style.textTransform = "none";
+                    titleTag.style.padding = "0.4rem 1.2rem";
                 }
 
                 const mainTitle = document.querySelector(".play-main-title");
@@ -341,7 +344,6 @@
                 // Update Sidebar
                 const sidebarPanel = document.querySelector(".play-info-panel");
                 if (sidebarPanel) {
-                    let venuesList = play.venues.map(v => `${v.name}<br><small style="color:var(--text-muted);">${v.dates}</small>`).join("<br><br>");
                     sidebarPanel.innerHTML = `
                         <div class="play-info-item">
                             <div class="play-info-label">Playwright</div>
@@ -367,8 +369,12 @@
                             <div class="play-info-value">${play.setDesign}</div>
                         </div>` : ''}
                         <div class="play-info-item">
-                            <div class="play-info-label">Performance Venues</div>
-                            <div class="play-info-value">${venuesList}</div>
+                            <div class="play-info-label">Format</div>
+                            <div class="play-info-value">Recorded Audio Drama</div>
+                        </div>
+                        <div class="play-info-item">
+                            <div class="play-info-label">Availability</div>
+                            <div class="play-info-value" style="color: var(--primary);">Soon on platforms, stay tuned for more info</div>
                         </div>
                     `;
                 }
@@ -376,32 +382,25 @@
                 // Update Action Button
                 const actionBtn = document.querySelector(".play-sidebar .btn-primary");
                 if (actionBtn) {
-                    if (play.detailsLink && play.detailsLink !== "#" && (play.detailsLink.startsWith("http") || play.detailsLink.includes(".html") && !play.detailsLink.startsWith("play-"))) {
-                        actionBtn.href = play.detailsLink;
-                        actionBtn.textContent = "Book Tickets Now";
-                        actionBtn.target = "_blank";
-                    } else {
-                        actionBtn.href = `contact.html?subject=Inquiry about ${encodeURIComponent(play.title)}`;
-                        actionBtn.textContent = play.pageType === "pre-prod" ? "Book / Enquire Now" : "Enquire About Production";
-                    }
+                    actionBtn.href = "index.html#newsletter";
+                    actionBtn.textContent = "Stay Tuned for Updates";
                 }
 
                 // Update Synopsis
                 const synopsisText = document.querySelector(".play-synopsis-text");
                 if (synopsisText) synopsisText.textContent = play.synopsis;
 
-                // Update Reviews list based on Page Type
+                // Update Platform Release Box
                 const bodyContainer = document.querySelector(".play-content-body");
                 if (bodyContainer) {
-                    const preProdHtml = `
+                    const releaseCardHtml = `
                         <div class="glass-card" style="padding: 2.2rem; margin-top: 3.5rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); text-align: left;">
-                            <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 1rem; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Booking & Tickets</h4>
-                            <p style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6;">Tickets for upcoming runs are available directly through the Box Offices of our performing venues. You can pre-register or enquire below for group bookings, priority alerts, and cast updates.</p>
-                            ${(play.detailsLink && play.detailsLink.startsWith("http")) ? `<a href="${play.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Book Tickets</a>` : `<a href="contact.html?subject=Ticket%20Booking:%20${encodeURIComponent(play.title)}" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Enquire / Book Tickets</a>`}
+                            <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 1rem; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Platform Release</h4>
+                            <p style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6;">Mary Stuart is being recorded as a dedicated audio drama production for release on digital and streaming platforms. Sign up to our newsletter for release announcements and platform links.</p>
+                            <a href="index.html#newsletter" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Join Newsletter for Release Alerts</a>
                         </div>
-
                     `;
-                    bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
+                    bodyContainer.insertAdjacentHTML("beforeend", releaseCardHtml);
                 }
             }
         });

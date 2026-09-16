@@ -47,9 +47,12 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Build the tag text depending on studio/full production
             let tagText = slide.isStudio ? "TLP STUDIO PRODUCTION" : "TLP PRODUCTION";
+            if (slide.customTag) {
+                tagText = slide.customTag.toUpperCase();
+            }
             let tagStyle = slide.isStudio 
                 ? "background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; font-weight: 800;"
-                : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;";
+                : (slide.customTag ? "background: rgba(108, 91, 123, 0.6); border: 1px solid #6c5b7b; color: #ffffff; font-weight: 800;" : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; font-weight: 800;");
             
             if (slide.isShowreel) {
                 tagText = "PAST PRODUCTION";
@@ -90,10 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     </button>
                     <a href="${detailLink}" class="btn btn-outline">Explore Production</a>
                 `;
+            } else if (slide.detailsLink && slide.detailsLink.startsWith("http")) {
+                actionsHtml = `
+                    <a href="${slide.detailsLink}" class="btn btn-primary" style="box-shadow: 0 4px 15px ${slide.accent}55;" target="_blank">Book Tickets</a>
+                    <a href="${detailLink}" class="btn btn-outline">Explore Production</a>
+                `;
             } else {
                 actionsHtml = `
-                    <a href="${ticketLink}" class="btn btn-primary" style="box-shadow: 0 4px 15px ${slide.accent}55;" ${ticketLink.startsWith("http") ? 'target="_blank"' : ''}>Book Tickets</a>
-                    <a href="${detailLink}" class="btn btn-outline">Explore Production</a>
+                    <a href="${detailLink}" class="btn btn-primary" style="box-shadow: 0 4px 15px ${slide.accent}55;">Explore Production</a>
                 `;
             }
 
