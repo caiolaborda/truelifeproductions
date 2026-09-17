@@ -155,7 +155,7 @@ const DEFAULT_PRODUCTIONS = [
         banner: "play-how-to-cry-v3.jpg",
         accent: "#8f1b2c", // Crimson red
         animationType: "dripping-rain",
-        detailsLink: "#",
+        detailsLink: "https://space.org.uk/event/how-to-cry-in-a-house-full-of-children/",
         showInHero: true,
         isStudio: false,
         pageType: "pre-prod",
@@ -293,7 +293,7 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "4.2";
+        const CURRENT_DB_VERSION = "4.3";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
