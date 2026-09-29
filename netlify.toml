@@ -3,6 +3,7 @@
 
 [build]
   publish = "."
+  functions = "netlify/functions"
 
 [build.processing]
   # Enable built-in optimization on deploy

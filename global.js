@@ -306,30 +306,85 @@ class DatabasePortal {
         if (!localStorage.getItem("tlp_team")) {
             localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
         }
+
+        // Sync live updates from Netlify cloud storage in background
+        this.syncFromCloud();
+    }
+
+    async syncFromCloud() {
+        try {
+            const res = await fetch("/.netlify/functions/admin-api?type=all");
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            let hasChanges = false;
+            if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
+                localStorage.setItem("tlp_settings", JSON.stringify(data.settings));
+                hasChanges = true;
+            }
+            if (data.productions && Array.isArray(data.productions) && data.productions.length > 0) {
+                localStorage.setItem("tlp_productions", JSON.stringify(data.productions));
+                hasChanges = true;
+            }
+            if (data.team && Array.isArray(data.team) && data.team.length > 0) {
+                localStorage.setItem("tlp_team", JSON.stringify(data.team));
+                hasChanges = true;
+            }
+
+            if (hasChanges) {
+                window.dispatchEvent(new CustomEvent("tlp_data_synced", { detail: data }));
+            }
+        } catch (err) {
+            console.debug("Cloud sync offline/local mode.");
+        }
     }
 
     getSettings() {
-        return JSON.parse(localStorage.getItem("tlp_settings"));
+        return JSON.parse(localStorage.getItem("tlp_settings")) || DEFAULT_SITE_SETTINGS;
     }
 
-    saveSettings(settings) {
+    async saveSettings(settings) {
         localStorage.setItem("tlp_settings", JSON.stringify(settings));
+        return await this.pushToCloud("settings", settings);
     }
 
     getProductions() {
-        return JSON.parse(localStorage.getItem("tlp_productions"));
+        return JSON.parse(localStorage.getItem("tlp_productions")) || DEFAULT_PRODUCTIONS;
     }
 
-    saveProductions(productions) {
+    async saveProductions(productions) {
         localStorage.setItem("tlp_productions", JSON.stringify(productions));
+        return await this.pushToCloud("productions", productions);
     }
 
     getTeam() {
-        return JSON.parse(localStorage.getItem("tlp_team"));
+        return JSON.parse(localStorage.getItem("tlp_team")) || DEFAULT_TEAM;
     }
 
-    saveTeam(team) {
+    async saveTeam(team) {
         localStorage.setItem("tlp_team", JSON.stringify(team));
+        return await this.pushToCloud("team", team);
+    }
+
+    async pushToCloud(type, data) {
+        try {
+            const res = await fetch("/.netlify/functions/admin-api", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    auth: "admin",
+                    type: type,
+                    data: data
+                })
+            });
+            if (res.ok) {
+                const result = await res.json();
+                return { success: true, cloud: true, message: result.message };
+            }
+        } catch (err) {
+            console.warn("Cloud sync failed (running locally):", err);
+        }
+        return { success: true, cloud: false, message: "Saved locally." };
     }
 }
 

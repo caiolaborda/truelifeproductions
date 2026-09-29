@@ -1,0 +1,12 @@
+{
+  "name": "true-life-productions",
+  "version": "1.0.0",
+  "description": "True Life Productions CIC Website and Admin Portal",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

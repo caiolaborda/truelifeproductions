@@ -406,6 +406,8 @@
             <ul class="admin-sidebar-menu">
                 <li><button class="admin-tab-btn active" onclick="switchTab('settings')">General Settings</button></li>
                 <li><button class="admin-tab-btn" onclick="switchTab('plays')">Manage Plays</button></li>
+                <li><button class="admin-tab-btn" onclick="switchTab('team')">Meet The Team</button></li>
+                <li><button class="admin-tab-btn" onclick="switchTab('submissions')">Form Inquiries</button></li>
             </ul>
             <div style="padding: 0 2rem;">
                 <button class="btn btn-outline" style="width: 100%; padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="logoutAdmin()">Log Out</button>
@@ -418,7 +420,7 @@
             <!-- Tab 1: General Settings Panel -->
             <div class="admin-tab-panel active" id="panel-settings">
                 <h2>General Site Settings</h2>
-                <p>Modify basic metadata and text displayed across pages.</p>
+                <p>Modify basic metadata and text displayed across pages. Changes automatically sync globally to the live website.</p>
                 
                 <div class="glass-card" style="margin-top: 2rem;">
                     <form onsubmit="saveSiteSettings(event)">
@@ -455,7 +457,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save Site Settings</button>
+                        <button type="submit" class="btn btn-primary" id="save-settings-btn" style="margin-top: 1rem;">Save & Sync Site Settings</button>
                     </form>
                 </div>
             </div>
@@ -465,7 +467,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h2>Manage Plays & Seasons</h2>
-                        <p>Create, update, or remove productions displayed in the home banner and the archives grid.</p>
+                        <p>Create, update, or remove productions displayed on the home slider and season grid.</p>
                     </div>
                     <button class="btn btn-primary" onclick="openPlayModal('create')">+ Add Production</button>
                 </div>
@@ -476,7 +478,7 @@
                             <tr>
                                 <th>Play Title</th>
                                 <th>Author / Director</th>
-                                <th>Year</th>
+                                <th>Year / Dates</th>
                                 <th>Status</th>
                                 <th>Theme Accent</th>
                                 <th>Animation</th>
@@ -487,6 +489,70 @@
                             <!-- Javascript renders rows dynamically -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Manage Team Panel -->
+            <div class="admin-tab-panel" id="panel-team">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2>Meet The Creative Team</h2>
+                        <p>Manage directors, playwrights, and creatives displayed in the About Us team section.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openTeamModal('create')">+ Add Team Member</button>
+                </div>
+
+                <div class="plays-table-container">
+                    <table class="plays-table">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Name</th>
+                                <th>Role / Title</th>
+                                <th>Biography</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-table-body">
+                            <!-- Javascript renders rows dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: Form Inquiries & Submissions Panel -->
+            <div class="admin-tab-panel" id="panel-submissions">
+                <h2>Form Inquiries & Applications</h2>
+                <p>Access form submissions delivered through Netlify Forms.</p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    
+                    <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(223, 183, 92, 0.3);">
+                        <div>
+                            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">Artist Network</span>
+                            <h3 style="font-size: 1.4rem; color: #fff; margin-top: 0.5rem; margin-bottom: 1rem;">Artist Registry Submissions</h3>
+                            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                                View applications, audition notes, spotlight links, and discipline registrations submitted through the <em>For Artists</em> page.
+                            </p>
+                        </div>
+                        <a href="https://app.netlify.com/sites/truelifeproductions/forms" target="_blank" class="btn btn-primary" style="text-align: center; justify-content: center;">
+                            Open Netlify Forms Inbox ↗
+                        </a>
+                    </div>
+
+                    <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(255, 255, 255, 0.1);">
+                        <div>
+                            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700;">General Inquiries</span>
+                            <h3 style="font-size: 1.4rem; color: #fff; margin-top: 0.5rem; margin-bottom: 1rem;">Contact Us Messages</h3>
+                            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                                All incoming messages from the Contact Us page are routed directly to <strong>hello@truelifeproductions.co.uk</strong> and backed up on Netlify Forms.
+                            </p>
+                        </div>
+                        <a href="https://app.netlify.com/sites/truelifeproductions/forms" target="_blank" class="btn btn-outline" style="text-align: center; justify-content: center;">
+                            View Submissions Log ↗
+                        </a>
+                    </div>
+
                 </div>
             </div>
 
@@ -619,6 +685,46 @@
                 <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem;">
                     <button type="button" class="btn btn-outline" onclick="closePlayModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Production</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit/Create Team Member Modal -->
+    <div class="modal-overlay" id="team-modal-overlay">
+        <div class="glass-card admin-modal" id="team-modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="team-modal-action-title">Add Team Member</h3>
+                <button class="close-modal" onclick="closeTeamModal()">×</button>
+            </div>
+            
+            <form onsubmit="handleTeamSubmit(event)">
+                <input type="hidden" id="team-form-mode" value="create">
+                <input type="hidden" id="team-form-index">
+                
+                <div class="admin-form-group">
+                    <label for="team-name">Full Name</label>
+                    <input type="text" id="team-name" class="admin-control" placeholder="e.g. Rosina Piovani" required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="team-role">Role / Creative Title</label>
+                    <input type="text" id="team-role" class="admin-control" placeholder="e.g. Co-Founder & Artistic Director" required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="team-image">Photo Image URL / Path</label>
+                    <input type="text" id="team-image" class="admin-control" placeholder="e.g. assets/images/image02.jpg or https://..." required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="team-bio">Biography / Experience</label>
+                    <textarea id="team-bio" class="admin-control" rows="6" placeholder="Write full biography text..." required></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeTeamModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-team-btn">Save Team Member</button>
                 </div>
             </form>
         </div>

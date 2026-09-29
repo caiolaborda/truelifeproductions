@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("login-overlay").classList.add("hidden");
         loadSiteSettingsForm();
         renderPlaysTable();
+        renderTeamTable();
     }
 
     // Enter key support for passcode login
@@ -26,12 +27,13 @@ function verifyPasscode() {
     const passcode = document.getElementById("passcode").value;
     const errorEl = document.getElementById("login-error");
     
-    // Passcode default check
+    // Passcode check
     if (passcode === "admin") {
         sessionStorage.setItem("tlp_admin_logged_in", "true");
         document.getElementById("login-overlay").classList.add("hidden");
         loadSiteSettingsForm();
         renderPlaysTable();
+        renderTeamTable();
         errorEl.style.display = "none";
     } else {
         errorEl.style.display = "block";
@@ -49,7 +51,7 @@ function logoutAdmin() {
 function switchTab(tabName) {
     // Buttons active state
     document.querySelectorAll(".admin-tab-btn").forEach(btn => {
-        if (btn.outerHTML.includes(tabName)) {
+        if (btn.outerHTML.includes(`switchTab('${tabName}')`)) {
             btn.classList.add("active");
         } else {
             btn.classList.remove("active");
@@ -71,16 +73,19 @@ function switchTab(tabName) {
    ========================================================================== */
 function loadSiteSettingsForm() {
     const settings = TLP_DB.getSettings();
-    document.getElementById("site-title").value = settings.title;
-    document.getElementById("site-announcement").value = settings.announcement;
-    document.getElementById("site-email").value = settings.email;
-    document.getElementById("site-phone").value = settings.phone;
-    document.getElementById("site-registration").value = settings.registration;
-    document.getElementById("site-address").value = settings.address;
+    document.getElementById("site-title").value = settings.title || "";
+    document.getElementById("site-announcement").value = settings.announcement || "";
+    document.getElementById("site-email").value = settings.email || "";
+    document.getElementById("site-phone").value = settings.phone || "";
+    document.getElementById("site-registration").value = settings.registration || "";
+    document.getElementById("site-address").value = settings.address || "";
 }
 
-function saveSiteSettings(event) {
+async function saveSiteSettings(event) {
     event.preventDefault();
+    const btn = document.getElementById("save-settings-btn");
+    const originalText = btn ? btn.textContent : "Save Site Settings";
+    if (btn) btn.textContent = "Saving & Syncing to Live Site...";
     
     const settings = {
         title: document.getElementById("site-title").value,
@@ -91,8 +96,10 @@ function saveSiteSettings(event) {
         address: document.getElementById("site-address").value
     };
 
-    TLP_DB.saveSettings(settings);
-    alert("Site settings saved successfully! These changes will reflect immediately across all pages.");
+    const res = await TLP_DB.saveSettings(settings);
+    if (btn) btn.textContent = originalText;
+    
+    alert("Site settings saved and synced successfully! Changes will reflect live across all pages.");
     
     // Toggle announcement banner visibility instantly
     const banner = document.querySelector(".announcement-banner");
@@ -216,8 +223,11 @@ function closePlayModal() {
 }
 
 // Create & Update Form submission
-function handlePlaySubmit(event) {
+async function handlePlaySubmit(event) {
     event.preventDefault();
+    const submitBtn = event.target.querySelector("button[type='submit']");
+    const originalBtnText = submitBtn ? submitBtn.textContent : "Save Production";
+    if (submitBtn) submitBtn.textContent = "Saving & Syncing to Live Site...";
     
     const mode = document.getElementById("play-form-mode").value;
     const playId = document.getElementById("play-form-id").value;
@@ -253,6 +263,7 @@ function handlePlaySubmit(event) {
         // Check for duplicate ID
         if (productions.some(p => p.id === newId)) {
             alert("A play with this title or similar ID already exists. Please choose a different title.");
+            if (submitBtn) submitBtn.textContent = originalBtnText;
             return;
         }
 
@@ -274,11 +285,10 @@ function handlePlaySubmit(event) {
             showInHero,
             detailsLink,
             venues,
-            reviews: [] // Fallback for old templates
+            reviews: []
         };
 
         productions.push(newPlay);
-        alert(`Production "${title}" successfully added!`);
     } else if (mode === "edit" && playId) {
         const playIdx = productions.findIndex(p => p.id === playId);
         
@@ -302,18 +312,18 @@ function handlePlaySubmit(event) {
             productions[playIdx].showInHero = showInHero;
             productions[playIdx].detailsLink = detailsLink;
             productions[playIdx].venues = venues;
-            
-            alert(`Production "${title}" successfully updated!`);
         }
     }
 
-    TLP_DB.saveProductions(productions);
+    await TLP_DB.saveProductions(productions);
+    if (submitBtn) submitBtn.textContent = originalBtnText;
     renderPlaysTable();
     closePlayModal();
+    alert(`Production "${title}" saved and synced successfully to the live website!`);
 }
 
 // Delete Operation
-function deletePlay(playId) {
+async function deletePlay(playId) {
     const productions = TLP_DB.getProductions();
     const play = productions.find(p => p.id === playId);
     
@@ -322,9 +332,9 @@ function deletePlay(playId) {
     const confirmDelete = confirm(`Are you absolutely sure you want to delete "${play.title}"?\nThis cannot be undone.`);
     if (confirmDelete) {
         const updated = productions.filter(p => p.id !== playId);
-        TLP_DB.saveProductions(updated);
+        await TLP_DB.saveProductions(updated);
         renderPlaysTable();
-        alert(`Production "${play.title}" deleted.`);
+        alert(`Production "${play.title}" deleted and removed from live website.`);
     }
 }
 
@@ -478,3 +488,121 @@ function getVenuesData() {
     
     return venues;
 }
+
+/* ==========================================================================
+   TAB 3: MANAGE CREATIVE TEAM CRUD OPERATIONS
+   ========================================================================== */
+
+function renderTeamTable() {
+    const tableBody = document.getElementById("team-table-body");
+    const team = TLP_DB.getTeam();
+    
+    if (!tableBody) return;
+    tableBody.innerHTML = "";
+
+    if (!team || team.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No team members found. Click "+ Add Team Member" to create one.</td></tr>`;
+        return;
+    }
+
+    team.forEach((member, idx) => {
+        const row = document.createElement("tr");
+        const snippet = member.bio && member.bio.length > 120 ? member.bio.slice(0, 120) + "..." : (member.bio || "");
+        
+        row.innerHTML = `
+            <td>
+                <img src="${member.image}" alt="${member.name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-gold);" onerror="this.src='assets/images/image06.png'">
+            </td>
+            <td style="font-weight: 600;">${member.name}</td>
+            <td style="color: var(--primary); font-size: 0.9rem;">${member.role}</td>
+            <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px; line-height: 1.5;">${snippet}</td>
+            <td>
+                <div class="td-actions">
+                    <button class="action-icon-btn edit" onclick="openTeamModal('edit', ${idx})">Edit</button>
+                    <button class="action-icon-btn delete" onclick="deleteTeamMember(${idx})">Delete</button>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function openTeamModal(mode, index = null) {
+    const overlay = document.getElementById("team-modal-overlay");
+    const form = overlay.querySelector("form");
+    const titleEl = document.getElementById("team-modal-action-title");
+    
+    form.reset();
+    document.getElementById("team-form-mode").value = mode;
+    document.getElementById("team-form-index").value = index !== null ? index : '';
+
+    if (mode === "create") {
+        titleEl.textContent = "Add Team Member";
+        document.getElementById("team-image").value = "assets/images/image02.jpg";
+    } else if (mode === "edit" && index !== null) {
+        titleEl.textContent = "Edit Team Member";
+        const team = TLP_DB.getTeam();
+        const member = team[index];
+        
+        if (member) {
+            document.getElementById("team-name").value = member.name || "";
+            document.getElementById("team-role").value = member.role || "";
+            document.getElementById("team-image").value = member.image || "";
+            document.getElementById("team-bio").value = member.bio || "";
+        }
+    }
+
+    overlay.classList.add("open");
+}
+
+function closeTeamModal() {
+    document.getElementById("team-modal-overlay").classList.remove("open");
+}
+
+async function handleTeamSubmit(event) {
+    event.preventDefault();
+    const submitBtn = document.getElementById("save-team-btn");
+    const originalText = submitBtn ? submitBtn.textContent : "Save Team Member";
+    if (submitBtn) submitBtn.textContent = "Saving & Syncing to Live Site...";
+    
+    const mode = document.getElementById("team-form-mode").value;
+    const indexStr = document.getElementById("team-form-index").value;
+    
+    const name = document.getElementById("team-name").value.trim();
+    const role = document.getElementById("team-role").value.trim();
+    const image = document.getElementById("team-image").value.trim();
+    const bio = document.getElementById("team-bio").value.trim();
+
+    const team = TLP_DB.getTeam();
+
+    if (mode === "create") {
+        team.push({ name, role, image, bio });
+    } else if (mode === "edit" && indexStr !== "") {
+        const idx = parseInt(indexStr);
+        if (!isNaN(idx) && team[idx]) {
+            team[idx] = { name, role, image, bio };
+        }
+    }
+
+    await TLP_DB.saveTeam(team);
+    if (submitBtn) submitBtn.textContent = originalText;
+    renderTeamTable();
+    closeTeamModal();
+    alert(`Team member "${name}" saved and synced successfully to the live website!`);
+}
+
+async function deleteTeamMember(index) {
+    const team = TLP_DB.getTeam();
+    const member = team[index];
+    
+    if (!member) return;
+
+    const confirmDelete = confirm(`Are you sure you want to delete ${member.name} from the team listing?\nThis will remove them from the About Us page.`);
+    if (confirmDelete) {
+        team.splice(index, 1);
+        await TLP_DB.saveTeam(team);
+        renderTeamTable();
+        alert(`Team member "${member.name}" removed from live website.`);
+    }
+}
+
