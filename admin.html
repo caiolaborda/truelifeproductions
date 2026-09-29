@@ -3,131 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TLP Content Administrator Dashboard</title>
+    <title>Admin Dashboard | True Life Productions</title>
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Global CSS -->
     <link rel="stylesheet" href="global.css">
+    
     <style>
-        /* Admin dashboard specific styling */
         body {
-            background-color: var(--bg-darker);
-            padding-top: var(--header-height);
+            background-color: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Lock screen overlay */
+        /* Passcode Modal Overlay */
         .login-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-darker);
+            background: rgba(2, 3, 5, 0.95);
+            backdrop-filter: blur(12px);
             z-index: 2000;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 1;
             transition: var(--transition-smooth);
         }
 
         .login-overlay.hidden {
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
         }
 
         .login-box {
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
+            padding: 3rem 2.5rem;
             text-align: center;
-            padding: 3rem 2rem;
-            border-color: var(--border-gold);
+            border: 1px solid var(--border-gold);
+            background: rgba(13, 15, 23, 0.9);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
 
         .login-box h2 {
-            font-size: 1.8rem;
+            font-size: 2rem;
             margin-bottom: 0.5rem;
-            text-transform: uppercase;
+            color: var(--primary);
         }
 
         .login-box p {
+            color: var(--text-muted);
             margin-bottom: 2rem;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .login-input {
             width: 100%;
-            padding: 0.85rem 1rem;
-            background: rgba(2,3,5,0.6);
+            padding: 0.85rem 1.25rem;
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            color: var(--text-main);
-            font-family: var(--font-body);
-            font-size: 1.1rem;
-            text-align: center;
+            color: #ffffff;
+            font-size: 1rem;
             outline: none;
             margin-bottom: 1.5rem;
-            letter-spacing: 0.1em;
+            transition: var(--transition-fast);
+            text-align: center;
+            letter-spacing: 0.2em;
         }
 
         .login-input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(223, 183, 92, 0.2);
         }
 
         .login-error {
             color: #d9534f;
             font-size: 0.85rem;
-            margin-top: -1rem;
             margin-bottom: 1rem;
             display: none;
         }
 
-        /* Admin layout panel */
+        /* Workspace Grid */
         .admin-wrapper {
             display: grid;
-            grid-template-columns: 250px 1fr;
-            min-height: calc(100vh - var(--header-height));
-            border-top: 1px solid var(--border-color);
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 120px);
+            flex-grow: 1;
+            padding-top: 5rem;
         }
 
-        /* Sidebar navigation */
+        /* Left Navigation Tabs */
         .admin-sidebar {
-            background: var(--bg-main);
+            background: rgba(6, 7, 10, 0.6);
             border-right: 1px solid var(--border-color);
-            padding: 2rem 0;
+            padding: 2.5rem 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 1.5rem;
         }
 
         .admin-sidebar-menu {
             list-style: none;
+            padding: 0;
+            margin: 0;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
 
         .admin-tab-btn {
+            display: block;
             width: 100%;
+            padding: 1rem 2rem;
             text-align: left;
             background: transparent;
             border: none;
-            padding: 1rem 2rem;
-            color: var(--text-muted);
-            font-family: var(--font-heading);
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            cursor: pointer;
             border-left: 3px solid transparent;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
             transition: var(--transition-fast);
         }
 
-        .admin-tab-btn:hover, .admin-tab-btn.active {
+        .admin-tab-btn:hover {
             color: var(--text-main);
-            background: rgba(255,255,255,0.02);
-            border-left-color: var(--primary);
+            background: rgba(255, 255, 255, 0.02);
         }
 
-        /* Content Panel container */
+        .admin-tab-btn.active {
+            color: var(--primary);
+            border-left-color: var(--primary);
+            background: rgba(223, 183, 92, 0.05);
+        }
+
+        /* Right Content Panels */
         .admin-content {
             padding: 3rem;
             overflow-y: auto;
@@ -135,103 +151,118 @@
 
         .admin-tab-panel {
             display: none;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.3s ease;
         }
 
         .admin-tab-panel.active {
             display: block;
         }
 
-        /* Form elements inside admin panel */
-        .form-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
+        /* Form Controls */
         .admin-form-group {
             margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .admin-form-group label {
-            display: block;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             color: var(--text-muted);
-            margin-bottom: 0.5rem;
         }
 
         .admin-control {
             width: 100%;
-            padding: 0.8rem 1rem;
-            background: var(--bg-main);
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            color: var(--text-main);
-            font-family: var(--font-body);
+            color: #ffffff;
             font-size: 0.95rem;
+            font-family: var(--font-body);
             outline: none;
             transition: var(--transition-fast);
+            box-sizing: border-box;
         }
 
         .admin-control:focus {
             border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 10px rgba(223, 183, 92, 0.15);
         }
 
-        /* Production list table grid */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        /* CRUD Table */
         .plays-table-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+            background: rgba(13, 15, 23, 0.45);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            overflow: hidden;
-            background: var(--bg-main);
-            margin-top: 2rem;
         }
 
-        table.plays-table {
+        .plays-table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
         }
 
-        table.plays-table th, table.plays-table td {
-            padding: 1.2rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        table.plays-table th {
-            background: rgba(255,255,255,0.02);
-            font-family: var(--font-heading);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.08em;
-            color: var(--primary);
-        }
-
-        table.plays-table td {
+        .plays-table th, .plays-table td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 0.95rem;
-            color: var(--text-main);
         }
 
-        table.plays-table tr:last-child td {
+        .plays-table th {
+            font-family: var(--font-heading);
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .plays-table tr:last-child td {
             border-bottom: none;
         }
 
-        .td-actions {
+        .plays-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .action-btns-group {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
         .action-icon-btn {
             background: transparent;
             border: 1px solid var(--border-color);
+            color: var(--text-muted);
             padding: 0.4rem 0.8rem;
             border-radius: 4px;
-            cursor: pointer;
             font-size: 0.8rem;
-            color: var(--text-muted);
+            cursor: pointer;
             transition: var(--transition-fast);
+        }
+
+        .action-icon-btn:hover {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
         .action-icon-btn.edit:hover {
@@ -245,23 +276,23 @@
         }
 
         .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.65rem;
+            padding: 0.25rem 0.6rem;
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
             border-radius: 4px;
+            display: inline-block;
         }
 
-        /* Modal Overlay for CRUD create/edit operations */
+        /* Modal Overlay for CRUD operations */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(2,3,5,0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(2,3,5,0.88);
+            backdrop-filter: blur(10px);
             z-index: 1500;
             display: flex;
             align-items: center;
@@ -269,6 +300,8 @@
             opacity: 0;
             visibility: hidden;
             transition: var(--transition-smooth);
+            padding: 1.5rem;
+            box-sizing: border-box;
         }
 
         .modal-overlay.open {
@@ -278,24 +311,314 @@
 
         .admin-modal {
             max-width: 750px;
-            width: 90%;
-            max-height: 85vh;
+            width: 100%;
+            max-height: 88vh;
             overflow-y: auto;
             border: 1px solid var(--border-color);
             padding: 2.5rem;
+            background: rgba(13, 15, 23, 0.96);
+            border-radius: 12px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+        }
+
+        /* Split-screen modal for Play Editor */
+        .admin-modal.split-modal {
+            max-width: 1320px;
+            width: 96%;
+            max-height: 92vh;
+            padding: 2rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-split-body {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 2rem;
+            align-items: flex-start;
+            overflow-y: auto;
+            max-height: calc(92vh - 130px);
+            padding-right: 0.5rem;
+        }
+
+        .admin-editor-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .admin-preview-col {
+            position: sticky;
+            top: 0;
+            background: rgba(6, 7, 10, 0.7);
+            border: 1px solid var(--border-gold);
+            border-radius: 12px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(88vh - 150px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .admin-section-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .admin-section-title {
+            font-size: 1rem;
+            font-family: var(--font-heading);
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding-bottom: 0.5rem;
+        }
+
+        .admin-helper-text {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: -0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Image Dropzone Component */
+        .admin-dropzone {
+            border: 2px dashed rgba(223, 183, 92, 0.35);
+            border-radius: 8px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            background: rgba(223, 183, 92, 0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .admin-dropzone:hover, .admin-dropzone.dragover {
+            border-color: var(--primary);
+            background: rgba(223, 183, 92, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .dropzone-icon {
+            font-size: 1.5rem;
+        }
+
+        .dropzone-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .dropzone-text strong {
+            color: var(--primary);
+        }
+
+        .dropzone-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+        }
+
+        .dropzone-thumb {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+            background: #000;
+        }
+
+        .dropzone-info {
+            flex-grow: 1;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dropzone-info span {
+            display: block;
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .dropzone-btn-remove {
+            background: transparent;
+            border: 1px solid #d9534f;
+            color: #d9534f;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .dropzone-btn-remove:hover {
+            background: #d9534f;
+            color: #fff;
+        }
+
+        /* Mockup Preview Styles */
+        .mock-play-hero {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.25rem;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .mock-hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(6,7,10,0.2) 0%, rgba(6,7,10,0.92) 100%);
+            z-index: 1;
+        }
+
+        .mock-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .mock-hero-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .mock-hero-title {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            line-height: 1.1;
+            margin: 0 0 0.3rem 0;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .mock-hero-sub {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            margin: 0;
+        }
+
+        .mock-split-grid {
+            display: grid;
+            grid-template-columns: 0.85fr 1.15fr;
+            gap: 1.25rem;
+            font-size: 0.82rem;
+        }
+
+        .mock-sidebar-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .mock-meta-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.5rem;
+        }
+
+        .mock-meta-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .mock-meta-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .mock-meta-val {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .mock-synopsis {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .mock-booking-box {
+            background: rgba(223,183,92,0.05);
+            border: 1px solid var(--border-gold);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .mock-booking-box h5 {
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin: 0 0 0.5rem 0;
+            font-family: var(--font-heading);
+        }
+
+        .mock-review-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+            font-style: italic;
+            font-size: 0.8rem;
+            line-height: 1.4;
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.75rem;
         }
 
         .modal-header h3 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
+            margin: 0;
         }
 
         .close-modal {
@@ -304,6 +627,7 @@
             font-size: 1.5rem;
             color: var(--text-muted);
             cursor: pointer;
+            line-height: 1;
         }
 
         .close-modal:hover {
@@ -332,6 +656,7 @@
             }
             .admin-sidebar-menu {
                 flex-direction: row;
+                flex-wrap: wrap;
                 justify-content: center;
             }
             .admin-tab-btn {
@@ -339,14 +664,21 @@
                 text-align: center;
                 border-left: none;
                 border-bottom: 3px solid transparent;
+                width: auto;
             }
             .admin-tab-btn:hover, .admin-tab-btn.active {
                 border-left-color: transparent;
                 border-bottom-color: var(--primary);
             }
-            .form-grid-2 {
+            .form-grid-2, .form-grid-3 {
                 grid-template-columns: 1fr;
                 gap: 0;
+            }
+            .admin-split-body {
+                grid-template-columns: 1fr;
+            }
+            .mock-split-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -378,12 +710,6 @@
                     <li><a href="support.html" class="nav-link">Support Us</a></li>
                 </ul>
             </nav>
-            
-            <button class="mobile-nav-toggle" aria-label="Toggle Menu" style="display: none;">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
         </div>
     </header>
 
@@ -391,7 +717,7 @@
     <div class="login-overlay" id="login-overlay">
         <div class="glass-card login-box">
             <h2>Admin Login</h2>
-            <p>Access the content management system to edit plays and site settings</p>
+            <p>Access the content management system to edit plays, workshops, team and site settings</p>
             <div class="login-error" id="login-error">Invalid administrator password</div>
             <input type="password" class="login-input" id="passcode" placeholder="Enter admin password" aria-label="Passcode">
             <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="verifyPasscode()">Log In</button>
@@ -406,7 +732,9 @@
             <ul class="admin-sidebar-menu">
                 <li><button class="admin-tab-btn active" onclick="switchTab('settings')">General Settings</button></li>
                 <li><button class="admin-tab-btn" onclick="switchTab('plays')">Manage Plays</button></li>
+                <li><button class="admin-tab-btn" onclick="switchTab('workshops')">Manage Workshops</button></li>
                 <li><button class="admin-tab-btn" onclick="switchTab('team')">Meet The Team</button></li>
+                <li><button class="admin-tab-btn" onclick="switchTab('about')">About Page Content</button></li>
             </ul>
             <div style="padding: 0 2rem;">
                 <button class="btn btn-outline" style="width: 100%; padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="logoutAdmin()">Log Out</button>
@@ -428,10 +756,10 @@
                                 <label for="site-title">Site Title</label>
                                 <input type="text" id="site-title" class="admin-control" required>
                             </div>
-                             <div class="admin-form-group">
-                                 <label for="site-announcement">Top Announcement Banner <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Leave empty to hide banner)</span></label>
-                                 <input type="text" id="site-announcement" class="admin-control">
-                             </div>
+                            <div class="admin-form-group">
+                                <label for="site-announcement">Top Announcement Banner <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Leave empty to hide banner)</span></label>
+                                <input type="text" id="site-announcement" class="admin-control">
+                            </div>
                         </div>
 
                         <div class="form-grid-2">
@@ -441,7 +769,7 @@
                             </div>
                             <div class="admin-form-group">
                                 <label for="site-phone">Contact Phone</label>
-                                <input type="text" id="site-phone" class="admin-control" required>
+                                <input type="text" id="site-phone" class="admin-control">
                             </div>
                         </div>
 
@@ -463,7 +791,7 @@
 
             <!-- Tab 2: Manage Plays Panel -->
             <div class="admin-tab-panel" id="panel-plays">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h2>Manage Plays & Seasons</h2>
                         <p>Create, update, or remove productions displayed on the home slider and season grid.</p>
@@ -491,9 +819,38 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Manage Team Panel -->
+            <!-- Tab 3: Manage Workshops Panel -->
+            <div class="admin-tab-panel" id="panel-workshops">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2>Classes & Workshops</h2>
+                        <p>Manage training sessions and youth drama clubs displayed on the For Artists page.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openWorkshopModal('create')">+ Add Workshop</button>
+                </div>
+
+                <div class="plays-table-container">
+                    <table class="plays-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Category / Age</th>
+                                <th>Instructor</th>
+                                <th>Schedule</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workshops-table-body">
+                            <!-- Javascript renders rows dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: Manage Team Panel -->
             <div class="admin-tab-panel" id="panel-team">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h2>Meet The Creative Team</h2>
                         <p>Manage directors, playwrights, and creatives displayed in the About Us team section.</p>
@@ -519,15 +876,83 @@
                 </div>
             </div>
 
+            <!-- Tab 5: About Page Content Panel -->
+            <div class="admin-tab-panel" id="panel-about">
+                <h2>About Page Content</h2>
+                <p>Customize the company mission, narrative story, vision quote, and community statement displayed on the About page.</p>
+                
+                <div class="glass-card" style="margin-top: 2rem;">
+                    <form onsubmit="saveAboutContentForm(event)">
+                        
+                        <div class="admin-form-group">
+                            <label for="about-hero-sub-input">Hero Banner Subtitle</label>
+                            <input type="text" id="about-hero-sub-input" class="admin-control" required>
+                        </div>
 
+                        <div class="admin-form-group">
+                            <label for="about-mission-heading-input">Mission Section Heading</label>
+                            <input type="text" id="about-mission-heading-input" class="admin-control" required>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="about-mission-p1-input">Mission Paragraph 1 (Founding Story)</label>
+                            <textarea id="about-mission-p1-input" class="admin-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="about-mission-p2-input">Mission Paragraph 2 (Regional Platform)</label>
+                            <textarea id="about-mission-p2-input" class="admin-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="about-mission-p3-input">Mission Paragraph 3 (CIC Reinvestment)</label>
+                            <textarea id="about-mission-p3-input" class="admin-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="about-mission-p4-input">Mission Paragraph 4 (TLP Studio Community)</label>
+                            <textarea id="about-mission-p4-input" class="admin-control" rows="3" required></textarea>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="admin-form-group">
+                                <label for="about-vision-quote-input">Founders Vision Quote</label>
+                                <textarea id="about-vision-quote-input" class="admin-control" rows="3" required></textarea>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="about-vision-attr-input">Vision Quote Attribution</label>
+                                <input type="text" id="about-vision-attr-input" class="admin-control" required>
+                            </div>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="about-community-statement-input">Community Interest Statement Box</label>
+                            <textarea id="about-community-statement-input" class="admin-control" rows="4" required></textarea>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="admin-form-group">
+                                <label for="about-video-heading-input">Video Showcase Heading</label>
+                                <input type="text" id="about-video-heading-input" class="admin-control" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="about-video-text-input">Video Showcase Description</label>
+                                <textarea id="about-video-text-input" class="admin-control" rows="2" required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="save-about-btn" style="margin-top: 1rem;">Save & Sync About Page</button>
+                    </form>
+                </div>
+            </div>
 
         </div>
 
     </div>
 
-    <!-- Edit/Create Play modal -->
+    <!-- Edit/Create Play Split-Screen Modal with Live Preview -->
     <div class="modal-overlay" id="play-modal-overlay">
-        <div class="glass-card admin-modal" id="play-modal">
+        <div class="glass-card admin-modal split-modal" id="play-modal">
             <div class="modal-header">
                 <h3 id="modal-action-title">Add New Production</h3>
                 <button class="close-modal" onclick="closePlayModal()">×</button>
@@ -537,119 +962,301 @@
                 <input type="hidden" id="play-form-mode" value="create">
                 <input type="hidden" id="play-form-id">
                 
-                <div class="form-grid-2">
-                    <div class="admin-form-group">
-                        <label for="play-title">Play Title</label>
-                        <input type="text" id="play-title" class="admin-control" placeholder="e.g. Poison" required>
+                <div class="admin-split-body">
+                    
+                    <!-- LEFT COLUMN: Form Controls in Categorized Cards -->
+                    <div class="admin-editor-col">
+                        
+                        <!-- 1. Production Identity & Poster Image -->
+                        <div class="admin-section-card">
+                            <div class="admin-section-title">🎨 1. Production Identity & Poster</div>
+                            <div class="admin-helper-text">Core production metadata and background visual theme.</div>
+                            
+                            <div class="form-grid-2">
+                                <div class="admin-form-group">
+                                    <label for="play-title">Play Title</label>
+                                    <input type="text" id="play-title" class="admin-control" placeholder="e.g. Poison" required oninput="updatePlayLivePreview()">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-author">Playwright / Author</label>
+                                    <input type="text" id="play-author" class="admin-control" placeholder="e.g. Lot Vekemans" required oninput="updatePlayLivePreview()">
+                                </div>
+                            </div>
+
+                            <div class="form-grid-3">
+                                <div class="admin-form-group">
+                                    <label for="play-year">Season Dates / Year</label>
+                                    <input type="text" id="play-year" class="admin-control" placeholder="e.g. Autumn 2026" required oninput="updatePlayLivePreview()">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-prod-type">Production Tag</label>
+                                    <select id="play-prod-type" class="admin-control" required onchange="updatePlayLivePreview()">
+                                        <option value="full">TLP Production (Crimson)</option>
+                                        <option value="studio">TLP Studio Production (Gold)</option>
+                                    </select>
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-status">Schedule Status</label>
+                                    <select id="play-status" class="admin-control" required onchange="updatePlayLivePreview()">
+                                        <option value="upcoming">Upcoming Production</option>
+                                        <option value="current">Current Season</option>
+                                        <option value="past">Archive (Past Run)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-grid-2">
+                                <div class="admin-form-group">
+                                    <label for="play-accent">Theme Color Accent</label>
+                                    <input type="color" id="play-accent" class="admin-control" style="height: 43px; padding: 0.2rem;" value="#dfb75c" required oninput="updatePlayLivePreview()">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-animation">Atmospheric Hero FX</label>
+                                    <select id="play-animation" class="admin-control" required>
+                                        <option value="none">None (Static backdrop image)</option>
+                                        <option value="rose-petals">Rose Petals (Romantic / Classic)</option>
+                                        <option value="misty-fog">Misty Stage Fog (Drama / Somber)</option>
+                                        <option value="digital-particles">Digital Particles (Modern / Tech)</option>
+                                        <option value="dripping-rain">Dripping Rain (Intense / Raw)</option>
+                                        <option value="royal-embers">Royal Embers (Historical / Warm)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Poster Image Uploader -->
+                            <div class="admin-form-group" style="margin-top: 0.5rem;">
+                                <label>Billboard Poster Image</label>
+                                <div class="admin-dropzone" id="play-image-dropzone" onclick="document.getElementById('play-image-file').click()">
+                                    <span class="dropzone-icon">📁</span>
+                                    <div class="dropzone-text"><strong>Click to upload image</strong> or drag & drop from your device</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">Supports JPG, PNG, WEBP (auto-compressed for instant loading)</div>
+                                    <input type="file" id="play-image-file" accept="image/*" style="display: none;" onchange="handleImageFileUpload(event, 'play-image', 'play-image-preview', updatePlayLivePreview)">
+                                </div>
+                                <div id="play-image-preview" style="display: none;"></div>
+                                <div style="margin-top: 0.75rem;">
+                                    <label for="play-image" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Or specify image file path / external URL:</label>
+                                    <input type="text" id="play-image" class="admin-control" placeholder="e.g. play-19-6.jpg or https://..." required oninput="handleManualImageUrl('play-image', 'play-image-preview', updatePlayLivePreview)">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- 2. Creative Team & Credits -->
+                        <div class="admin-section-card">
+                            <div class="admin-section-title">🎭 2. Creative Team & Credits</div>
+                            <div class="admin-helper-text">Key cast and creative credits shown on the play sidebar.</div>
+
+                            <div class="form-grid-2">
+                                <div class="admin-form-group">
+                                    <label for="play-director">Director</label>
+                                    <input type="text" id="play-director" class="admin-control" placeholder="e.g. Rosina Piovani" oninput="updatePlayLivePreview()">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-cast">Starring Cast</label>
+                                    <input type="text" id="play-cast" class="admin-control" placeholder="e.g. Martin Maynard, Lynne Livingstone" oninput="updatePlayLivePreview()">
+                                </div>
+                            </div>
+
+                            <div class="admin-form-group">
+                                <label for="play-set">Set Design & Creative Team</label>
+                                <input type="text" id="play-set" class="admin-control" placeholder="e.g. Suzanne Emerson (Stage Design)" oninput="updatePlayLivePreview()">
+                            </div>
+                        </div>
+
+                        <!-- 3. Story & Synopsis -->
+                        <div class="admin-section-card">
+                            <div class="admin-section-title">📖 3. Synopsis & Story</div>
+                            <div class="admin-helper-text">Narrative plot description rendered on the main stage.</div>
+                            
+                            <div class="admin-form-group">
+                                <label for="play-synopsis">Plot Synopsis</label>
+                                <textarea id="play-synopsis" class="admin-control" rows="4" placeholder="Write a short summary of the play plot..." required oninput="updatePlayLivePreview()"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- 4. Page Display Mode & Ticketing -->
+                        <div class="admin-section-card">
+                            <div class="admin-section-title">🎟️ 4. Page Display Mode & Tickets</div>
+                            <div class="admin-helper-text">Choose between ticket booking mode or critical review mode.</div>
+
+                            <div class="form-grid-2">
+                                <div class="admin-form-group">
+                                    <label for="play-page-type">Page Display Mode</label>
+                                    <select id="play-page-type" class="admin-control" required onchange="updatePlayLivePreview()">
+                                        <option value="pre-prod">🎟️ Pre-Production Mode (Booking & Tickets Callout)</option>
+                                        <option value="post-prod">⭐ Post-Production Mode (Press & Critical Reviews Archive)</option>
+                                    </select>
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-details-link">Direct Booking / Platform URL</label>
+                                    <input type="text" id="play-details-link" class="admin-control" placeholder="e.g. https://space.org.uk/event/... or https://ticketsource.com/..." oninput="updatePlayLivePreview()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Venues, Tour Dates, Photo Gallery & Critical Reviews Builder -->
+                        <div class="admin-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <div class="admin-section-title" style="margin-bottom: 0; border-bottom: none;">🏛️ 5. Venues, Dates & Reviews</div>
+                                <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.85rem; font-size: 0.75rem;" onclick="addVenueField()">+ Add Venue</button>
+                            </div>
+                            <div class="admin-helper-text">Add performing theatres, tour runs, scenic photo galleries, and press quotes.</div>
+                            <div id="venues-editor-list">
+                                <!-- Dynamically populated venue cards -->
+                            </div>
+                        </div>
+
+                        <!-- 6. Homepage Visibility -->
+                        <div class="admin-section-card">
+                            <div class="admin-section-title">🌐 6. Visibility & Direct Links</div>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <input type="checkbox" id="play-show-hero" style="width: 20px; height: 20px; cursor: pointer;" onchange="updatePlayLivePreview()">
+                                <label for="play-show-hero" style="margin-bottom: 0; cursor: pointer; font-size: 0.95rem; color: #fff;">Feature in Homepage Rotating Hero Slider</label>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="admin-form-group">
-                        <label for="play-author">Author</label>
-                        <input type="text" id="play-author" class="admin-control" placeholder="e.g. Lot Vekemans" required>
+
+                    <!-- RIGHT COLUMN: Sticky Live Play Page Preview -->
+                    <div class="admin-preview-col" id="play-live-preview-container">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                            <span>👁️ Live Play Page Preview</span>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: normal;">Updates in real time</span>
+                        </div>
+
+                        <!-- Mini Hero Simulation -->
+                        <div class="mock-play-hero" id="mock-hero" style="background-image: url('assets/images/play-poison-banner.jpg');">
+                            <div class="mock-hero-overlay"></div>
+                            <div class="mock-hero-content">
+                                <span class="mock-hero-badge" id="mock-badge" style="background: #8f1b2c; color: #fff;">TLP PRODUCTION</span>
+                                <h4 class="mock-hero-title" id="mock-title">POISON</h4>
+                                <p class="mock-hero-sub" id="mock-sub">By Lot Vekemans — 2026</p>
+                            </div>
+                        </div>
+
+                        <!-- Mini Play Split Grid -->
+                        <div class="mock-split-grid">
+                            <!-- Sidebar Mockup -->
+                            <div class="mock-sidebar-card">
+                                <div class="mock-meta-item">
+                                    <div class="mock-meta-label">Playwright</div>
+                                    <div class="mock-meta-val" id="mock-meta-author">Lot Vekemans</div>
+                                </div>
+                                <div class="mock-meta-item">
+                                    <div class="mock-meta-label">Director</div>
+                                    <div class="mock-meta-val" id="mock-meta-director">Rosina Piovani</div>
+                                </div>
+                                <div class="mock-meta-item">
+                                    <div class="mock-meta-label">Cast</div>
+                                    <div class="mock-meta-val" id="mock-meta-cast">Martin Maynard, Lynne Livingstone</div>
+                                </div>
+                                <div class="mock-meta-item">
+                                    <div class="mock-meta-label">Set Design</div>
+                                    <div class="mock-meta-val" id="mock-meta-set">Suzanne Emerson</div>
+                                </div>
+                            </div>
+
+                            <!-- Main Stage Body Mockup -->
+                            <div>
+                                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); font-family: var(--font-heading); margin-bottom: 0.5rem;">Synopsis</div>
+                                <p class="mock-synopsis" id="mock-synopsis">A marriage destroyed by grief. A former husband and wife are reunited...</p>
+
+                                <!-- Pre-prod or Post-prod dynamic section -->
+                                <div id="mock-dynamic-content">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
+
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closePlayModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-play-btn">Save Production</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit/Create Workshop Modal -->
+    <div class="modal-overlay" id="workshop-modal-overlay">
+        <div class="glass-card admin-modal" id="workshop-modal" style="max-width: 680px;">
+            <div class="modal-header">
+                <h3 id="workshop-modal-action-title">Add Workshop</h3>
+                <button class="close-modal" onclick="closeWorkshopModal()">×</button>
+            </div>
+            
+            <form onsubmit="handleWorkshopSubmit(event)">
+                <input type="hidden" id="workshop-form-mode" value="create">
+                <input type="hidden" id="workshop-form-id">
+                
+                <div class="admin-form-group">
+                    <label for="workshop-title">Workshop / Class Title</label>
+                    <input type="text" id="workshop-title" class="admin-control" placeholder="e.g. Theatre Club (Ages 7–12)" required>
                 </div>
 
                 <div class="form-grid-2">
                     <div class="admin-form-group">
-                        <label for="play-director">Director</label>
-                        <input type="text" id="play-director" class="admin-control" placeholder="e.g. Rosina Piovani">
+                        <label for="workshop-category">Category / Age Tag</label>
+                        <input type="text" id="workshop-category" class="admin-control" placeholder="e.g. Youth Drama (Ages 7–12)" required>
                     </div>
                     <div class="admin-form-group">
-                        <label for="play-year">Season Year</label>
-                        <input type="text" id="play-year" class="admin-control" placeholder="e.g. 2026" required>
+                        <label for="workshop-instructor">Instructor / Lead</label>
+                        <input type="text" id="workshop-instructor" class="admin-control" placeholder="e.g. TLP Artistic Directors" required>
                     </div>
                 </div>
 
                 <div class="form-grid-2">
                     <div class="admin-form-group">
-                        <label for="play-status">Schedule Status</label>
-                        <select id="play-status" class="admin-control" required>
-                            <option value="upcoming">Upcoming Production</option>
-                            <option value="current">Current Season</option>
-                            <option value="past">Archive (Past)</option>
-                        </select>
+                        <label for="workshop-schedule">Schedule / Term Dates</label>
+                        <input type="text" id="workshop-schedule" class="admin-control" placeholder="e.g. Weekly Saturdays 10am-12pm">
                     </div>
                     <div class="admin-form-group">
-                        <label for="play-accent">Theme Color Hex Accent</label>
-                        <input type="color" id="play-accent" class="admin-control" style="height: 43px; padding: 0.2rem;" value="#dfb75c" required>
+                        <label for="workshop-location">Location / Venue</label>
+                        <input type="text" id="workshop-location" class="admin-control" placeholder="e.g. Royston Community Hub">
                     </div>
                 </div>
 
-                <div class="form-grid-2">
-                    <div class="admin-form-group">
-                        <label for="play-animation">Hero Banner Special Animation</label>
-                        <select id="play-animation" class="admin-control" required>
-                            <option value="none">None (Static background image only)</option>
-                            <option value="rose-petals">Rose Petals (Victorian / Romantic - roses fall like snow)</option>
-                            <option value="misty-fog">Misty Stage Fog (Drama / Melancholic - slow drifting clouds)</option>
-                            <option value="digital-particles">Digital Particles (Modern / Satirical - network lines)</option>
-                        </select>
+                <!-- Workshop Image Uploader -->
+                <div class="admin-form-group">
+                    <label>Workshop Featured Image</label>
+                    <div class="admin-dropzone" id="ws-image-dropzone" onclick="document.getElementById('ws-image-file').click()">
+                        <span class="dropzone-icon">📁</span>
+                        <div class="dropzone-text"><strong>Click to upload image</strong> or drag & drop</div>
+                        <input type="file" id="ws-image-file" accept="image/*" style="display: none;" onchange="handleImageFileUpload(event, 'workshop-image', 'ws-image-preview')">
                     </div>
-                    <div class="admin-form-group">
-                        <label for="play-image">Billboard Image URL</label>
-                        <input type="url" id="play-image" class="admin-control" placeholder="https://..." required>
-                    </div>
-                </div>
-
-                <!-- Custom cast credits -->
-                <div class="form-grid-2">
-                    <div class="admin-form-group">
-                        <label for="play-cast">Cast Credits (Comma Separated)</label>
-                        <input type="text" id="play-cast" class="admin-control" placeholder="e.g. Martin Maynard, Lynne Livingstone">
-                    </div>
-                    <div class="admin-form-group">
-                        <label for="play-set">Set Designer</label>
-                        <input type="text" id="play-set" class="admin-control" placeholder="e.g. Suzanne Emerson">
-                    </div>
-                </div>
-
-                <!-- Phase 2 additions: Show in Hero, Page Type, Studio, and Venues JSON -->
-                <div class="form-grid-2">
-                    <div class="admin-form-group">
-                        <label for="play-page-type">Page Display Mode</label>
-                        <select id="play-page-type" class="admin-control" required>
-                            <option value="pre-prod">Pre-Production (Tickets & Auditions Board)</option>
-                            <option value="post-prod">Post-Production (Critical Reviews & Gallery Archive)</option>
-                        </select>
-                    </div>
-                    <div class="admin-form-group">
-                        <label for="play-prod-type">Production Tag</label>
-                        <select id="play-prod-type" class="admin-control" required>
-                            <option value="full">TLP Production</option>
-                            <option value="studio">TLP Studio Production (Amateur Talent / Fundraiser)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-grid-2" style="align-items: center;">
-                    <div class="admin-form-group">
-                        <label for="play-details-link">Direct Custom File Link (if any)</label>
-                        <input type="text" id="play-details-link" class="admin-control" placeholder="e.g. play-poison.html">
-                    </div>
-                    <div class="admin-form-group" style="flex-direction: row; gap: 1rem; align-items: center; padding-top: 1.5rem;">
-                        <input type="checkbox" id="play-show-hero" style="width: 20px; height: 20px; cursor: pointer;">
-                        <label for="play-show-hero" style="margin-bottom: 0; cursor: pointer; font-size: 0.9rem; color: #fff;">Show in Homepage Hero Slider</label>
-                    </div>
-                </div>
-
-                <!-- Interactive Visual Venues & Reviews Builder -->
-                <div class="admin-form-group" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <label style="font-size: 1.1rem; color: #fff; margin-bottom: 0; font-family: var(--font-heading); text-transform: none; letter-spacing: 0.02em;">Performance Venues, Dates & Reviews</label>
-                        <button type="button" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem;" onclick="addVenueField()">+ Add Venue</button>
-                    </div>
-                    <div id="venues-editor-list">
-                        <!-- Dynamically populated venue cards -->
+                    <div id="ws-image-preview" style="display: none;"></div>
+                    <div style="margin-top: 0.5rem;">
+                        <input type="text" id="workshop-image" class="admin-control" placeholder="e.g. assets/images/slideshow11-86368c53.jpg or https://..." required oninput="handleManualImageUrl('workshop-image', 'ws-image-preview')">
                     </div>
                 </div>
 
                 <div class="admin-form-group">
-                    <label for="play-synopsis">Synopsis / Story Description</label>
-                    <textarea id="play-synopsis" class="admin-control" rows="5" placeholder="Write a short summary of the play plot..." required></textarea>
+                    <label for="workshop-desc">Primary Description</label>
+                    <textarea id="workshop-desc" class="admin-control" rows="3" placeholder="Overview of the workshop curriculum..." required></textarea>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="workshop-sub-desc">Secondary Description / Additional Notes</label>
+                    <textarea id="workshop-sub-desc" class="admin-control" rows="2" placeholder="Additional details about skills and learning outcomes..."></textarea>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="admin-form-group">
+                        <label for="workshop-cta-text">CTA Button Text</label>
+                        <input type="text" id="workshop-cta-text" class="admin-control" placeholder="e.g. Register Interest" value="Register Interest">
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="workshop-cta-link">CTA Button Link</label>
+                        <input type="text" id="workshop-cta-link" class="admin-control" placeholder="e.g. contact.html?subject=Theatre%20Club%20Enquiry">
+                    </div>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem;">
-                    <button type="button" class="btn btn-outline" onclick="closePlayModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Production</button>
+                    <button type="button" class="btn btn-outline" onclick="closeWorkshopModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-ws-btn">Save Workshop</button>
                 </div>
             </form>
         </div>
@@ -677,9 +1284,18 @@
                     <input type="text" id="team-role" class="admin-control" placeholder="e.g. Co-Founder & Artistic Director" required>
                 </div>
 
+                <!-- Team Photo Uploader -->
                 <div class="admin-form-group">
-                    <label for="team-image">Photo Image URL / Path</label>
-                    <input type="text" id="team-image" class="admin-control" placeholder="e.g. assets/images/image02.jpg or https://..." required>
+                    <label>Photo Headshot</label>
+                    <div class="admin-dropzone" id="team-image-dropzone" onclick="document.getElementById('team-image-file').click()">
+                        <span class="dropzone-icon">📁</span>
+                        <div class="dropzone-text"><strong>Click to upload headshot</strong> or drag & drop</div>
+                        <input type="file" id="team-image-file" accept="image/*" style="display: none;" onchange="handleImageFileUpload(event, 'team-image', 'team-image-preview')">
+                    </div>
+                    <div id="team-image-preview" style="display: none;"></div>
+                    <div style="margin-top: 0.5rem;">
+                        <input type="text" id="team-image" class="admin-control" placeholder="e.g. assets/images/image02.jpg or https://..." required oninput="handleManualImageUrl('team-image', 'team-image-preview')">
+                    </div>
                 </div>
 
                 <div class="admin-form-group">

@@ -217,29 +217,10 @@
                 <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">TLP is dedicated to nurturing local talent. Explore our community drama and movement workshops for children, designed to build confidence, sharpen stage skills, and foster collaboration.</p>
             </div>
 
-            <!-- Children's Workshop -->
-            <div class="artist-opp-row reverse reveal" style="margin-bottom: 6rem; align-items: center;">
-                <div class="slideshow-container">
-                    <div class="slide active" style="background-image: url('assets/images/slideshow11-86368c53.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-375e204f.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-afc6d71b.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-52fcbd8f.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-0e27f76a.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-7f0baa85.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-f6077cff.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-8a47bd98.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-3218de60.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-b7aad491.jpg');"></div>
-                    <div class="slide" style="background-image: url('assets/images/slideshow11-567ee6e2.jpg');"></div>
-                </div>
-                <div>
-                    <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: normal; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Theatre Club (Ages 7–12)</h2>
-                    <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">The theatre class for kids (7 to 12 years old) aims to introduce young children to the basics of theatre and dramatic arts through fun, engaging, and interactive activities. The class focuses on fostering creativity, teamwork, and self-expression while teaching essential theatre skills such as voice projection, movement, character development, and storytelling.</p>
-                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">Led by TLP's Artistic Directors, it focuses on developing an understanding of basic theatre concepts, enhancing communication and social skills, encouraging creativity, and building confidence and teamwork abilities.</p>
-                    <a href="contact.html?subject=Theatre%20Club%20Enquiry" class="btn btn-outline" style="margin-top: 1rem;">Register Interest</a>
-                </div>
+            <!-- Dynamic Workshops List Container -->
+            <div id="workshops-container">
+                <!-- Javascript will render workshops dynamically from DB -->
             </div>
-
         </div>
     </section>
 
@@ -406,17 +387,76 @@
             });
         }
 
-        // Youth Club Slideshow Animation
-        document.addEventListener("DOMContentLoaded", () => {
-            const slides = document.querySelectorAll(".slideshow-container .slide");
-            let currentSlide = 0;
-            if (slides.length > 0) {
-                setInterval(() => {
-                    slides[currentSlide].classList.remove("active");
-                    currentSlide = (currentSlide + 1) % slides.length;
-                    slides[currentSlide].classList.add("active");
-                }, 3000);
+        // Render Workshops dynamically
+        function renderWorkshops() {
+            const container = document.getElementById("workshops-container");
+            if (!container) return;
+            const workshops = TLP_DB.getWorkshops ? TLP_DB.getWorkshops() : [];
+            container.innerHTML = "";
+
+            if (workshops.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: var(--text-muted);">No active workshops listed at this time. Check back soon!</p>`;
+                return;
             }
+
+            workshops.forEach((ws, idx) => {
+                const isEven = idx % 2 === 0;
+                const rowClass = isEven ? "artist-opp-row reverse reveal" : "artist-opp-row reveal";
+                const images = ws.slideshowImages && ws.slideshowImages.length > 0 
+                    ? ws.slideshowImages 
+                    : (ws.image ? [ws.image] : ["assets/images/slideshow11-86368c53.jpg"]);
+
+                let imageBoxHtml = "";
+                if (images.length > 1) {
+                    imageBoxHtml = `
+                        <div class="slideshow-container" id="ws-slideshow-${idx}">
+                            ${images.map((img, i) => `<div class="slide ${i === 0 ? 'active' : ''}" style="background-image: url('${img}');"></div>`).join('')}
+                        </div>
+                    `;
+                } else {
+                    imageBoxHtml = `
+                        <div class="slideshow-container" style="position: relative;">
+                            <div class="slide active" style="background-image: url('${images[0]}');"></div>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement("div");
+                card.className = rowClass;
+                card.style.marginBottom = "6rem";
+                card.style.alignItems = "center";
+                card.innerHTML = `
+                    ${imageBoxHtml}
+                    <div>
+                        ${ws.category ? `<span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); font-weight: 700; display: block; margin-bottom: 0.5rem;">${ws.category}</span>` : ''}
+                        <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: normal; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">${ws.title}</h2>
+                        <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">${ws.description}</p>
+                        ${ws.subDescription ? `<p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">${ws.subDescription}</p>` : ''}
+                        ${ws.schedule ? `<p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem;"><strong>Schedule:</strong> ${ws.schedule}${ws.location ? ` | <strong>Location:</strong> ${ws.location}` : ''}</p>` : ''}
+                        <a href="${ws.ctaLink || 'contact.html?subject=Workshop%20Enquiry'}" class="btn btn-outline" style="margin-top: 0.5rem;">${ws.ctaText || 'Register Interest'}</a>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Multi-image slideshow loop
+                if (images.length > 1) {
+                    const slideEls = card.querySelectorAll(".slide");
+                    let current = 0;
+                    setInterval(() => {
+                        slideEls[current].classList.remove("active");
+                        current = (current + 1) % slideEls.length;
+                        slideEls[current].classList.add("active");
+                    }, 3000 + (idx * 300));
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderWorkshops();
+        });
+
+        window.addEventListener("tlp_data_synced", () => {
+            renderWorkshops();
         });
     </script>
 </body>

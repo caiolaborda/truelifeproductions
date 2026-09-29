@@ -27,6 +27,8 @@ exports.handler = async (event, context) => {
                 const settings = await store.get("settings", { type: "json" });
                 const productions = await store.get("productions", { type: "json" });
                 const team = await store.get("team", { type: "json" });
+                const workshops = await store.get("workshops", { type: "json" });
+                const about = await store.get("about", { type: "json" });
 
                 return {
                     statusCode: 200,
@@ -34,7 +36,9 @@ exports.handler = async (event, context) => {
                     body: JSON.stringify({
                         settings: settings || null,
                         productions: productions || null,
-                        team: team || null
+                        team: team || null,
+                        workshops: workshops || null,
+                        about: about || null
                     })
                 };
             }
@@ -69,6 +73,8 @@ exports.handler = async (event, context) => {
                 if (data.settings) await store.setJSON("settings", data.settings);
                 if (data.productions) await store.setJSON("productions", data.productions);
                 if (data.team) await store.setJSON("team", data.team);
+                if (data.workshops) await store.setJSON("workshops", data.workshops);
+                if (data.about) await store.setJSON("about", data.about);
             } else {
                 await store.setJSON(type, data);
             }

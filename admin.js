@@ -1,14 +1,12 @@
 /* ==========================================================================
-   TRUE LIFE PRODUCTIONS - ADMIN PANEL CRUD OPERATIONS & AUTH
+   TRUE LIFE PRODUCTIONS - ADMIN PANEL CRUD OPERATIONS & LIVE PREVIEW
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Session check to maintain authentication state
     if (sessionStorage.getItem("tlp_admin_logged_in") === "true") {
         document.getElementById("login-overlay").classList.add("hidden");
-        loadSiteSettingsForm();
-        renderPlaysTable();
-        renderTeamTable();
+        loadAllAdminPanels();
     }
 
     // Enter key support for passcode login
@@ -20,7 +18,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Setup drag and drop for upload dropzones
+    setupAllDropzones();
 });
+
+function loadAllAdminPanels() {
+    loadSiteSettingsForm();
+    renderPlaysTable();
+    renderWorkshopsTable();
+    renderTeamTable();
+    loadAboutContentForm();
+}
 
 // Passcode Verification
 function verifyPasscode() {
@@ -31,9 +40,7 @@ function verifyPasscode() {
     if (passcode === "admin") {
         sessionStorage.setItem("tlp_admin_logged_in", "true");
         document.getElementById("login-overlay").classList.add("hidden");
-        loadSiteSettingsForm();
-        renderPlaysTable();
-        renderTeamTable();
+        loadAllAdminPanels();
         errorEl.style.display = "none";
     } else {
         errorEl.style.display = "block";
@@ -69,6 +76,184 @@ function switchTab(tabName) {
 }
 
 /* ==========================================================================
+   IMAGE UPLOAD, COMPRESSION & PREVIEW HELPERS
+   ========================================================================== */
+
+/**
+ * Compresses an image file client-side using an HTML5 Canvas.
+ * Returns a Promise that resolves to an optimized base64 Data URL.
+ */
+function compressImageFile(file, maxWidth = 1600, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith("image/")) {
+            return reject(new Error("Selected file is not an image."));
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth || height > maxWidth) {
+                    if (width > height) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxWidth) / height);
+                        height = maxWidth;
+                    }
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Use webp or jpeg format
+                const mimeType = file.type === "image/png" ? "image/png" : "image/jpeg";
+                const dataUrl = canvas.toDataURL(mimeType, quality);
+                resolve({ dataUrl, width, height, originalName: file.name });
+            };
+            img.onerror = () => reject(new Error("Failed to load image into canvas."));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error("Failed to read file."));
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Handles image file selection from file input or drag-and-drop
+ */
+async function handleImageFileUpload(event, inputId, previewId, callback = null) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+        const inputEl = document.getElementById(inputId);
+        const previewEl = document.getElementById(previewId);
+        
+        if (previewEl) {
+            previewEl.style.display = "block";
+            previewEl.innerHTML = `<p style="font-size: 0.8rem; color: var(--primary);">Compressing and optimizing image...</p>`;
+        }
+
+        const result = await compressImageFile(file);
+        
+        if (inputEl) {
+            inputEl.value = result.dataUrl;
+        }
+
+        renderImagePreview(previewId, inputId, result.dataUrl, result.originalName, `${result.width}×${result.height}`, callback);
+
+        if (callback && typeof callback === "function") {
+            callback();
+        }
+    } catch (err) {
+        alert("Image upload error: " + err.message);
+    }
+}
+
+/**
+ * Handles typing or pasting a URL/path into the text input
+ */
+function handleManualImageUrl(inputId, previewId, callback = null) {
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    const url = inputEl.value.trim();
+    if (url) {
+        renderImagePreview(previewId, inputId, url, url.split("/").pop() || "Image", "", callback);
+    } else {
+        const previewEl = document.getElementById(previewId);
+        if (previewEl) previewEl.style.display = "none";
+    }
+    if (callback && typeof callback === "function") {
+        callback();
+    }
+}
+
+/**
+ * Renders an image preview box with a remove button
+ */
+function renderImagePreview(previewId, inputId, url, name = "Image", meta = "", callback = null) {
+    const previewEl = document.getElementById(previewId);
+    if (!previewEl) return;
+
+    if (!url) {
+        previewEl.style.display = "none";
+        previewEl.innerHTML = "";
+        return;
+    }
+
+    previewEl.style.display = "block";
+    previewEl.innerHTML = `
+        <div class="dropzone-preview-wrap">
+            <img src="${url}" class="dropzone-thumb" alt="Preview" onerror="this.src='assets/images/image06.png'">
+            <div class="dropzone-info">
+                <span>${name}</span>
+                ${meta ? `<small style="color: var(--text-muted);">${meta}</small>` : ''}
+            </div>
+            <button type="button" class="dropzone-btn-remove" onclick="clearUploadedImage('${inputId}', '${previewId}')">Remove</button>
+        </div>
+    `;
+}
+
+function clearUploadedImage(inputId, previewId) {
+    const inputEl = document.getElementById(inputId);
+    const previewEl = document.getElementById(previewId);
+    if (inputEl) inputEl.value = "";
+    if (previewEl) {
+        previewEl.style.display = "none";
+        previewEl.innerHTML = "";
+    }
+    updatePlayLivePreview();
+}
+
+/**
+ * Drag and drop zone wiring
+ */
+function setupAllDropzones() {
+    setupDropzone("play-image-dropzone", "play-image-file");
+    setupDropzone("ws-image-dropzone", "ws-image-file");
+    setupDropzone("team-image-dropzone", "team-image-file");
+}
+
+function setupDropzone(dropzoneId, fileInputId) {
+    const dropzone = document.getElementById(dropzoneId);
+    const fileInput = document.getElementById(fileInputId);
+    if (!dropzone || !fileInput) return;
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.remove('dragover');
+        });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+            fileInput.files = files;
+            const changeEvent = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(changeEvent);
+        }
+    });
+}
+
+/* ==========================================================================
    TAB 1: SITE SETTINGS OPERATIONS
    ========================================================================== */
 function loadSiteSettingsForm() {
@@ -96,7 +281,7 @@ async function saveSiteSettings(event) {
         address: document.getElementById("site-address").value
     };
 
-    const res = await TLP_DB.saveSettings(settings);
+    await TLP_DB.saveSettings(settings);
     if (btn) btn.textContent = originalText;
     
     alert("Site settings saved and synced successfully! Changes will reflect live across all pages.");
@@ -122,7 +307,7 @@ async function saveSiteSettings(event) {
 }
 
 /* ==========================================================================
-   TAB 2: MANAGE PLAYS CRUD OPERATIONS
+   TAB 2: MANAGE PLAYS CRUD OPERATIONS & LIVE PREVIEW
    ========================================================================== */
 function renderPlaysTable() {
     const tableBody = document.getElementById("plays-table-body");
@@ -132,7 +317,6 @@ function renderPlaysTable() {
     tableBody.innerHTML = "";
 
     productions.forEach(play => {
-        // Status color badge settings
         let badgeColor = "background: var(--primary); color: var(--text-dark);";
         if (play.status === "upcoming") badgeColor = "background: var(--accent-red); color: var(--text-main);";
         if (play.status === "past") badgeColor = "background: rgba(255,255,255,0.1); color: var(--text-muted);";
@@ -142,18 +326,116 @@ function renderPlaysTable() {
             <td style="font-weight: 600;">${play.title}</td>
             <td>${play.author} <br><span style="font-size: 0.8rem; color: var(--text-muted);">Dir: ${play.director || 'N/A'}</span></td>
             <td>${play.year}</td>
-            <td><span class="status-badge" style="${badgeColor}">${play.status}</span></td>
+            <td><span class="status-badge" style="${badgeColor}">${play.customStatus || play.status}</span></td>
             <td><span class="color-preview-dot" style="background: ${play.accent};"></span>${play.accent}</td>
             <td style="font-size: 0.85rem; color: var(--primary); font-family: monospace;">${play.animationType || 'none'}</td>
             <td>
-                <div class="td-actions">
-                    <button class="action-icon-btn edit" onclick="openPlayModal('edit', '${play.id}')">Edit</button>
-                    <button class="action-icon-btn delete" onclick="deletePlay('${play.id}')">Delete</button>
+                <div class="action-btns-group">
+                    <button type="button" class="action-icon-btn edit" onclick="openPlayModal('edit', '${play.id}')">Edit</button>
+                    <button type="button" class="action-icon-btn delete" onclick="deletePlay('${play.id}')">Delete</button>
                 </div>
             </td>
         `;
         tableBody.appendChild(row);
     });
+}
+
+/**
+ * Real-time Live Play Page Preview Updater
+ */
+function updatePlayLivePreview() {
+    const title = document.getElementById("play-title")?.value || "Production Title";
+    const author = document.getElementById("play-author")?.value || "Playwright";
+    const year = document.getElementById("play-year")?.value || "2026";
+    const prodType = document.getElementById("play-prod-type")?.value || "full";
+    const accent = document.getElementById("play-accent")?.value || "#dfb75c";
+    const image = document.getElementById("play-image")?.value || "assets/images/play-poison-banner.jpg";
+    const director = document.getElementById("play-director")?.value || "—";
+    const cast = document.getElementById("play-cast")?.value || "—";
+    const setDesign = document.getElementById("play-set")?.value || "—";
+    const synopsis = document.getElementById("play-synopsis")?.value || "Plot synopsis will be displayed here...";
+    const pageType = document.getElementById("play-page-type")?.value || "pre-prod";
+    const detailsLink = document.getElementById("play-details-link")?.value || "";
+
+    // Update Hero Banner Preview
+    const mockHero = document.getElementById("mock-hero");
+    const mockBadge = document.getElementById("mock-badge");
+    const mockTitle = document.getElementById("mock-title");
+    const mockSub = document.getElementById("mock-sub");
+
+    if (mockHero) {
+        mockHero.style.backgroundImage = `url('${image}')`;
+    }
+    if (mockBadge) {
+        if (prodType === "studio") {
+            mockBadge.textContent = "TLP STUDIO PRODUCTION";
+            mockBadge.style.background = "#dfb75c";
+            mockBadge.style.color = "#06070a";
+        } else {
+            mockBadge.textContent = "TLP PRODUCTION";
+            mockBadge.style.background = "#8f1b2c";
+            mockBadge.style.color = "#ffffff";
+        }
+    }
+    if (mockTitle) mockTitle.textContent = title;
+    if (mockSub) mockSub.textContent = `By ${author} — ${year}`;
+
+    // Update Sidebar Meta Preview
+    const mockAuthor = document.getElementById("mock-meta-author");
+    const mockDirector = document.getElementById("mock-meta-director");
+    const mockCast = document.getElementById("mock-meta-cast");
+    const mockSet = document.getElementById("mock-meta-set");
+    const mockSyn = document.getElementById("mock-synopsis");
+
+    if (mockAuthor) mockAuthor.textContent = author;
+    if (mockDirector) mockDirector.textContent = director;
+    if (mockCast) mockCast.textContent = cast;
+    if (mockSet) mockSet.textContent = setDesign;
+    if (mockSyn) mockSyn.textContent = synopsis;
+
+    // Update Dynamic Body (Pre-prod vs Post-prod)
+    const dynamicBox = document.getElementById("mock-dynamic-content");
+    if (dynamicBox) {
+        if (pageType === "pre-prod") {
+            const hasLink = detailsLink && detailsLink.startsWith("http");
+            dynamicBox.innerHTML = `
+                <div class="mock-booking-box">
+                    <h5>Booking & Tickets</h5>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">
+                        Tickets for upcoming runs are available directly through Box Offices.
+                    </p>
+                    <span class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; display: inline-block; pointer-events: none;">
+                        ${hasLink ? 'Book Tickets ↗' : 'Enquire / Book Tickets'}
+                    </span>
+                </div>
+            `;
+        } else {
+            // Post-prod mode: render sample reviews from venues
+            const venues = getVenuesData();
+            let allReviews = [];
+            venues.forEach(v => {
+                if (v.reviews && v.reviews.length > 0) {
+                    allReviews.push(...v.reviews);
+                }
+            });
+
+            if (allReviews.length === 0) {
+                allReviews = [{ quote: "A captivating production that resonates deeply.", reviewer: "Critical Review" }];
+            }
+
+            dynamicBox.innerHTML = `
+                <div style="margin-top: 1rem;">
+                    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); font-family: var(--font-heading); margin-bottom: 0.5rem;">Critical Acclaim</div>
+                    ${allReviews.slice(0, 2).map(r => `
+                        <div class="mock-review-card">
+                            "${r.quote}"
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; font-style: normal;">— ${r.reviewer}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    }
 }
 
 // Modal open/close controls
@@ -174,8 +456,10 @@ function openPlayModal(mode, playId = '') {
         document.getElementById("play-prod-type").value = "full";
         document.getElementById("play-show-hero").checked = false;
         document.getElementById("play-details-link").value = "";
+        document.getElementById("play-image").value = "assets/images/play-poison-banner.jpg";
         
-        // Clear list and add default venue card
+        renderImagePreview("play-image-preview", "play-image", "assets/images/play-poison-banner.jpg", "Default Banner");
+
         document.getElementById("venues-editor-list").innerHTML = "";
         addVenueField({
             name: "The Cockpit, London",
@@ -190,31 +474,37 @@ function openPlayModal(mode, playId = '') {
         const play = productions.find(p => p.id === playId);
         
         if (play) {
-            document.getElementById("play-title").value = play.title;
-            document.getElementById("play-author").value = play.author;
+            document.getElementById("play-title").value = play.title || '';
+            document.getElementById("play-author").value = play.author || '';
             document.getElementById("play-director").value = play.director || '';
-            document.getElementById("play-year").value = play.year;
-            document.getElementById("play-status").value = play.status;
+            document.getElementById("play-year").value = play.year || '';
+            document.getElementById("play-status").value = play.status || 'upcoming';
             document.getElementById("play-accent").value = play.accent || '#dfb75c';
             document.getElementById("play-animation").value = play.animationType || 'none';
-            document.getElementById("play-image").value = play.image;
+            document.getElementById("play-image").value = play.image || '';
             document.getElementById("play-cast").value = play.cast || '';
             document.getElementById("play-set").value = play.setDesign || '';
-            document.getElementById("play-synopsis").value = play.synopsis;
-            
-            // Phase 2 additions
+            document.getElementById("play-synopsis").value = play.synopsis || '';
             document.getElementById("play-page-type").value = play.pageType || 'pre-prod';
             document.getElementById("play-prod-type").value = play.isStudio ? 'studio' : 'full';
             document.getElementById("play-show-hero").checked = !!play.showInHero;
             document.getElementById("play-details-link").value = play.detailsLink || '';
             
-            // Render venue editor cards
+            if (play.image) {
+                renderImagePreview("play-image-preview", "play-image", play.image, play.image.split("/").pop() || "Poster");
+            }
+
             document.getElementById("venues-editor-list").innerHTML = "";
             const venuesList = play.venues || [];
-            venuesList.forEach(v => addVenueField(v));
+            if (venuesList.length === 0) {
+                addVenueField();
+            } else {
+                venuesList.forEach(v => addVenueField(v));
+            }
         }
     }
 
+    updatePlayLivePreview();
     overlay.classList.add("open");
 }
 
@@ -222,10 +512,10 @@ function closePlayModal() {
     document.getElementById("play-modal-overlay").classList.remove("open");
 }
 
-// Create & Update Form submission
+// Create & Update Play Form submission
 async function handlePlaySubmit(event) {
     event.preventDefault();
-    const submitBtn = event.target.querySelector("button[type='submit']");
+    const submitBtn = document.getElementById("save-play-btn");
     const originalBtnText = submitBtn ? submitBtn.textContent : "Save Production";
     if (submitBtn) submitBtn.textContent = "Saving & Syncing to Live Site...";
     
@@ -244,23 +534,18 @@ async function handlePlaySubmit(event) {
     const set = document.getElementById("play-set").value;
     const synopsis = document.getElementById("play-synopsis").value;
 
-    // Phase 2 inputs
     const pageType = document.getElementById("play-page-type").value;
     const prodType = document.getElementById("play-prod-type").value;
     const isStudio = prodType === "studio";
     const showInHero = document.getElementById("play-show-hero").checked;
     const detailsLink = document.getElementById("play-details-link").value;
     
-    // Read from visual builder
     const venues = getVenuesData();
-
     const productions = TLP_DB.getProductions();
 
     if (mode === "create") {
-        // Generate an ID based on title slug
         const newId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         
-        // Check for duplicate ID
         if (productions.some(p => p.id === newId)) {
             alert("A play with this title or similar ID already exists. Please choose a different title.");
             if (submitBtn) submitBtn.textContent = originalBtnText;
@@ -276,6 +561,7 @@ async function handlePlaySubmit(event) {
             status,
             synopsis,
             image,
+            banner: image,
             accent,
             animationType: animation,
             cast,
@@ -293,7 +579,6 @@ async function handlePlaySubmit(event) {
         const playIdx = productions.findIndex(p => p.id === playId);
         
         if (playIdx !== -1) {
-            // Update fields
             productions[playIdx].title = title;
             productions[playIdx].author = author;
             productions[playIdx].director = director;
@@ -302,11 +587,10 @@ async function handlePlaySubmit(event) {
             productions[playIdx].accent = accent;
             productions[playIdx].animationType = animation;
             productions[playIdx].image = image;
+            productions[playIdx].banner = image;
             productions[playIdx].cast = cast;
             productions[playIdx].setDesign = set;
             productions[playIdx].synopsis = synopsis;
-            
-            // Phase 2 additions
             productions[playIdx].pageType = pageType;
             productions[playIdx].isStudio = isStudio;
             productions[playIdx].showInHero = showInHero;
@@ -322,39 +606,37 @@ async function handlePlaySubmit(event) {
     alert(`Production "${title}" saved and synced successfully to the live website!`);
 }
 
-// Delete Operation
 async function deletePlay(playId) {
     const productions = TLP_DB.getProductions();
     const play = productions.find(p => p.id === playId);
     
     if (!play) return;
 
-    const confirmDelete = confirm(`Are you absolutely sure you want to delete "${play.title}"?\nThis cannot be undone.`);
+    const confirmDelete = confirm(`Are you sure you want to delete "${play.title}"?\nThis cannot be undone.`);
     if (confirmDelete) {
         const updated = productions.filter(p => p.id !== playId);
         await TLP_DB.saveProductions(updated);
         renderPlaysTable();
-        alert(`Production "${play.title}" deleted and removed from live website.`);
+        alert(`Production "${play.title}" deleted.`);
     }
 }
 
-// ==========================================================================
-// VISUAL VENUES & REVIEWS FORM BUILDER HELPERS
-// ==========================================================================
-
+/* ==========================================================================
+   VENUES, REVIEWS & GALLERY BUILDER
+   ========================================================================== */
 function addVenueField(data = null) {
     const container = document.getElementById("venues-editor-list");
     const venueId = 'venue-' + Date.now() + '-' + Math.floor(Math.random() * 100000);
     
     const card = document.createElement("div");
-    card.className = "glass-card venue-editor-card";
+    card.className = "venue-editor-card";
     card.id = venueId;
-    card.style.padding = "2rem";
+    card.style.padding = "1.5rem";
     card.style.background = "rgba(255,255,255,0.02)";
-    card.style.border = "1px solid rgba(255,255,255,0.06)";
+    card.style.border = "1px solid rgba(255,255,255,0.08)";
     card.style.borderRadius = "8px";
     card.style.position = "relative";
-    card.style.marginBottom = "1.5rem";
+    card.style.marginBottom = "1.25rem";
     
     const name = data ? data.name || '' : '';
     const dates = data ? data.dates || '' : '';
@@ -362,39 +644,39 @@ function addVenueField(data = null) {
     const reviews = data ? data.reviews || [] : [];
     
     card.innerHTML = `
-        <button type="button" class="close-modal" style="position: absolute; top: 1rem; right: 1.5rem; color: #d9534f; font-size: 1.5rem;" onclick="removeVenueField('${venueId}')">×</button>
-        <h4 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 1.5rem; font-weight: normal; text-transform: uppercase; font-size: 1.05rem;">Venue Details</h4>
+        <button type="button" class="close-modal" style="position: absolute; top: 0.75rem; right: 1rem; color: #d9534f; font-size: 1.25rem;" onclick="removeVenueField('${venueId}')">×</button>
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem;">Venue & Performance Dates</div>
         
         <div class="form-grid-2">
             <div class="admin-form-group" style="margin-bottom: 0;">
                 <label>Venue Name</label>
-                <input type="text" class="admin-control venue-name" value="${name.replace(/"/g, '&quot;')}" placeholder="e.g. Cambridge Junction" required>
+                <input type="text" class="admin-control venue-name" value="${name.replace(/"/g, '&quot;')}" placeholder="e.g. Cambridge Junction" required oninput="updatePlayLivePreview()">
             </div>
             <div class="admin-form-group" style="margin-bottom: 0;">
-                <label>Show Dates</label>
-                <input type="text" class="admin-control venue-dates" value="${dates.replace(/"/g, '&quot;')}" placeholder="e.g. Spring 2026" required>
+                <label>Show Dates / Season</label>
+                <input type="text" class="admin-control venue-dates" value="${dates.replace(/"/g, '&quot;')}" placeholder="e.g. Spring 2026" required oninput="updatePlayLivePreview()">
             </div>
         </div>
         
         <!-- Images Sub-Section -->
-        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <label style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Scenic / Performance Images</label>
-                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-color: rgba(255,255,255,0.15);" onclick="addVenueImageInput('${venueId}')">+ Add Scenic Image</button>
+        <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Scenic / Performance Photos</label>
+                <button type="button" class="btn btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;" onclick="addVenueImageInput('${venueId}')">+ Add Photo</button>
             </div>
-            <div class="venue-images-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <!-- Dynamically added image inputs -->
+            <div class="venue-images-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <!-- Image inputs -->
             </div>
         </div>
 
         <!-- Reviews Sub-Section -->
-        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <label style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Critical Review Quotes</label>
-                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem; border-color: rgba(255,255,255,0.15);" onclick="addVenueReviewInput('${venueId}')">+ Add Review Quote</button>
+        <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Critical Review Quotes</label>
+                <button type="button" class="btn btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;" onclick="addVenueReviewInput('${venueId}')">+ Add Review Quote</button>
             </div>
             <div class="venue-reviews-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <!-- Dynamically added review quote blocks -->
+                <!-- Review blocks -->
             </div>
         </div>
     `;
@@ -410,8 +692,10 @@ function addVenueField(data = null) {
 
 function addVenueImageInput(venueId, value = '') {
     const venueCard = document.getElementById(venueId);
+    if (!venueCard) return;
     const imagesList = venueCard.querySelector(".venue-images-list");
     const inputId = 'image-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const fileId = 'file-' + inputId;
     
     const wrapper = document.createElement("div");
     wrapper.id = inputId;
@@ -419,14 +703,31 @@ function addVenueImageInput(venueId, value = '') {
     wrapper.style.gap = "0.5rem";
     wrapper.style.alignItems = "center";
     wrapper.innerHTML = `
-        <input type="url" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="https://example.com/scenic-performance-photo.jpg" style="flex-grow: 1;" required>
-        <button type="button" class="action-icon-btn delete" style="padding: 0.7rem 0.9rem;" onclick="document.getElementById('${inputId}').remove()">×</button>
+        <input type="text" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="e.g. photo.jpg or https://..." style="flex-grow: 1;" required oninput="updatePlayLivePreview()">
+        <input type="file" id="${fileId}" accept="image/*" style="display: none;" onchange="handleVenuePhotoUpload(event, '${inputId}')">
+        <button type="button" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; white-space: nowrap;" onclick="document.getElementById('${fileId}').click()">📁 Upload</button>
+        <button type="button" class="action-icon-btn delete" style="padding: 0.55rem 0.75rem;" onclick="document.getElementById('${inputId}').remove(); updatePlayLivePreview();">×</button>
     `;
     imagesList.appendChild(wrapper);
 }
 
+async function handleVenuePhotoUpload(event, wrapperId) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+        const wrapper = document.getElementById(wrapperId);
+        const input = wrapper.querySelector(".venue-image-url");
+        const result = await compressImageFile(file);
+        if (input) input.value = result.dataUrl;
+        updatePlayLivePreview();
+    } catch(e) {
+        alert("Photo upload error: " + e.message);
+    }
+}
+
 function addVenueReviewInput(venueId, reviewData = null) {
     const venueCard = document.getElementById(venueId);
+    if (!venueCard) return;
     const reviewsList = venueCard.querySelector(".venue-reviews-list");
     const reviewId = 'review-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     
@@ -438,51 +739,51 @@ function addVenueReviewInput(venueId, reviewData = null) {
     wrapper.style.display = "flex";
     wrapper.style.gap = "0.75rem";
     wrapper.style.alignItems = "flex-start";
-    wrapper.style.marginBottom = "0.5rem";
     wrapper.innerHTML = `
-        <textarea class="admin-control review-quote" placeholder="e.g. A masterclass in visceral performance..." rows="2" style="flex: 2; min-width: 200px; resize: vertical;" required>${quote}</textarea>
-        <input type="text" class="admin-control review-reviewer" value="${reviewer.replace(/"/g, '&quot;')}" placeholder="e.g. Julie Petrucci, Combinations" style="flex: 1; min-width: 120px;" required>
-        <button type="button" class="action-icon-btn delete" style="padding: 0.7rem 0.9rem; align-self: flex-start;" onclick="document.getElementById('${reviewId}').remove()">×</button>
+        <textarea class="admin-control review-quote" placeholder="Critical review quote..." rows="2" style="flex: 2; resize: vertical;" required oninput="updatePlayLivePreview()">${quote}</textarea>
+        <input type="text" class="admin-control review-reviewer" value="${reviewer.replace(/"/g, '&quot;')}" placeholder="e.g. The Guardian" style="flex: 1;" required oninput="updatePlayLivePreview()">
+        <button type="button" class="action-icon-btn delete" style="padding: 0.6rem 0.8rem;" onclick="document.getElementById('${reviewId}').remove(); updatePlayLivePreview();">×</button>
     `;
     reviewsList.appendChild(wrapper);
 }
 
 function removeVenueField(venueId) {
-    document.getElementById(venueId).remove();
+    const card = document.getElementById(venueId);
+    if (card) {
+        card.remove();
+        updatePlayLivePreview();
+    }
 }
 
 function getVenuesData() {
+    const venueCards = document.querySelectorAll(".venue-editor-card");
     const venues = [];
-    const cards = document.querySelectorAll(".venue-editor-card");
     
-    cards.forEach(card => {
-        const name = card.querySelector(".venue-name").value.trim();
-        const dates = card.querySelector(".venue-dates").value.trim();
+    venueCards.forEach(card => {
+        const nameInput = card.querySelector(".venue-name");
+        const datesInput = card.querySelector(".venue-dates");
         
-        // Gather images
+        const name = nameInput ? nameInput.value : '';
+        const dates = datesInput ? datesInput.value : '';
+        
+        const imageInputs = card.querySelectorAll(".venue-image-url");
         const images = [];
-        card.querySelectorAll(".venue-image-url").forEach(input => {
-            const url = input.value.trim();
-            if (url) images.push(url);
+        imageInputs.forEach(input => {
+            if (input.value.trim()) images.push(input.value.trim());
         });
         
-        // Gather reviews
+        const reviewQuotes = card.querySelectorAll(".review-quote");
+        const reviewReviewers = card.querySelectorAll(".review-reviewer");
         const reviews = [];
-        card.querySelectorAll(".venue-reviews-list > div").forEach(row => {
-            const quote = row.querySelector(".review-quote").value.trim();
-            const reviewer = row.querySelector(".review-reviewer").value.trim();
-            if (quote || reviewer) {
-                reviews.push({ quote, reviewer });
-            }
-        });
         
-        if (name || dates || images.length > 0 || reviews.length > 0) {
-            venues.push({
-                name,
-                dates,
-                images,
-                reviews
-            });
+        for (let i = 0; i < reviewQuotes.length; i++) {
+            const q = reviewQuotes[i].value.trim();
+            const r = reviewReviewers[i] ? reviewReviewers[i].value.trim() : '';
+            if (q) reviews.push({ quote: q, reviewer: r });
+        }
+        
+        if (name) {
+            venues.push({ name, dates, images, reviews });
         }
     });
     
@@ -490,36 +791,165 @@ function getVenuesData() {
 }
 
 /* ==========================================================================
-   TAB 3: MANAGE CREATIVE TEAM CRUD OPERATIONS
+   TAB 3: MANAGE WORKSHOPS CRUD OPERATIONS
    ========================================================================== */
-
-function renderTeamTable() {
-    const tableBody = document.getElementById("team-table-body");
-    const team = TLP_DB.getTeam();
-    
+function renderWorkshopsTable() {
+    const tableBody = document.getElementById("workshops-table-body");
     if (!tableBody) return;
+    const workshops = TLP_DB.getWorkshops ? TLP_DB.getWorkshops() : [];
     tableBody.innerHTML = "";
 
-    if (!team || team.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No team members found. Click "+ Add Team Member" to create one.</td></tr>`;
-        return;
-    }
-
-    team.forEach((member, idx) => {
+    workshops.forEach((ws, idx) => {
         const row = document.createElement("tr");
-        const snippet = member.bio && member.bio.length > 120 ? member.bio.slice(0, 120) + "..." : (member.bio || "");
-        
         row.innerHTML = `
             <td>
-                <img src="${member.image}" alt="${member.name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-gold);" onerror="this.src='assets/images/image06.png'">
+                <img src="${ws.image || 'assets/images/slideshow11-86368c53.jpg'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" alt="${ws.title}">
+            </td>
+            <td style="font-weight: 600;">${ws.title}</td>
+            <td><span class="status-badge" style="background: rgba(223, 183, 92, 0.15); color: var(--primary); border: 1px solid var(--border-gold);">${ws.category || 'Workshop'}</span></td>
+            <td>${ws.instructor || 'TLP Lead'}</td>
+            <td>${ws.schedule || 'Term Sessions'}</td>
+            <td>
+                <div class="action-btns-group">
+                    <button type="button" class="action-icon-btn edit" onclick="openWorkshopModal('edit', '${ws.id || idx}')">Edit</button>
+                    <button type="button" class="action-icon-btn delete" onclick="deleteWorkshop('${ws.id || idx}')">Delete</button>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function openWorkshopModal(mode, wsId = '') {
+    const overlay = document.getElementById("workshop-modal-overlay");
+    const form = overlay.querySelector("form");
+    const titleEl = document.getElementById("workshop-modal-action-title");
+    
+    form.reset();
+    document.getElementById("workshop-form-mode").value = mode;
+    document.getElementById("workshop-form-id").value = wsId;
+
+    if (mode === "create") {
+        titleEl.textContent = "Add New Workshop";
+        document.getElementById("workshop-image").value = "assets/images/slideshow11-86368c53.jpg";
+        renderImagePreview("ws-image-preview", "workshop-image", "assets/images/slideshow11-86368c53.jpg", "Default Image");
+    } else if (mode === "edit" && wsId) {
+        titleEl.textContent = "Edit Workshop";
+        const workshops = TLP_DB.getWorkshops();
+        const ws = workshops.find((w, i) => w.id === wsId || String(i) === String(wsId));
+
+        if (ws) {
+            document.getElementById("workshop-title").value = ws.title || '';
+            document.getElementById("workshop-category").value = ws.category || '';
+            document.getElementById("workshop-instructor").value = ws.instructor || '';
+            document.getElementById("workshop-schedule").value = ws.schedule || '';
+            document.getElementById("workshop-location").value = ws.location || '';
+            document.getElementById("workshop-image").value = ws.image || '';
+            document.getElementById("workshop-desc").value = ws.description || '';
+            document.getElementById("workshop-sub-desc").value = ws.subDescription || '';
+            document.getElementById("workshop-cta-text").value = ws.ctaText || 'Register Interest';
+            document.getElementById("workshop-cta-link").value = ws.ctaLink || '';
+
+            if (ws.image) {
+                renderImagePreview("ws-image-preview", "workshop-image", ws.image, ws.image.split("/").pop() || "Image");
+            }
+        }
+    }
+
+    overlay.classList.add("open");
+}
+
+function closeWorkshopModal() {
+    document.getElementById("workshop-modal-overlay").classList.remove("open");
+}
+
+async function handleWorkshopSubmit(event) {
+    event.preventDefault();
+    const submitBtn = document.getElementById("save-ws-btn");
+    const originalText = submitBtn ? submitBtn.textContent : "Save Workshop";
+    if (submitBtn) submitBtn.textContent = "Saving & Syncing...";
+
+    const mode = document.getElementById("workshop-form-mode").value;
+    const wsId = document.getElementById("workshop-form-id").value;
+
+    const title = document.getElementById("workshop-title").value;
+    const category = document.getElementById("workshop-category").value;
+    const instructor = document.getElementById("workshop-instructor").value;
+    const schedule = document.getElementById("workshop-schedule").value;
+    const location = document.getElementById("workshop-location").value;
+    const image = document.getElementById("workshop-image").value;
+    const description = document.getElementById("workshop-desc").value;
+    const subDescription = document.getElementById("workshop-sub-desc").value;
+    const ctaText = document.getElementById("workshop-cta-text").value;
+    const ctaLink = document.getElementById("workshop-cta-link").value;
+
+    const workshops = TLP_DB.getWorkshops();
+
+    if (mode === "create") {
+        const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        workshops.push({
+            id, title, category, instructor, schedule, location, image, description, subDescription, ctaText, ctaLink, status: "active"
+        });
+    } else {
+        const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
+        if (idx !== -1) {
+            workshops[idx].title = title;
+            workshops[idx].category = category;
+            workshops[idx].instructor = instructor;
+            workshops[idx].schedule = schedule;
+            workshops[idx].location = location;
+            workshops[idx].image = image;
+            workshops[idx].description = description;
+            workshops[idx].subDescription = subDescription;
+            workshops[idx].ctaText = ctaText;
+            workshops[idx].ctaLink = ctaLink;
+        }
+    }
+
+    await TLP_DB.saveWorkshops(workshops);
+    if (submitBtn) submitBtn.textContent = originalText;
+    renderWorkshopsTable();
+    closeWorkshopModal();
+    alert(`Workshop "${title}" saved and synced successfully!`);
+}
+
+async function deleteWorkshop(wsId) {
+    const workshops = TLP_DB.getWorkshops();
+    const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
+    if (idx === -1) return;
+
+    if (confirm(`Are you sure you want to delete "${workshops[idx].title}"?`)) {
+        workshops.splice(idx, 1);
+        await TLP_DB.saveWorkshops(workshops);
+        renderWorkshopsTable();
+        alert("Workshop removed.");
+    }
+}
+
+/* ==========================================================================
+   TAB 4: MEET THE TEAM CRUD OPERATIONS
+   ========================================================================== */
+function renderTeamTable() {
+    const tableBody = document.getElementById("team-table-body");
+    if (!tableBody) return;
+    const team = TLP_DB.getTeam();
+    tableBody.innerHTML = "";
+
+    team.forEach((member, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>
+                <img src="${member.image}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 50%;" alt="${member.name}" onerror="this.src='assets/images/image06.png'">
             </td>
             <td style="font-weight: 600;">${member.name}</td>
-            <td style="color: var(--primary); font-size: 0.9rem;">${member.role}</td>
-            <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 300px; line-height: 1.5;">${snippet}</td>
+            <td style="color: var(--primary);">${member.role}</td>
+            <td style="font-size: 0.85rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted);">
+                ${member.bio}
+            </td>
             <td>
-                <div class="td-actions">
-                    <button class="action-icon-btn edit" onclick="openTeamModal('edit', ${idx})">Edit</button>
-                    <button class="action-icon-btn delete" onclick="deleteTeamMember(${idx})">Delete</button>
+                <div class="action-btns-group">
+                    <button type="button" class="action-icon-btn edit" onclick="openTeamModal('edit', ${index})">Edit</button>
+                    <button type="button" class="action-icon-btn delete" onclick="deleteTeamMember(${index})">Delete</button>
                 </div>
             </td>
         `;
@@ -539,16 +969,21 @@ function openTeamModal(mode, index = null) {
     if (mode === "create") {
         titleEl.textContent = "Add Team Member";
         document.getElementById("team-image").value = "assets/images/image02.jpg";
+        renderImagePreview("team-image-preview", "team-image", "assets/images/image02.jpg", "Default Headshot");
     } else if (mode === "edit" && index !== null) {
         titleEl.textContent = "Edit Team Member";
         const team = TLP_DB.getTeam();
         const member = team[index];
         
         if (member) {
-            document.getElementById("team-name").value = member.name || "";
-            document.getElementById("team-role").value = member.role || "";
-            document.getElementById("team-image").value = member.image || "";
-            document.getElementById("team-bio").value = member.bio || "";
+            document.getElementById("team-name").value = member.name || '';
+            document.getElementById("team-role").value = member.role || '';
+            document.getElementById("team-image").value = member.image || '';
+            document.getElementById("team-bio").value = member.bio || '';
+            
+            if (member.image) {
+                renderImagePreview("team-image-preview", "team-image", member.image, member.name + " Headshot");
+            }
         }
     }
 
@@ -562,47 +997,90 @@ function closeTeamModal() {
 async function handleTeamSubmit(event) {
     event.preventDefault();
     const submitBtn = document.getElementById("save-team-btn");
-    const originalText = submitBtn ? submitBtn.textContent : "Save Team Member";
-    if (submitBtn) submitBtn.textContent = "Saving & Syncing to Live Site...";
+    const originalBtnText = submitBtn ? submitBtn.textContent : "Save Team Member";
+    if (submitBtn) submitBtn.textContent = "Saving & Syncing...";
     
     const mode = document.getElementById("team-form-mode").value;
-    const indexStr = document.getElementById("team-form-index").value;
+    const index = document.getElementById("team-form-index").value;
     
-    const name = document.getElementById("team-name").value.trim();
-    const role = document.getElementById("team-role").value.trim();
-    const image = document.getElementById("team-image").value.trim();
-    const bio = document.getElementById("team-bio").value.trim();
+    const name = document.getElementById("team-name").value;
+    const role = document.getElementById("team-role").value;
+    const image = document.getElementById("team-image").value;
+    const bio = document.getElementById("team-bio").value;
 
     const team = TLP_DB.getTeam();
 
     if (mode === "create") {
         team.push({ name, role, image, bio });
-    } else if (mode === "edit" && indexStr !== "") {
-        const idx = parseInt(indexStr);
-        if (!isNaN(idx) && team[idx]) {
+    } else if (mode === "edit" && index !== '') {
+        const idx = parseInt(index, 10);
+        if (team[idx]) {
             team[idx] = { name, role, image, bio };
         }
     }
 
     await TLP_DB.saveTeam(team);
-    if (submitBtn) submitBtn.textContent = originalText;
+    if (submitBtn) submitBtn.textContent = originalBtnText;
     renderTeamTable();
     closeTeamModal();
-    alert(`Team member "${name}" saved and synced successfully to the live website!`);
+    alert(`Team member "${name}" saved and synced successfully!`);
 }
 
 async function deleteTeamMember(index) {
     const team = TLP_DB.getTeam();
     const member = team[index];
-    
     if (!member) return;
 
-    const confirmDelete = confirm(`Are you sure you want to delete ${member.name} from the team listing?\nThis will remove them from the About Us page.`);
-    if (confirmDelete) {
+    if (confirm(`Are you sure you want to remove "${member.name}" from the team?`)) {
         team.splice(index, 1);
         await TLP_DB.saveTeam(team);
         renderTeamTable();
-        alert(`Team member "${member.name}" removed from live website.`);
+        alert(`"${member.name}" has been removed.`);
     }
 }
 
+/* ==========================================================================
+   TAB 5: ABOUT PAGE CONTENT CMS
+   ========================================================================== */
+function loadAboutContentForm() {
+    if (!TLP_DB.getAboutContent) return;
+    const about = TLP_DB.getAboutContent();
+    if (!about) return;
+
+    document.getElementById("about-hero-sub-input").value = about.heroSubtitle || '';
+    document.getElementById("about-mission-heading-input").value = about.missionHeading || '';
+    document.getElementById("about-mission-p1-input").value = about.missionP1 || '';
+    document.getElementById("about-mission-p2-input").value = about.missionP2 || '';
+    document.getElementById("about-mission-p3-input").value = about.missionP3 || '';
+    document.getElementById("about-mission-p4-input").value = about.missionP4 || '';
+    document.getElementById("about-vision-quote-input").value = about.visionQuote || '';
+    document.getElementById("about-vision-attr-input").value = about.visionQuoteAttribution || '';
+    document.getElementById("about-community-statement-input").value = about.communityStatement || '';
+    document.getElementById("about-video-heading-input").value = about.videoVisionHeading || '';
+    document.getElementById("about-video-text-input").value = about.videoVisionText || '';
+}
+
+async function saveAboutContentForm(event) {
+    event.preventDefault();
+    const btn = document.getElementById("save-about-btn");
+    const originalText = btn ? btn.textContent : "Save & Sync About Page";
+    if (btn) btn.textContent = "Saving & Syncing...";
+
+    const about = {
+        heroSubtitle: document.getElementById("about-hero-sub-input").value,
+        missionHeading: document.getElementById("about-mission-heading-input").value,
+        missionP1: document.getElementById("about-mission-p1-input").value,
+        missionP2: document.getElementById("about-mission-p2-input").value,
+        missionP3: document.getElementById("about-mission-p3-input").value,
+        missionP4: document.getElementById("about-mission-p4-input").value,
+        visionQuote: document.getElementById("about-vision-quote-input").value,
+        visionQuoteAttribution: document.getElementById("about-vision-attr-input").value,
+        communityStatement: document.getElementById("about-community-statement-input").value,
+        videoVisionHeading: document.getElementById("about-video-heading-input").value,
+        videoVisionText: document.getElementById("about-video-text-input").value
+    };
+
+    await TLP_DB.saveAboutContent(about);
+    if (btn) btn.textContent = originalText;
+    alert("About page content saved and synced successfully to the live website!");
+}

@@ -281,6 +281,50 @@ const DEFAULT_TEAM = [
     }
 ];
 
+const DEFAULT_WORKSHOPS = [
+    {
+        id: "theatre-club",
+        title: "Theatre Club (Ages 7–12)",
+        category: "Youth Drama (Ages 7–12)",
+        instructor: "TLP Artistic Directors",
+        schedule: "Term-time Weekly Sessions",
+        location: "Royston & South of England Community Hubs",
+        description: "The theatre class for kids (7 to 12 years old) aims to introduce young children to the basics of theatre and dramatic arts through fun, engaging, and interactive activities. The class focuses on fostering creativity, teamwork, and self-expression while teaching essential theatre skills such as voice projection, movement, character development, and storytelling.",
+        subDescription: "Led by TLP's Artistic Directors, it focuses on developing an understanding of basic theatre concepts, enhancing communication and social skills, encouraging creativity, and building confidence and teamwork abilities.",
+        image: "assets/images/slideshow11-86368c53.jpg",
+        slideshowImages: [
+            "assets/images/slideshow11-86368c53.jpg",
+            "assets/images/slideshow11-375e204f.jpg",
+            "assets/images/slideshow11-afc6d71b.jpg",
+            "assets/images/slideshow11-52fcbd8f.jpg",
+            "assets/images/slideshow11-0e27f76a.jpg",
+            "assets/images/slideshow11-7f0baa85.jpg",
+            "assets/images/slideshow11-f6077cff.jpg",
+            "assets/images/slideshow11-8a47bd98.jpg",
+            "assets/images/slideshow11-3218de60.jpg",
+            "assets/images/slideshow11-b7aad491.jpg",
+            "assets/images/slideshow11-567ee6e2.jpg"
+        ],
+        ctaText: "Register Interest",
+        ctaLink: "contact.html?subject=Theatre%20Club%20Enquiry",
+        status: "active"
+    }
+];
+
+const DEFAULT_ABOUT_CONTENT = {
+    heroSubtitle: "Our history, our commitment as a Community Interest Company, and the team driving professional performances in the South of England.",
+    missionHeading: "Our Mission & Core Purpose",
+    missionP1: "Founded in 2024, True Life Productions (TLP) is a registered Community Interest Company (CIC) dedicated to creating bold, human theatre and telling honest, emotionally truthful stories that challenge, engage, and heal.",
+    missionP2: "Founded following a chance coffee shop meeting between founders Rosina and Martin, TLP, based in the South of England, acts as a vital platform for promising artistic talent, enabling actors, writers, and designers to develop their craft, gain professional credits, and grow within the industry.",
+    missionP3: "As a Community Interest Company, all our revenue is reinvested with the goal to link local theatrical community groups directly with professional spaces, particularly bridging opportunities to the London theatre world.",
+    missionP4: "Alongside our professional productions, TLP Studio is our community-focused branch dedicated to nurturing local talent across the South of England and surrounding areas. TLP Studio is the heartbeat of our local theatre community — creating opportunities for emerging and amateur artists. Through productions, festivals and amateur competitions, TLP Studio provides opportunities for local talent to develop, collaborate and share their passion for performance — while remaining connected to the wider creative vision of True Life Productions.",
+    visionQuote: "Aiming to link communities with performing arts, creating safe places for expression, building emotional connections, and celebrating local identities. We prioritize human connection and the search for truth in every actor's work.",
+    visionQuoteAttribution: "True Life Productions CIC",
+    communityStatement: "TLP is a registered Community Interest Company (CIC) committed to making theatre accessible to everyone. Every pound we earn is reinvested into our projects, supporting local talent development programmes, youth opportunities, and creating inclusive and bold theatre productions. By removing barriers to participation and performance, TLP helps nurture emerging artists and strengthen the cultural life of our communities. TLP Company reg.no. 16139873",
+    videoVisionHeading: "Our Founding Vision",
+    videoVisionText: "Watch co-founders Martin Maynard and Rosina Piovani share TLP's founding vision, establishing a dynamic platform that bridges emerging regional talent with professional opportunities on the London stage."
+};
+
 // Database operations class
 class DatabasePortal {
     constructor() {
@@ -293,18 +337,26 @@ class DatabasePortal {
         }
         
         // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "4.4";
+        const CURRENT_DB_VERSION = "5.0";
         const storedDbVersion = localStorage.getItem("tlp_db_version");
         
         if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
             localStorage.setItem("tlp_productions", JSON.stringify(DEFAULT_PRODUCTIONS));
             localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
+            localStorage.setItem("tlp_workshops", JSON.stringify(DEFAULT_WORKSHOPS));
+            localStorage.setItem("tlp_about", JSON.stringify(DEFAULT_ABOUT_CONTENT));
             localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
             localStorage.setItem("tlp_db_version", CURRENT_DB_VERSION);
         }
 
         if (!localStorage.getItem("tlp_team")) {
             localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
+        }
+        if (!localStorage.getItem("tlp_workshops")) {
+            localStorage.setItem("tlp_workshops", JSON.stringify(DEFAULT_WORKSHOPS));
+        }
+        if (!localStorage.getItem("tlp_about")) {
+            localStorage.setItem("tlp_about", JSON.stringify(DEFAULT_ABOUT_CONTENT));
         }
 
         // Sync live updates from Netlify cloud storage in background
@@ -328,6 +380,14 @@ class DatabasePortal {
             }
             if (data.team && Array.isArray(data.team) && data.team.length > 0) {
                 localStorage.setItem("tlp_team", JSON.stringify(data.team));
+                hasChanges = true;
+            }
+            if (data.workshops && Array.isArray(data.workshops) && data.workshops.length > 0) {
+                localStorage.setItem("tlp_workshops", JSON.stringify(data.workshops));
+                hasChanges = true;
+            }
+            if (data.about && typeof data.about === "object" && !Array.isArray(data.about)) {
+                localStorage.setItem("tlp_about", JSON.stringify(data.about));
                 hasChanges = true;
             }
 
@@ -364,6 +424,24 @@ class DatabasePortal {
     async saveTeam(team) {
         localStorage.setItem("tlp_team", JSON.stringify(team));
         return await this.pushToCloud("team", team);
+    }
+
+    getWorkshops() {
+        return JSON.parse(localStorage.getItem("tlp_workshops")) || DEFAULT_WORKSHOPS;
+    }
+
+    async saveWorkshops(workshops) {
+        localStorage.setItem("tlp_workshops", JSON.stringify(workshops));
+        return await this.pushToCloud("workshops", workshops);
+    }
+
+    getAboutContent() {
+        return JSON.parse(localStorage.getItem("tlp_about")) || DEFAULT_ABOUT_CONTENT;
+    }
+
+    async saveAboutContent(about) {
+        localStorage.setItem("tlp_about", JSON.stringify(about));
+        return await this.pushToCloud("about", about);
     }
 
     async pushToCloud(type, data) {
