@@ -182,18 +182,20 @@ function renderImagePreview(previewId, inputId, url, name = "Image", meta = "", 
     const previewEl = document.getElementById(previewId);
     if (!previewEl) return;
 
-    if (!url) {
+    if (!url || !url.trim()) {
         previewEl.style.display = "none";
         previewEl.innerHTML = "";
         return;
     }
+
+    const displayName = url.startsWith("data:") ? "Uploaded Image (compressed)" : (name || url.split("/").pop() || "Image");
 
     previewEl.style.display = "block";
     previewEl.innerHTML = `
         <div class="dropzone-preview-wrap">
             <img src="${url}" class="dropzone-thumb" alt="Preview" onerror="this.src='assets/images/image06.png'">
             <div class="dropzone-info">
-                <span>${name}</span>
+                <span>${displayName}</span>
                 ${meta ? `<small style="color: var(--text-muted);">${meta}</small>` : ''}
             </div>
             <button type="button" class="dropzone-btn-remove" onclick="clearUploadedImage('${inputId}', '${previewId}')">Remove</button>
@@ -209,7 +211,9 @@ function clearUploadedImage(inputId, previewId) {
         previewEl.style.display = "none";
         previewEl.innerHTML = "";
     }
-    updatePlayLivePreview();
+    if (inputId === "play-image") {
+        updatePlayLivePreview();
+    }
 }
 
 /**
@@ -358,13 +362,16 @@ function updatePlayLivePreview() {
     const detailsLink = document.getElementById("play-details-link")?.value || "";
 
     // Update Hero Banner Preview
-    const mockHero = document.getElementById("mock-hero");
+    const mockHeroImg = document.getElementById("mock-hero-img");
     const mockBadge = document.getElementById("mock-badge");
     const mockTitle = document.getElementById("mock-title");
     const mockSub = document.getElementById("mock-sub");
 
-    if (mockHero) {
-        mockHero.style.backgroundImage = `url('${image}')`;
+    if (mockHeroImg) {
+        mockHeroImg.src = image || "assets/images/play-poison-banner.jpg";
+        mockHeroImg.onerror = () => {
+            mockHeroImg.src = "assets/images/image06.png";
+        };
     }
     if (mockBadge) {
         if (prodType === "studio") {
@@ -436,6 +443,30 @@ function updatePlayLivePreview() {
             `;
         }
     }
+
+    // Update Production Photos Gallery Strip in Mockup
+    const galleryContainer = document.getElementById("mock-gallery-preview");
+    const gallerySection = document.getElementById("mock-gallery-section");
+    if (galleryContainer) {
+        const venues = getVenuesData();
+        const allPhotos = [];
+        venues.forEach(v => {
+            if (v.images && Array.isArray(v.images)) {
+                v.images.forEach(img => {
+                    if (img && img.trim()) allPhotos.push(img.trim());
+                });
+            }
+        });
+        if (allPhotos.length > 0) {
+            if (gallerySection) gallerySection.style.display = "block";
+            galleryContainer.innerHTML = allPhotos.map(p => `
+                <img src="${p}" class="mock-gallery-thumb" alt="Production Photo" onerror="this.src='assets/images/image06.png'">
+            `).join('');
+        } else {
+            if (gallerySection) gallerySection.style.display = "none";
+            galleryContainer.innerHTML = "";
+        }
+    }
 }
 
 // Modal open/close controls
@@ -491,7 +522,9 @@ function openPlayModal(mode, playId = '') {
             document.getElementById("play-details-link").value = play.detailsLink || '';
             
             if (play.image) {
-                renderImagePreview("play-image-preview", "play-image", play.image, play.image.split("/").pop() || "Poster");
+                renderImagePreview("play-image-preview", "play-image", play.image, play.image.startsWith("data:") ? "Uploaded Poster" : (play.image.split("/").pop() || "Poster"));
+            } else {
+                renderImagePreview("play-image-preview", "play-image", "");
             }
 
             document.getElementById("venues-editor-list").innerHTML = "";
@@ -703,12 +736,30 @@ function addVenueImageInput(venueId, value = '') {
     wrapper.style.gap = "0.5rem";
     wrapper.style.alignItems = "center";
     wrapper.innerHTML = `
-        <input type="text" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="e.g. photo.jpg or https://..." style="flex-grow: 1;" required oninput="updatePlayLivePreview()">
+        <img src="${value || 'assets/images/image06.png'}" class="venue-photo-thumb" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; background: #000; ${value ? '' : 'display: none;'}" alt="Thumb" onerror="this.src='assets/images/image06.png'">
+        <input type="text" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="e.g. photo.jpg or https://..." style="flex-grow: 1;" required oninput="handleVenueUrlInput('${inputId}')">
         <input type="file" id="${fileId}" accept="image/*" style="display: none;" onchange="handleVenuePhotoUpload(event, '${inputId}')">
         <button type="button" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; white-space: nowrap;" onclick="document.getElementById('${fileId}').click()">📁 Upload</button>
         <button type="button" class="action-icon-btn delete" style="padding: 0.55rem 0.75rem;" onclick="document.getElementById('${inputId}').remove(); updatePlayLivePreview();">×</button>
     `;
     imagesList.appendChild(wrapper);
+}
+
+function handleVenueUrlInput(wrapperId) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+    const input = wrapper.querySelector(".venue-image-url");
+    const thumb = wrapper.querySelector(".venue-photo-thumb");
+    const val = input ? input.value.trim() : '';
+    if (thumb) {
+        if (val) {
+            thumb.src = val;
+            thumb.style.display = "block";
+        } else {
+            thumb.style.display = "none";
+        }
+    }
+    updatePlayLivePreview();
 }
 
 async function handleVenuePhotoUpload(event, wrapperId) {
@@ -717,8 +768,13 @@ async function handleVenuePhotoUpload(event, wrapperId) {
     try {
         const wrapper = document.getElementById(wrapperId);
         const input = wrapper.querySelector(".venue-image-url");
+        const thumb = wrapper.querySelector(".venue-photo-thumb");
         const result = await compressImageFile(file);
         if (input) input.value = result.dataUrl;
+        if (thumb) {
+            thumb.src = result.dataUrl;
+            thumb.style.display = "block";
+        }
         updatePlayLivePreview();
     } catch(e) {
         alert("Photo upload error: " + e.message);
@@ -851,7 +907,9 @@ function openWorkshopModal(mode, wsId = '') {
             document.getElementById("workshop-cta-link").value = ws.ctaLink || '';
 
             if (ws.image) {
-                renderImagePreview("ws-image-preview", "workshop-image", ws.image, ws.image.split("/").pop() || "Image");
+                renderImagePreview("ws-image-preview", "workshop-image", ws.image, ws.image.startsWith("data:") ? "Uploaded Image" : (ws.image.split("/").pop() || "Image"));
+            } else {
+                renderImagePreview("ws-image-preview", "workshop-image", "");
             }
         }
     }
@@ -982,7 +1040,9 @@ function openTeamModal(mode, index = null) {
             document.getElementById("team-bio").value = member.bio || '';
             
             if (member.image) {
-                renderImagePreview("team-image-preview", "team-image", member.image, member.name + " Headshot");
+                renderImagePreview("team-image-preview", "team-image", member.image, member.image.startsWith("data:") ? "Uploaded Headshot" : (member.name + " Headshot"));
+            } else {
+                renderImagePreview("team-image-preview", "team-image", "");
             }
         }
     }

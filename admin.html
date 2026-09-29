@@ -158,6 +158,10 @@
             display: block;
         }
 
+        :root, html, body {
+            color-scheme: dark;
+        }
+
         /* Form Controls */
         .admin-form-group {
             margin-bottom: 1.5rem;
@@ -177,7 +181,7 @@
         .admin-control {
             width: 100%;
             padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.04);
+            background: #0d0f17;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: #ffffff;
@@ -186,12 +190,43 @@
             outline: none;
             transition: var(--transition-fast);
             box-sizing: border-box;
+            color-scheme: dark;
         }
 
         .admin-control:focus {
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.06);
+            background: #141824;
             box-shadow: 0 0 10px rgba(223, 183, 92, 0.15);
+        }
+
+        /* Dropdown Options Theming (Prevents White-on-White text bug) */
+        select.admin-control {
+            color-scheme: dark !important;
+            background-color: #0d0f17 !important;
+            color: #ffffff !important;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23dfb75c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 1rem center !important;
+            background-size: 14px !important;
+            padding-right: 2.5rem !important;
+            cursor: pointer;
+        }
+
+        select.admin-control option {
+            background-color: #141824 !important;
+            color: #ffffff !important;
+            padding: 0.75rem 1rem !important;
+            font-size: 0.95rem !important;
+        }
+
+        select.admin-control option:checked,
+        select.admin-control option:hover,
+        select.admin-control option:focus {
+            background-color: #201547 !important;
+            color: #dfb75c !important;
         }
 
         .form-grid-2 {
@@ -350,7 +385,7 @@
         .admin-preview-col {
             position: sticky;
             top: 0;
-            background: rgba(6, 7, 10, 0.7);
+            background: rgba(6, 7, 10, 0.75);
             border: 1px solid var(--border-gold);
             border-radius: 12px;
             padding: 1.5rem;
@@ -481,15 +516,24 @@
             position: relative;
             border-radius: 8px;
             overflow: hidden;
-            min-height: 160px;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             padding: 1.25rem;
-            background-size: cover;
-            background-position: center;
+            background: #06070a;
             border: 1px solid rgba(255,255,255,0.1);
             margin-bottom: 1.5rem;
+        }
+
+        .mock-hero-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
         }
 
         .mock-hero-overlay {
@@ -498,13 +542,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(180deg, rgba(6,7,10,0.2) 0%, rgba(6,7,10,0.92) 100%);
-            z-index: 1;
+            background: linear-gradient(180deg, rgba(6,7,10,0.1) 0%, rgba(6,7,10,0.92) 100%);
+            z-index: 2;
         }
 
         .mock-hero-content {
             position: relative;
-            z-index: 2;
+            z-index: 3;
         }
 
         .mock-hero-badge {
@@ -529,7 +573,7 @@
 
         .mock-hero-sub {
             font-size: 0.85rem;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.75);
             margin: 0;
         }
 
@@ -574,7 +618,7 @@
         }
 
         .mock-synopsis {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.85);
             line-height: 1.5;
             margin-bottom: 1rem;
             font-size: 0.85rem;
@@ -605,6 +649,21 @@
             font-style: italic;
             font-size: 0.8rem;
             line-height: 1.4;
+        }
+
+        .mock-gallery-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .mock-gallery-thumb {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .modal-header {
@@ -1125,7 +1184,8 @@
                         </div>
 
                         <!-- Mini Hero Simulation -->
-                        <div class="mock-play-hero" id="mock-hero" style="background-image: url('assets/images/play-poison-banner.jpg');">
+                        <div class="mock-play-hero" id="mock-hero">
+                            <img id="mock-hero-img" class="mock-hero-img" src="assets/images/play-poison-banner.jpg" alt="Hero Poster">
                             <div class="mock-hero-overlay"></div>
                             <div class="mock-hero-content">
                                 <span class="mock-hero-badge" id="mock-badge" style="background: #8f1b2c; color: #fff;">TLP PRODUCTION</span>
@@ -1164,6 +1224,14 @@
                                 <!-- Pre-prod or Post-prod dynamic section -->
                                 <div id="mock-dynamic-content">
                                     <!-- Populated dynamically -->
+                                </div>
+
+                                <!-- Photo Gallery Strip Mockup -->
+                                <div id="mock-gallery-section" style="margin-top: 1.25rem;">
+                                    <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); font-family: var(--font-heading); margin-bottom: 0.4rem;">Production Photos</div>
+                                    <div class="mock-gallery-strip" id="mock-gallery-preview">
+                                        <!-- Photo thumbnails rendered dynamically -->
+                                    </div>
                                 </div>
                             </div>
                         </div>

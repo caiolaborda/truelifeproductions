@@ -6,6 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Prata&family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap');
 
 :root {
+    color-scheme: dark;
     /* Color Palette */
     --bg-main: #06070a;
     --bg-darker: #020305;
@@ -981,4 +982,49 @@ body.mouse-active .mouse-spotlight {
         border-top: 1px solid rgba(255, 255, 255, 0.06);
         padding-top: 3rem;
     }
+}
+
+/* ==========================================================================
+   GLOBAL FORM CONTROLS & SELECT CONTRAST FIX
+   ========================================================================== */
+select, option, optgroup {
+    color-scheme: dark;
+}
+
+select {
+    background-color: #0d0f17;
+    color: #ffffff;
+}
+
+select option {
+    background-color: #141824 !important;
+    color: #ffffff !important;
+    padding: 0.6rem 0.8rem;
+}
+
+select option:checked,
+select option:hover,
+select option:focus {
+    background-color: #201547 !important;
+    color: #dfb75c !important;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(13, 15, 23, 0.75);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    outline: none;
+    transition: var(--transition-fast);
+    box-sizing: border-box;
+    color-scheme: dark;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    background: #141824;
 }
