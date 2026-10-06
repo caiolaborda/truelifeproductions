@@ -740,6 +740,57 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Toast Notifications */
+        .admin-toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .admin-toast {
+            pointer-events: auto;
+            min-width: 320px;
+            max-width: 500px;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            background: rgba(13, 15, 23, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: toastSlideIn 0.3s ease;
+            transition: all 0.3s ease;
+        }
+
+        .admin-toast.success {
+            border-color: #28a745;
+            background: rgba(10, 35, 18, 0.96);
+        }
+
+        .admin-toast.error {
+            border-color: #dc3545;
+            background: rgba(45, 15, 18, 0.96);
+        }
+
+        .admin-toast.info {
+            border-color: var(--primary);
+            background: rgba(13, 15, 23, 0.96);
+        }
+
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
 </head>
@@ -1117,8 +1168,8 @@
                             </div>
 
                             <div class="admin-form-group">
-                                <label for="play-set">Set Design & Creative Team</label>
-                                <input type="text" id="play-set" class="admin-control" placeholder="e.g. Suzanne Emerson (Stage Design)" oninput="updatePlayLivePreview()">
+                                <label for="play-set">Creative Team & Additional Credits</label>
+                                <input type="text" id="play-set" class="admin-control" placeholder="e.g. Suzanne Emerson (Stage Design), Leah Ward (Lighting)" oninput="updatePlayLivePreview()">
                             </div>
                         </div>
 
@@ -1211,8 +1262,8 @@
                                     <div class="mock-meta-val" id="mock-meta-cast">Martin Maynard, Lynne Livingstone</div>
                                 </div>
                                 <div class="mock-meta-item">
-                                    <div class="mock-meta-label">Set Design</div>
-                                    <div class="mock-meta-val" id="mock-meta-set">Suzanne Emerson</div>
+                                    <div class="mock-meta-label">Creative Team</div>
+                                    <div class="mock-meta-val" id="mock-meta-set">Suzanne Emerson (Stage Design)</div>
                                 </div>
                             </div>
 

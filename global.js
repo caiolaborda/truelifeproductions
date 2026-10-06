@@ -20,7 +20,7 @@ const DEFAULT_PRODUCTIONS = [
         director: "Rosina Piovani",
         translator: "Rina Vergamo",
         cast: "Martin Maynard, Lynne Livingstone",
-        setDesign: "Suzanne Emerson",
+        setDesign: "Suzanne Emerson (Set Design)",
         year: "2026",
         status: "past",
         synopsis: "A marriage destroyed by grief. A former husband and wife are reunited to protect the memory of their lost child. Lot Vekemans’ play is raw and emotionally intense and asks a simple question: is it possible to move on? Martin Maynard and Lynne Livingstone star in this compelling story, directed by Rosina Piovani. True Life Productions brings 'Poison' to the stage hoping to create space for collective reflection, honesty, opening and healing.",
@@ -74,6 +74,7 @@ const DEFAULT_PRODUCTIONS = [
         author: "David Sear",
         director: "Rosina Piovani",
         cast: "Christian Burton, Martin Maynard, Guy Asher, Catherine Watson, Geraldine Hindley, Iain Mahony, Michael Flintoff",
+        setDesign: "Suzanne Emerson (Set Design)",
         year: "2025",
         status: "past",
         synopsis: "A satirical and darkly comic tale about humanity’s yearning for immortality – and what happens when technology and vast wealth manipulate the very essence of what makes us human. In a world where the pace of change is unprecedented and our ability to adapt to that change is struggling to evolve, Continuity asks the existential questions: 'What is the value of my continued existence? And, can I get a better phone?'",
@@ -231,7 +232,7 @@ const DEFAULT_PRODUCTIONS = [
         title: "The Importance of Being Earnest",
         author: "Oscar Wilde",
         director: "David Sear",
-        setDesign: "Playwright: Oscar Wilde<br>Director: David Sear",
+        setDesign: "",
         year: "December 2026",
         status: "upcoming",
         synopsis: "Oscar Wilde’s brilliant comedy of manners hilariously exposes the calamitous consequences of not being entirely earnest. Jack and Algy invent fake friends and brothers to avoid being sensible, only to both fall in love—what could possibly go wrong? Studio at TLP brings David Sear’s delightful take on this social satire as a special Christmas fundraiser.",
@@ -332,31 +333,35 @@ class DatabasePortal {
     }
 
     init() {
-        if (!localStorage.getItem("tlp_settings")) {
-            localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
-        }
-        
-        // Force database reset/migration using database versioning to prevent outdated structures
-        const CURRENT_DB_VERSION = "5.0";
-        const storedDbVersion = localStorage.getItem("tlp_db_version");
-        
-        if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
-            localStorage.setItem("tlp_productions", JSON.stringify(DEFAULT_PRODUCTIONS));
-            localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
-            localStorage.setItem("tlp_workshops", JSON.stringify(DEFAULT_WORKSHOPS));
-            localStorage.setItem("tlp_about", JSON.stringify(DEFAULT_ABOUT_CONTENT));
-            localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
-            localStorage.setItem("tlp_db_version", CURRENT_DB_VERSION);
-        }
+        try {
+            if (!localStorage.getItem("tlp_settings")) {
+                localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
+            }
+            
+            // Force database reset/migration using database versioning to prevent outdated structures
+            const CURRENT_DB_VERSION = "5.1";
+            const storedDbVersion = localStorage.getItem("tlp_db_version");
+            
+            if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
+                localStorage.setItem("tlp_productions", JSON.stringify(DEFAULT_PRODUCTIONS));
+                localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
+                localStorage.setItem("tlp_workshops", JSON.stringify(DEFAULT_WORKSHOPS));
+                localStorage.setItem("tlp_about", JSON.stringify(DEFAULT_ABOUT_CONTENT));
+                localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
+                localStorage.setItem("tlp_db_version", CURRENT_DB_VERSION);
+            }
 
-        if (!localStorage.getItem("tlp_team")) {
-            localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
-        }
-        if (!localStorage.getItem("tlp_workshops")) {
-            localStorage.setItem("tlp_workshops", JSON.stringify(DEFAULT_WORKSHOPS));
-        }
-        if (!localStorage.getItem("tlp_about")) {
-            localStorage.setItem("tlp_about", JSON.stringify(DEFAULT_ABOUT_CONTENT));
+            if (!localStorage.getItem("tlp_team")) {
+                localStorage.setItem("tlp_team", JSON.stringify(DEFAULT_TEAM));
+            }
+            if (!localStorage.getItem("tlp_workshops")) {
+                localStorage.setItem("tlp_workshops", JSON.stringify(DEFAULT_WORKSHOPS));
+            }
+            if (!localStorage.getItem("tlp_about")) {
+                localStorage.setItem("tlp_about", JSON.stringify(DEFAULT_ABOUT_CONTENT));
+            }
+        } catch (e) {
+            console.warn("LocalStorage initialization warning (quota or cookies restricted):", e);
         }
 
         // Sync live updates from Netlify cloud storage in background
@@ -370,25 +375,29 @@ class DatabasePortal {
             const data = await res.json();
             
             let hasChanges = false;
-            if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
-                localStorage.setItem("tlp_settings", JSON.stringify(data.settings));
-                hasChanges = true;
-            }
-            if (data.productions && Array.isArray(data.productions) && data.productions.length > 0) {
-                localStorage.setItem("tlp_productions", JSON.stringify(data.productions));
-                hasChanges = true;
-            }
-            if (data.team && Array.isArray(data.team) && data.team.length > 0) {
-                localStorage.setItem("tlp_team", JSON.stringify(data.team));
-                hasChanges = true;
-            }
-            if (data.workshops && Array.isArray(data.workshops) && data.workshops.length > 0) {
-                localStorage.setItem("tlp_workshops", JSON.stringify(data.workshops));
-                hasChanges = true;
-            }
-            if (data.about && typeof data.about === "object" && !Array.isArray(data.about)) {
-                localStorage.setItem("tlp_about", JSON.stringify(data.about));
-                hasChanges = true;
+            try {
+                if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
+                    localStorage.setItem("tlp_settings", JSON.stringify(data.settings));
+                    hasChanges = true;
+                }
+                if (data.productions && Array.isArray(data.productions) && data.productions.length > 0) {
+                    localStorage.setItem("tlp_productions", JSON.stringify(data.productions));
+                    hasChanges = true;
+                }
+                if (data.team && Array.isArray(data.team) && data.team.length > 0) {
+                    localStorage.setItem("tlp_team", JSON.stringify(data.team));
+                    hasChanges = true;
+                }
+                if (data.workshops && Array.isArray(data.workshops) && data.workshops.length > 0) {
+                    localStorage.setItem("tlp_workshops", JSON.stringify(data.workshops));
+                    hasChanges = true;
+                }
+                if (data.about && typeof data.about === "object" && !Array.isArray(data.about)) {
+                    localStorage.setItem("tlp_about", JSON.stringify(data.about));
+                    hasChanges = true;
+                }
+            } catch (quotaErr) {
+                console.warn("LocalStorage cache limit reached during cloud sync:", quotaErr);
             }
 
             if (hasChanges) {
@@ -400,47 +409,87 @@ class DatabasePortal {
     }
 
     getSettings() {
-        return JSON.parse(localStorage.getItem("tlp_settings")) || DEFAULT_SITE_SETTINGS;
+        try {
+            return JSON.parse(localStorage.getItem("tlp_settings")) || DEFAULT_SITE_SETTINGS;
+        } catch(e) {
+            return DEFAULT_SITE_SETTINGS;
+        }
     }
 
     async saveSettings(settings) {
-        localStorage.setItem("tlp_settings", JSON.stringify(settings));
+        try {
+            localStorage.setItem("tlp_settings", JSON.stringify(settings));
+        } catch(e) {
+            console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
+        }
         return await this.pushToCloud("settings", settings);
     }
 
     getProductions() {
-        return JSON.parse(localStorage.getItem("tlp_productions")) || DEFAULT_PRODUCTIONS;
+        try {
+            return JSON.parse(localStorage.getItem("tlp_productions")) || DEFAULT_PRODUCTIONS;
+        } catch(e) {
+            return DEFAULT_PRODUCTIONS;
+        }
     }
 
     async saveProductions(productions) {
-        localStorage.setItem("tlp_productions", JSON.stringify(productions));
+        try {
+            localStorage.setItem("tlp_productions", JSON.stringify(productions));
+        } catch(e) {
+            console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
+        }
         return await this.pushToCloud("productions", productions);
     }
 
     getTeam() {
-        return JSON.parse(localStorage.getItem("tlp_team")) || DEFAULT_TEAM;
+        try {
+            return JSON.parse(localStorage.getItem("tlp_team")) || DEFAULT_TEAM;
+        } catch(e) {
+            return DEFAULT_TEAM;
+        }
     }
 
     async saveTeam(team) {
-        localStorage.setItem("tlp_team", JSON.stringify(team));
+        try {
+            localStorage.setItem("tlp_team", JSON.stringify(team));
+        } catch(e) {
+            console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
+        }
         return await this.pushToCloud("team", team);
     }
 
     getWorkshops() {
-        return JSON.parse(localStorage.getItem("tlp_workshops")) || DEFAULT_WORKSHOPS;
+        try {
+            return JSON.parse(localStorage.getItem("tlp_workshops")) || DEFAULT_WORKSHOPS;
+        } catch(e) {
+            return DEFAULT_WORKSHOPS;
+        }
     }
 
     async saveWorkshops(workshops) {
-        localStorage.setItem("tlp_workshops", JSON.stringify(workshops));
+        try {
+            localStorage.setItem("tlp_workshops", JSON.stringify(workshops));
+        } catch(e) {
+            console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
+        }
         return await this.pushToCloud("workshops", workshops);
     }
 
     getAboutContent() {
-        return JSON.parse(localStorage.getItem("tlp_about")) || DEFAULT_ABOUT_CONTENT;
+        try {
+            return JSON.parse(localStorage.getItem("tlp_about")) || DEFAULT_ABOUT_CONTENT;
+        } catch(e) {
+            return DEFAULT_ABOUT_CONTENT;
+        }
     }
 
     async saveAboutContent(about) {
-        localStorage.setItem("tlp_about", JSON.stringify(about));
+        try {
+            localStorage.setItem("tlp_about", JSON.stringify(about));
+        } catch(e) {
+            console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
+        }
         return await this.pushToCloud("about", about);
     }
 
@@ -458,11 +507,14 @@ class DatabasePortal {
             if (res.ok) {
                 const result = await res.json();
                 return { success: true, cloud: true, message: result.message };
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                return { success: false, cloud: false, error: errData.error || `Server status ${res.status}` };
             }
         } catch (err) {
-            console.warn("Cloud sync failed (running locally):", err);
+            console.warn("Cloud sync failed (running locally or network error):", err);
+            return { success: true, cloud: false, message: "Saved locally." };
         }
-        return { success: true, cloud: false, message: "Saved locally." };
     }
 }
 

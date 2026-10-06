@@ -76,14 +76,49 @@ function switchTab(tabName) {
 }
 
 /* ==========================================================================
+   TOAST NOTIFICATION SYSTEM
+   ========================================================================== */
+function showToast(message, type = 'info', duration = 4000) {
+    let container = document.getElementById("admin-toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "admin-toast-container";
+        container.className = "admin-toast-container";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `admin-toast ${type}`;
+    
+    let icon = "ℹ️";
+    if (type === "success") icon = "✅";
+    if (type === "error") icon = "❌";
+    if (type === "warning") icon = "⚠️";
+
+    toast.innerHTML = `
+        <span style="font-size: 1.1rem; flex-shrink: 0;">${icon}</span>
+        <div style="flex-grow: 1; font-size: 0.88rem; line-height: 1.4;">${message}</div>
+        <button type="button" style="background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 0.2rem;" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(100%)";
+        setTimeout(() => toast.remove(), 350);
+    }, duration);
+}
+
+/* ==========================================================================
    IMAGE UPLOAD, COMPRESSION & PREVIEW HELPERS
    ========================================================================== */
 
 /**
- * Compresses an image file client-side using an HTML5 Canvas.
- * Returns a Promise that resolves to an optimized base64 Data URL.
+ * Compresses an image file client-side using an HTML5 Canvas to high-efficiency JPEG.
+ * Returns a Promise that resolves to an optimized base64 Data URL (typically 30KB–90KB).
  */
-function compressImageFile(file, maxWidth = 1600, quality = 0.85) {
+function compressImageFile(file, maxWidth = 1200, quality = 0.75) {
     return new Promise((resolve, reject) => {
         if (!file.type.startsWith("image/")) {
             return reject(new Error("Selected file is not an image."));
@@ -110,12 +145,24 @@ function compressImageFile(file, maxWidth = 1600, quality = 0.85) {
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext("2d");
+
+                // Fill background with dark tone for transparent PNGs
+                ctx.fillStyle = "#06070a";
+                ctx.fillRect(0, 0, width, height);
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Use webp or jpeg format
-                const mimeType = file.type === "image/png" ? "image/png" : "image/jpeg";
-                const dataUrl = canvas.toDataURL(mimeType, quality);
-                resolve({ dataUrl, width, height, originalName: file.name });
+                // Standardize to image/jpeg for strong compression and broad browser support
+                let currentQuality = quality;
+                let dataUrl = canvas.toDataURL("image/jpeg", currentQuality);
+
+                // If dataUrl exceeds 300KB, scale quality down further to guarantee light payloads
+                if (dataUrl.length > 350000) {
+                    currentQuality = 0.65;
+                    dataUrl = canvas.toDataURL("image/jpeg", currentQuality);
+                }
+
+                const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
+                resolve({ dataUrl, width, height, originalName: file.name, sizeKb });
             };
             img.onerror = () => reject(new Error("Failed to load image into canvas."));
             img.src = e.target.result;
@@ -147,13 +194,14 @@ async function handleImageFileUpload(event, inputId, previewId, callback = null)
             inputEl.value = result.dataUrl;
         }
 
-        renderImagePreview(previewId, inputId, result.dataUrl, result.originalName, `${result.width}×${result.height}`, callback);
+        renderImagePreview(previewId, inputId, result.dataUrl, result.originalName, `${result.width}×${result.height} (${result.sizeKb} KB)`, callback);
 
         if (callback && typeof callback === "function") {
             callback();
         }
+        showToast(`Image "${result.originalName}" compressed successfully (${result.sizeKb} KB).`, 'success', 3000);
     } catch (err) {
-        alert("Image upload error: " + err.message);
+        showToast("Image upload error: " + err.message, 'error');
     }
 }
 
@@ -274,38 +322,54 @@ async function saveSiteSettings(event) {
     event.preventDefault();
     const btn = document.getElementById("save-settings-btn");
     const originalText = btn ? btn.textContent : "Save Site Settings";
-    if (btn) btn.textContent = "Saving & Syncing to Live Site...";
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Saving & Syncing to Live Site...";
+    }
     
-    const settings = {
-        title: document.getElementById("site-title").value,
-        announcement: document.getElementById("site-announcement").value || "",
-        email: document.getElementById("site-email").value,
-        phone: document.getElementById("site-phone").value,
-        registration: document.getElementById("site-registration").value,
-        address: document.getElementById("site-address").value
-    };
+    try {
+        const settings = {
+            title: document.getElementById("site-title").value.trim(),
+            announcement: document.getElementById("site-announcement").value.trim() || "",
+            email: document.getElementById("site-email").value.trim(),
+            phone: document.getElementById("site-phone").value.trim(),
+            registration: document.getElementById("site-registration").value.trim(),
+            address: document.getElementById("site-address").value.trim()
+        };
 
-    await TLP_DB.saveSettings(settings);
-    if (btn) btn.textContent = originalText;
-    
-    alert("Site settings saved and synced successfully! Changes will reflect live across all pages.");
-    
-    // Toggle announcement banner visibility instantly
-    const banner = document.querySelector(".announcement-banner");
-    const bannerEl = document.querySelector(".announcement-banner p");
-    if (banner && bannerEl) {
-        if (!settings.announcement || settings.announcement.trim() === "" || settings.announcement.toUpperCase() === "NONE") {
-            banner.style.display = "none";
-            document.body.classList.remove("has-announcement");
-            document.documentElement.style.setProperty("--banner-height", "0px");
+        const result = await TLP_DB.saveSettings(settings);
+        
+        if (result && result.cloud) {
+            showToast("Site settings saved & synced to live website!", 'success');
         } else {
-            banner.style.display = "block";
-            bannerEl.textContent = settings.announcement;
-            document.body.classList.add("has-announcement");
-            setTimeout(() => {
-                const bannerHeight = banner.offsetHeight;
-                document.documentElement.style.setProperty("--banner-height", `${bannerHeight}px`);
-            }, 50);
+            showToast("Site settings saved locally in browser.", 'info');
+        }
+        
+        // Toggle announcement banner visibility instantly
+        const banner = document.querySelector(".announcement-banner");
+        const bannerEl = document.querySelector(".announcement-banner p");
+        if (banner && bannerEl) {
+            if (!settings.announcement || settings.announcement.trim() === "" || settings.announcement.toUpperCase() === "NONE") {
+                banner.style.display = "none";
+                document.body.classList.remove("has-announcement");
+                document.documentElement.style.setProperty("--banner-height", "0px");
+            } else {
+                banner.style.display = "block";
+                bannerEl.textContent = settings.announcement;
+                document.body.classList.add("has-announcement");
+                setTimeout(() => {
+                    const bannerHeight = banner.offsetHeight;
+                    document.documentElement.style.setProperty("--banner-height", `${bannerHeight}px`);
+                }, 50);
+            }
+        }
+    } catch (err) {
+        console.error("Save settings error:", err);
+        showToast("Failed to save settings: " + err.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     }
 }
@@ -545,98 +609,117 @@ function closePlayModal() {
     document.getElementById("play-modal-overlay").classList.remove("open");
 }
 
-// Create & Update Play Form submission
 async function handlePlaySubmit(event) {
     event.preventDefault();
     const submitBtn = document.getElementById("save-play-btn");
     const originalBtnText = submitBtn ? submitBtn.textContent : "Save Production";
-    if (submitBtn) submitBtn.textContent = "Saving & Syncing to Live Site...";
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving & Syncing to Live Site...";
+    }
     
-    const mode = document.getElementById("play-form-mode").value;
-    const playId = document.getElementById("play-form-id").value;
-    
-    const title = document.getElementById("play-title").value;
-    const author = document.getElementById("play-author").value;
-    const director = document.getElementById("play-director").value;
-    const year = document.getElementById("play-year").value;
-    const status = document.getElementById("play-status").value;
-    const accent = document.getElementById("play-accent").value;
-    const animation = document.getElementById("play-animation").value;
-    const image = document.getElementById("play-image").value;
-    const cast = document.getElementById("play-cast").value;
-    const set = document.getElementById("play-set").value;
-    const synopsis = document.getElementById("play-synopsis").value;
-
-    const pageType = document.getElementById("play-page-type").value;
-    const prodType = document.getElementById("play-prod-type").value;
-    const isStudio = prodType === "studio";
-    const showInHero = document.getElementById("play-show-hero").checked;
-    const detailsLink = document.getElementById("play-details-link").value;
-    
-    const venues = getVenuesData();
-    const productions = TLP_DB.getProductions();
-
-    if (mode === "create") {
-        const newId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    try {
+        const mode = document.getElementById("play-form-mode").value;
+        const playId = document.getElementById("play-form-id").value;
         
-        if (productions.some(p => p.id === newId)) {
-            alert("A play with this title or similar ID already exists. Please choose a different title.");
-            if (submitBtn) submitBtn.textContent = originalBtnText;
-            return;
+        const title = document.getElementById("play-title").value.trim();
+        const author = document.getElementById("play-author").value.trim();
+        const director = document.getElementById("play-director").value.trim();
+        const year = document.getElementById("play-year").value.trim();
+        const status = document.getElementById("play-status").value;
+        const accent = document.getElementById("play-accent").value;
+        const animation = document.getElementById("play-animation").value;
+        const image = document.getElementById("play-image").value.trim();
+        const cast = document.getElementById("play-cast").value.trim();
+        const set = document.getElementById("play-set").value.trim();
+        const synopsis = document.getElementById("play-synopsis").value.trim();
+
+        const pageType = document.getElementById("play-page-type").value;
+        const prodType = document.getElementById("play-prod-type").value;
+        const isStudio = prodType === "studio";
+        const showInHero = document.getElementById("play-show-hero").checked;
+        const detailsLink = document.getElementById("play-details-link").value.trim();
+        
+        const venues = getVenuesData();
+        const productions = TLP_DB.getProductions();
+
+        if (mode === "create") {
+            const newId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            
+            if (productions.some(p => p.id === newId)) {
+                showToast(`A production with the ID "${newId}" already exists. Please adjust the title.`, 'error');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
+                return;
+            }
+
+            const newPlay = {
+                id: newId,
+                title,
+                author,
+                director,
+                year,
+                status,
+                synopsis,
+                image,
+                banner: image,
+                accent,
+                animationType: animation,
+                cast,
+                setDesign: set,
+                pageType,
+                isStudio,
+                showInHero,
+                detailsLink,
+                venues,
+                reviews: []
+            };
+
+            productions.push(newPlay);
+        } else if (mode === "edit" && playId) {
+            const playIdx = productions.findIndex(p => p.id === playId);
+            
+            if (playIdx !== -1) {
+                productions[playIdx].title = title;
+                productions[playIdx].author = author;
+                productions[playIdx].director = director;
+                productions[playIdx].year = year;
+                productions[playIdx].status = status;
+                productions[playIdx].accent = accent;
+                productions[playIdx].animationType = animation;
+                productions[playIdx].image = image;
+                productions[playIdx].banner = image;
+                productions[playIdx].cast = cast;
+                productions[playIdx].setDesign = set;
+                productions[playIdx].synopsis = synopsis;
+                productions[playIdx].pageType = pageType;
+                productions[playIdx].isStudio = isStudio;
+                productions[playIdx].showInHero = showInHero;
+                productions[playIdx].detailsLink = detailsLink;
+                productions[playIdx].venues = venues;
+            }
         }
 
-        const newPlay = {
-            id: newId,
-            title,
-            author,
-            director,
-            year,
-            status,
-            synopsis,
-            image,
-            banner: image,
-            accent,
-            animationType: animation,
-            cast,
-            setDesign: set,
-            pageType,
-            isStudio,
-            showInHero,
-            detailsLink,
-            venues,
-            reviews: []
-        };
+        const result = await TLP_DB.saveProductions(productions);
+        renderPlaysTable();
+        closePlayModal();
 
-        productions.push(newPlay);
-    } else if (mode === "edit" && playId) {
-        const playIdx = productions.findIndex(p => p.id === playId);
-        
-        if (playIdx !== -1) {
-            productions[playIdx].title = title;
-            productions[playIdx].author = author;
-            productions[playIdx].director = director;
-            productions[playIdx].year = year;
-            productions[playIdx].status = status;
-            productions[playIdx].accent = accent;
-            productions[playIdx].animationType = animation;
-            productions[playIdx].image = image;
-            productions[playIdx].banner = image;
-            productions[playIdx].cast = cast;
-            productions[playIdx].setDesign = set;
-            productions[playIdx].synopsis = synopsis;
-            productions[playIdx].pageType = pageType;
-            productions[playIdx].isStudio = isStudio;
-            productions[playIdx].showInHero = showInHero;
-            productions[playIdx].detailsLink = detailsLink;
-            productions[playIdx].venues = venues;
+        if (result && result.cloud) {
+            showToast(`Production "${title}" saved and synced globally to live website!`, 'success');
+        } else {
+            showToast(`Production "${title}" saved locally in browser.`, 'info');
+        }
+    } catch (err) {
+        console.error("Save production error:", err);
+        showToast("Error saving production: " + err.message, 'error', 6000);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
         }
     }
-
-    await TLP_DB.saveProductions(productions);
-    if (submitBtn) submitBtn.textContent = originalBtnText;
-    renderPlaysTable();
-    closePlayModal();
-    alert(`Production "${title}" saved and synced successfully to the live website!`);
 }
 
 async function deletePlay(playId) {
@@ -693,9 +776,13 @@ function addVenueField(data = null) {
         
         <!-- Images Sub-Section -->
         <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Scenic / Performance Photos</label>
-                <button type="button" class="btn btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;" onclick="addVenueImageInput('${venueId}')">+ Add Photo</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Scenic & Performance Photos</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="file" id="batch-file-${venueId}" multiple accept="image/*" style="display: none;" onchange="handleBatchVenuePhotoUpload(event, '${venueId}')">
+                    <button type="button" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="document.getElementById('batch-file-${venueId}').click()">📁 Upload Multiple Photos</button>
+                    <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="addVenueImageInput('${venueId}')">+ Add URL</button>
+                </div>
             </div>
             <div class="venue-images-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
                 <!-- Image inputs -->
@@ -706,7 +793,7 @@ function addVenueField(data = null) {
         <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                 <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Critical Review Quotes</label>
-                <button type="button" class="btn btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;" onclick="addVenueReviewInput('${venueId}')">+ Add Review Quote</button>
+                <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="addVenueReviewInput('${venueId}')">+ Add Review Quote</button>
             </div>
             <div class="venue-reviews-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <!-- Review blocks -->
@@ -721,6 +808,28 @@ function addVenueField(data = null) {
     
     // Add existing reviews
     reviews.forEach(rev => addVenueReviewInput(venueId, rev));
+}
+
+async function handleBatchVenuePhotoUpload(event, venueId) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    showToast(`Compressing & optimizing ${files.length} photo${files.length > 1 ? 's' : ''}...`, 'info');
+
+    let successCount = 0;
+    for (let i = 0; i < files.length; i++) {
+        try {
+            const result = await compressImageFile(files[i], 1000, 0.72);
+            addVenueImageInput(venueId, result.dataUrl);
+            successCount++;
+        } catch (err) {
+            console.error("Batch upload failed for", files[i].name, err);
+        }
+    }
+
+    event.target.value = "";
+    updatePlayLivePreview();
+    showToast(`Successfully added ${successCount} photo${successCount > 1 ? 's' : ''}!`, 'success');
 }
 
 function addVenueImageInput(venueId, value = '') {
@@ -925,50 +1034,67 @@ async function handleWorkshopSubmit(event) {
     event.preventDefault();
     const submitBtn = document.getElementById("save-ws-btn");
     const originalText = submitBtn ? submitBtn.textContent : "Save Workshop";
-    if (submitBtn) submitBtn.textContent = "Saving & Syncing...";
-
-    const mode = document.getElementById("workshop-form-mode").value;
-    const wsId = document.getElementById("workshop-form-id").value;
-
-    const title = document.getElementById("workshop-title").value;
-    const category = document.getElementById("workshop-category").value;
-    const instructor = document.getElementById("workshop-instructor").value;
-    const schedule = document.getElementById("workshop-schedule").value;
-    const location = document.getElementById("workshop-location").value;
-    const image = document.getElementById("workshop-image").value;
-    const description = document.getElementById("workshop-desc").value;
-    const subDescription = document.getElementById("workshop-sub-desc").value;
-    const ctaText = document.getElementById("workshop-cta-text").value;
-    const ctaLink = document.getElementById("workshop-cta-link").value;
-
-    const workshops = TLP_DB.getWorkshops();
-
-    if (mode === "create") {
-        const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        workshops.push({
-            id, title, category, instructor, schedule, location, image, description, subDescription, ctaText, ctaLink, status: "active"
-        });
-    } else {
-        const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
-        if (idx !== -1) {
-            workshops[idx].title = title;
-            workshops[idx].category = category;
-            workshops[idx].instructor = instructor;
-            workshops[idx].schedule = schedule;
-            workshops[idx].location = location;
-            workshops[idx].image = image;
-            workshops[idx].description = description;
-            workshops[idx].subDescription = subDescription;
-            workshops[idx].ctaText = ctaText;
-            workshops[idx].ctaLink = ctaLink;
-        }
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving & Syncing...";
     }
 
-    await TLP_DB.saveWorkshops(workshops);
-    if (submitBtn) submitBtn.textContent = originalText;
-    renderWorkshopsTable();
-    closeWorkshopModal();
-    alert(`Workshop "${title}" saved and synced successfully!`);
+    try {
+        const mode = document.getElementById("workshop-form-mode").value;
+        const wsId = document.getElementById("workshop-form-id").value;
+
+        const title = document.getElementById("workshop-title").value.trim();
+        const category = document.getElementById("workshop-category").value.trim();
+        const instructor = document.getElementById("workshop-instructor").value.trim();
+        const schedule = document.getElementById("workshop-schedule").value.trim();
+        const location = document.getElementById("workshop-location").value.trim();
+        const image = document.getElementById("workshop-image").value.trim();
+        const description = document.getElementById("workshop-desc").value.trim();
+        const subDescription = document.getElementById("workshop-sub-desc").value.trim();
+        const ctaText = document.getElementById("workshop-cta-text").value.trim();
+        const ctaLink = document.getElementById("workshop-cta-link").value.trim();
+
+        const workshops = TLP_DB.getWorkshops();
+
+        if (mode === "create") {
+            const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            workshops.push({
+                id, title, category, instructor, schedule, location, image, description, subDescription, ctaText, ctaLink, status: "active"
+            });
+        } else {
+            const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
+            if (idx !== -1) {
+                workshops[idx].title = title;
+                workshops[idx].category = category;
+                workshops[idx].instructor = instructor;
+                workshops[idx].schedule = schedule;
+                workshops[idx].location = location;
+                workshops[idx].image = image;
+                workshops[idx].description = description;
+                workshops[idx].subDescription = subDescription;
+                workshops[idx].ctaText = ctaText;
+                workshops[idx].ctaLink = ctaLink;
+            }
+        }
+
+        const result = await TLP_DB.saveWorkshops(workshops);
+        renderWorkshopsTable();
+        closeWorkshopModal();
+
+        if (result && result.cloud) {
+            showToast(`Workshop "${title}" saved and synced to live website!`, 'success');
+        } else {
+            showToast(`Workshop "${title}" saved locally in browser.`, 'info');
+        }
+    } catch (err) {
+        console.error("Save workshop error:", err);
+        showToast("Error saving workshop: " + err.message, 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
 }
 
 async function deleteWorkshop(wsId) {
@@ -977,10 +1103,11 @@ async function deleteWorkshop(wsId) {
     if (idx === -1) return;
 
     if (confirm(`Are you sure you want to delete "${workshops[idx].title}"?`)) {
+        const title = workshops[idx].title;
         workshops.splice(idx, 1);
         await TLP_DB.saveWorkshops(workshops);
         renderWorkshopsTable();
-        alert("Workshop removed.");
+        showToast(`Workshop "${title}" removed.`, 'info');
     }
 }
 
@@ -1058,32 +1185,49 @@ async function handleTeamSubmit(event) {
     event.preventDefault();
     const submitBtn = document.getElementById("save-team-btn");
     const originalBtnText = submitBtn ? submitBtn.textContent : "Save Team Member";
-    if (submitBtn) submitBtn.textContent = "Saving & Syncing...";
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving & Syncing...";
+    }
     
-    const mode = document.getElementById("team-form-mode").value;
-    const index = document.getElementById("team-form-index").value;
-    
-    const name = document.getElementById("team-name").value;
-    const role = document.getElementById("team-role").value;
-    const image = document.getElementById("team-image").value;
-    const bio = document.getElementById("team-bio").value;
+    try {
+        const mode = document.getElementById("team-form-mode").value;
+        const index = document.getElementById("team-form-index").value;
+        
+        const name = document.getElementById("team-name").value.trim();
+        const role = document.getElementById("team-role").value.trim();
+        const image = document.getElementById("team-image").value.trim();
+        const bio = document.getElementById("team-bio").value.trim();
 
-    const team = TLP_DB.getTeam();
+        const team = TLP_DB.getTeam();
 
-    if (mode === "create") {
-        team.push({ name, role, image, bio });
-    } else if (mode === "edit" && index !== '') {
-        const idx = parseInt(index, 10);
-        if (team[idx]) {
-            team[idx] = { name, role, image, bio };
+        if (mode === "create") {
+            team.push({ name, role, image, bio });
+        } else if (mode === "edit" && index !== '') {
+            const idx = parseInt(index, 10);
+            if (team[idx]) {
+                team[idx] = { name, role, image, bio };
+            }
+        }
+
+        const result = await TLP_DB.saveTeam(team);
+        renderTeamTable();
+        closeTeamModal();
+
+        if (result && result.cloud) {
+            showToast(`Team member "${name}" saved and synced to live website!`, 'success');
+        } else {
+            showToast(`Team member "${name}" saved locally in browser.`, 'info');
+        }
+    } catch (err) {
+        console.error("Save team error:", err);
+        showToast("Error saving team member: " + err.message, 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
         }
     }
-
-    await TLP_DB.saveTeam(team);
-    if (submitBtn) submitBtn.textContent = originalBtnText;
-    renderTeamTable();
-    closeTeamModal();
-    alert(`Team member "${name}" saved and synced successfully!`);
 }
 
 async function deleteTeamMember(index) {
@@ -1092,10 +1236,11 @@ async function deleteTeamMember(index) {
     if (!member) return;
 
     if (confirm(`Are you sure you want to remove "${member.name}" from the team?`)) {
+        const name = member.name;
         team.splice(index, 1);
         await TLP_DB.saveTeam(team);
         renderTeamTable();
-        alert(`"${member.name}" has been removed.`);
+        showToast(`"${name}" removed from team.`, 'info');
     }
 }
 
@@ -1124,23 +1269,40 @@ async function saveAboutContentForm(event) {
     event.preventDefault();
     const btn = document.getElementById("save-about-btn");
     const originalText = btn ? btn.textContent : "Save & Sync About Page";
-    if (btn) btn.textContent = "Saving & Syncing...";
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Saving & Syncing...";
+    }
 
-    const about = {
-        heroSubtitle: document.getElementById("about-hero-sub-input").value,
-        missionHeading: document.getElementById("about-mission-heading-input").value,
-        missionP1: document.getElementById("about-mission-p1-input").value,
-        missionP2: document.getElementById("about-mission-p2-input").value,
-        missionP3: document.getElementById("about-mission-p3-input").value,
-        missionP4: document.getElementById("about-mission-p4-input").value,
-        visionQuote: document.getElementById("about-vision-quote-input").value,
-        visionQuoteAttribution: document.getElementById("about-vision-attr-input").value,
-        communityStatement: document.getElementById("about-community-statement-input").value,
-        videoVisionHeading: document.getElementById("about-video-heading-input").value,
-        videoVisionText: document.getElementById("about-video-text-input").value
-    };
+    try {
+        const about = {
+            heroSubtitle: document.getElementById("about-hero-sub-input").value.trim(),
+            missionHeading: document.getElementById("about-mission-heading-input").value.trim(),
+            missionP1: document.getElementById("about-mission-p1-input").value.trim(),
+            missionP2: document.getElementById("about-mission-p2-input").value.trim(),
+            missionP3: document.getElementById("about-mission-p3-input").value.trim(),
+            missionP4: document.getElementById("about-mission-p4-input").value.trim(),
+            visionQuote: document.getElementById("about-vision-quote-input").value.trim(),
+            visionQuoteAttribution: document.getElementById("about-vision-attr-input").value.trim(),
+            communityStatement: document.getElementById("about-community-statement-input").value.trim(),
+            videoVisionHeading: document.getElementById("about-video-heading-input").value.trim(),
+            videoVisionText: document.getElementById("about-video-text-input").value.trim()
+        };
 
-    await TLP_DB.saveAboutContent(about);
-    if (btn) btn.textContent = originalText;
-    alert("About page content saved and synced successfully to the live website!");
+        const result = await TLP_DB.saveAboutContent(about);
+        
+        if (result && result.cloud) {
+            showToast("About page content saved & synced to live website!", 'success');
+        } else {
+            showToast("About page content saved locally in browser.", 'info');
+        }
+    } catch (err) {
+        console.error("Save about error:", err);
+        showToast("Error saving about content: " + err.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
 }
