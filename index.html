@@ -1009,7 +1009,8 @@
 
             // Dynamic Season Highlights Loader
             const grid = document.getElementById("upcoming-plays-grid");
-            if (grid) {
+            function renderUpcomingPlays() {
+                if (!grid) return;
                 const productions = TLP_DB.getProductions();
                 
                 grid.innerHTML = "";
@@ -1106,6 +1107,8 @@
                     revealElements.forEach(el => revealObserver.observe(el));
                 }
             }
+            renderUpcomingPlays();
+            window.addEventListener("tlp_data_synced", renderUpcomingPlays);
 
             const reviews = document.querySelectorAll(".review-card");
             const dots = document.querySelectorAll(".review-nav-dot");

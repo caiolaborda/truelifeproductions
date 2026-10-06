@@ -285,90 +285,93 @@
     <script src="global.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const container = document.getElementById("studio-productions-container");
-            const productions = TLP_DB.getProductions();
-            
-            // Filter for studio plays
-            const studioPlays = productions.filter(p => p.isStudio === true || p.isStudio === "true");
-            
-            if (!container) return;
-            container.innerHTML = "";
-            
-            if (studioPlays.length === 0) {
-                container.innerHTML = `
-                    <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
-                        <p style="color: var(--text-muted); font-size: 1.1rem;">No TLP Studio productions currently scheduled. Check back soon!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            studioPlays.forEach((p, idx) => {
-                const isEven = idx % 2 === 0;
-                const rowClass = isEven ? "workshop-row" : "workshop-row reverse"; // reuse CSS row grids!
+            function renderStudioProductions() {
+                const productions = TLP_DB.getProductions();
                 
-                let creditsHtml = "";
-                if (p.director) creditsHtml += ` | Directed by ${p.director}`;
-                if (p.cast) creditsHtml += `<br>Cast: ${p.cast}`;
+                // Filter for studio plays
+                const studioPlays = productions.filter(p => p.isStudio === true || p.isStudio === "true");
                 
-                let detailLink = `play-${p.id}.html?id=${p.id}`;
-
-                // Generate status color matching productions.html
-                let statusText = "Upcoming";
-                let tagBg = "var(--accent-red)";
-                let tagExtraStyle = "";
-                if (p.status === "past") {
-                    statusText = "Past Production";
-                    tagBg = "rgba(0,0,0,0.75)";
-                    tagExtraStyle = "border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75);";
-                } else if (p.status === "current") {
-                    statusText = "Current Season";
-                    tagBg = "#5c3ce6";
-                    tagExtraStyle = "color: #ffffff;";
-                } else {
-                    statusText = "Upcoming";
-                    tagBg = p.accent || "var(--accent-red)";
-                    tagExtraStyle = "color: #ffffff;";
-                }
-
-                let actionButtonsHtml = "";
-                if (p.status === "past") {
-                    actionButtonsHtml = `
-                        <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">See Reviews</a>
-                        <button class="btn btn-outline gallery-trigger" data-id="${p.id}" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15); cursor: pointer;">Gallery</button>
-                    `;
-                } else {
-                    let bookingBtn = "";
-                    if (p.detailsLink && p.detailsLink.startsWith("http")) {
-                        bookingBtn = `<a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>`;
-                    } else {
-                        bookingBtn = `<a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>`;
-                    }
-                    actionButtonsHtml = `
-                        <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
-                        ${bookingBtn}
-                    `;
-                }
-
-                const playRow = document.createElement("div");
-                playRow.className = `${rowClass} reveal`;
-                playRow.innerHTML = `
-                    <div class="prod-image-box">
-                        <img src="${p.image}" alt="${p.title}">
-                        <span class="prod-status-tag" style="background: ${tagBg}; ${tagExtraStyle}">${statusText}</span>
-                    </div>
-                    <div class="prod-info-box">
-                        <span style="background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;">TLP Studio Production</span>
-                        <h2 style="font-size: 2.2rem; font-weight: normal; margin-bottom: 1rem; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">${p.title}</h2>
-                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">${p.year}${creditsHtml}</div>
-                        <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.65; margin-bottom: 2rem;">${p.synopsis}</p>
-                        <div style="display: flex; gap: 1rem;">
-                            ${actionButtonsHtml}
+                if (!container) return;
+                container.innerHTML = "";
+                
+                if (studioPlays.length === 0) {
+                    container.innerHTML = `
+                        <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
+                            <p style="color: var(--text-muted); font-size: 1.1rem;">No TLP Studio productions currently scheduled. Check back soon!</p>
                         </div>
-                    </div>
-                `;
-                container.appendChild(playRow);
-            });
+                    `;
+                    return;
+                }
+                
+                studioPlays.forEach((p, idx) => {
+                    const isEven = idx % 2 === 0;
+                    const rowClass = isEven ? "workshop-row" : "workshop-row reverse"; // reuse CSS row grids!
+                    
+                    let creditsHtml = "";
+                    if (p.director) creditsHtml += ` | Directed by ${p.director}`;
+                    if (p.cast) creditsHtml += `<br>Cast: ${p.cast}`;
+                    
+                    let detailLink = `play-${p.id}.html?id=${p.id}`;
+
+                    // Generate status color matching productions.html
+                    let statusText = "Upcoming";
+                    let tagBg = "var(--accent-red)";
+                    let tagExtraStyle = "";
+                    if (p.status === "past") {
+                        statusText = "Past Production";
+                        tagBg = "rgba(0,0,0,0.75)";
+                        tagExtraStyle = "border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75);";
+                    } else if (p.status === "current") {
+                        statusText = "Current Season";
+                        tagBg = "#5c3ce6";
+                        tagExtraStyle = "color: #ffffff;";
+                    } else {
+                        statusText = "Upcoming";
+                        tagBg = p.accent || "var(--accent-red)";
+                        tagExtraStyle = "color: #ffffff;";
+                    }
+
+                    let actionButtonsHtml = "";
+                    if (p.status === "past") {
+                        actionButtonsHtml = `
+                            <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">See Reviews</a>
+                            <button class="btn btn-outline gallery-trigger" data-id="${p.id}" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15); cursor: pointer;">Gallery</button>
+                        `;
+                    } else {
+                        let bookingBtn = "";
+                        if (p.detailsLink && p.detailsLink.startsWith("http")) {
+                            bookingBtn = `<a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>`;
+                        } else {
+                            bookingBtn = `<a href="contact.html?subject=Inquiry about ${encodeURIComponent(p.title)}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15);">Booking Enquiry</a>`;
+                        }
+                        actionButtonsHtml = `
+                            <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
+                            ${bookingBtn}
+                        `;
+                    }
+
+                    const playRow = document.createElement("div");
+                    playRow.className = `${rowClass} reveal`;
+                    playRow.innerHTML = `
+                        <div class="prod-image-box">
+                            <img src="${p.image}" alt="${p.title}">
+                            <span class="prod-status-tag" style="background: ${tagBg}; ${tagExtraStyle}">${statusText}</span>
+                        </div>
+                        <div class="prod-info-box">
+                            <span style="background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;">TLP Studio Production</span>
+                            <h2 style="font-size: 2.2rem; font-weight: normal; margin-bottom: 1rem; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">${p.title}</h2>
+                            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">${p.year}${creditsHtml}</div>
+                            <p style="color: rgba(255,255,255,0.85); font-size: 1.05rem; line-height: 1.65; margin-bottom: 2rem;">${p.synopsis}</p>
+                            <div style="display: flex; gap: 1rem;">
+                                ${actionButtonsHtml}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(playRow);
+                });
+            }
+            renderStudioProductions();
+            window.addEventListener("tlp_data_synced", renderStudioProductions);
 
             // Lightbox Implementation
             let currentMedia = [];

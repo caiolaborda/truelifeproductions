@@ -304,7 +304,12 @@
             const sortSelect = document.getElementById("prod-sort");
             
             // Get all productions
-            const productions = TLP_DB.getProductions();
+            let productions = TLP_DB.getProductions();
+
+            window.addEventListener("tlp_data_synced", () => {
+                productions = TLP_DB.getProductions();
+                renderProductions();
+            });
 
             function getDateRank(yearStr) {
                 if (!yearStr) return 0;

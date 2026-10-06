@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
 
         const storeOptions = {
             name: "tlp-live-data",
-            consistency: "strong"
+            consistency: "eventual"
         };
 
         const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
