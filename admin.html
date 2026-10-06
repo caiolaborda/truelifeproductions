@@ -302,29 +302,25 @@
 
         /* Drag and Drop Row Styling */
         .plays-table tbody tr.is-draggable {
-            cursor: grab;
-            transition: background 0.15s ease, opacity 0.15s ease;
-        }
-
-        .plays-table tbody tr.is-draggable:active {
-            cursor: grabbing;
+            transition: background 0.15s ease;
         }
 
         .plays-table tbody tr.is-dragging {
-            opacity: 0.35;
-            background: rgba(223, 183, 92, 0.15) !important;
+            background: rgba(223, 183, 92, 0.18) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        .plays-table tbody tr.drag-over-top td {
-            border-top: 2px solid var(--primary) !important;
+        @keyframes rowMovedPulse {
+            0% { background: rgba(223, 183, 92, 0.45); }
+            100% { background: transparent; }
         }
 
-        .plays-table tbody tr.drag-over-bottom td {
-            border-bottom: 2px solid var(--primary) !important;
+        .plays-table tbody tr.row-moved-flash td {
+            animation: rowMovedPulse 1.2s ease-out;
         }
 
         .drag-handle-cell {
-            width: 80px;
+            width: 105px;
             text-align: center;
             user-select: none;
         }
@@ -332,21 +328,43 @@
         .drag-handle-wrap {
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.5rem;
             justify-content: center;
         }
 
+        .order-number-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 0 4px;
+        }
+
         .drag-grip-icon {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             color: var(--text-muted);
             cursor: grab;
             line-height: 1;
-            padding: 0.2rem 0.1rem;
-            transition: color 0.15s ease;
+            padding: 0.25rem 0.2rem;
+            transition: color 0.15s ease, transform 0.15s ease;
+            user-select: none;
         }
 
         .drag-grip-icon:hover {
             color: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .drag-grip-icon:active {
+            cursor: grabbing;
         }
 
         .reorder-btns-col {
@@ -374,7 +392,7 @@
         }
 
         .reorder-btn:disabled {
-            opacity: 0.2;
+            opacity: 0.15;
             cursor: not-allowed;
         }
 

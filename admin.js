@@ -404,10 +404,11 @@ function renderPlaysTable() {
         row.innerHTML = `
             <td class="drag-handle-cell">
                 <div class="drag-handle-wrap">
-                    <span class="drag-grip-icon" title="Drag row to re-order play">⠿</span>
+                    <span class="order-number-badge">${idx + 1}</span>
+                    <span class="drag-grip-icon" title="Drag to reorder play">⠿</span>
                     <div class="reorder-btns-col">
-                        <button type="button" class="reorder-btn" title="Move Up" ${idx === 0 ? 'disabled' : ''} onclick="movePlayOrder('${play.id}', -1)">▲</button>
-                        <button type="button" class="reorder-btn" title="Move Down" ${idx === productions.length - 1 ? 'disabled' : ''} onclick="movePlayOrder('${play.id}', 1)">▼</button>
+                        <button type="button" class="reorder-btn up" title="Move Up" ${idx === 0 ? 'disabled' : ''} onclick="movePlayOrder('${play.id}', -1)">▲</button>
+                        <button type="button" class="reorder-btn down" title="Move Down" ${idx === productions.length - 1 ? 'disabled' : ''} onclick="movePlayOrder('${play.id}', 1)">▼</button>
                     </div>
                 </div>
             </td>
@@ -431,9 +432,39 @@ function renderPlaysTable() {
 }
 
 /**
+ * Update numerical badges (#1, #2, #3...) and disabled button states in the table without re-rendering
+ */
+function updatePlaysTableOrderUI() {
+    const tableBody = document.getElementById("plays-table-body");
+    if (!tableBody) return;
+
+    const rows = Array.from(tableBody.querySelectorAll("tr.is-draggable"));
+    rows.forEach((row, idx) => {
+        row.setAttribute("data-index", idx);
+        
+        const badge = row.querySelector(".order-number-badge");
+        if (badge) badge.textContent = `${idx + 1}`;
+
+        const playId = row.getAttribute("data-id");
+        const upBtn = row.querySelector(".reorder-btn.up");
+        const downBtn = row.querySelector(".reorder-btn.down");
+        
+        if (upBtn) {
+            upBtn.disabled = (idx === 0);
+            upBtn.setAttribute("onclick", `movePlayOrder('${playId}', -1)`);
+        }
+        if (downBtn) {
+            downBtn.disabled = (idx === rows.length - 1);
+            downBtn.setAttribute("onclick", `movePlayOrder('${playId}', 1)`);
+        }
+    });
+}
+
+/**
  * Move play up or down by 1 position and sync live
  */
 async function movePlayOrder(playId, direction) {
+    const tableBody = document.getElementById("plays-table-body");
     const productions = TLP_DB.getProductions();
     const idx = productions.findIndex(p => p.id === playId);
     if (idx === -1) return;
@@ -446,12 +477,21 @@ async function movePlayOrder(playId, direction) {
 
     renderPlaysTable();
 
+    // Pulse highlight the moved row
+    if (tableBody) {
+        const movedRow = tableBody.querySelector(`tr[data-id="${playId}"]`);
+        if (movedRow) {
+            movedRow.classList.add("row-moved-flash");
+            setTimeout(() => movedRow.classList.remove("row-moved-flash"), 1200);
+        }
+    }
+
     try {
         const res = await TLP_DB.saveProductions(productions);
         if (res && res.cloud) {
-            showToast(`Order updated: "${movedPlay.title}" position saved and synced to live website!`, 'success');
+            showToast(`Order updated: "${movedPlay.title}" (Position #${newIdx + 1}) synced to live website!`, 'success');
         } else if (res && res.error) {
-            showToast(`Order saved locally. Cloud notice: ${res.error}`, 'info');
+            showToast(`Order updated locally. Cloud notice: ${res.error}`, 'info');
         } else {
             showToast(`Order updated: "${movedPlay.title}" moved ${direction < 0 ? 'up' : 'down'}.`, 'success');
         }
@@ -461,99 +501,92 @@ async function movePlayOrder(playId, direction) {
 }
 
 /**
- * HTML5 Drag and Drop Handlers for Plays Table
+ * Helper to calculate which row comes directly after the current drag position (clientY)
  */
-let draggedPlayId = null;
+function getDragAfterRow(container, y) {
+    const draggableElements = [...container.querySelectorAll("tr.is-draggable:not(.is-dragging)")];
 
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+/**
+ * HTML5 Real-Time Drag and Drop Handlers for Plays Table
+ */
 function setupPlaysTableDragAndDrop() {
     const tableBody = document.getElementById("plays-table-body");
     if (!tableBody) return;
 
-    const rows = tableBody.querySelectorAll("tr.is-draggable");
+    let draggingRow = null;
 
-    rows.forEach(row => {
+    tableBody.querySelectorAll("tr.is-draggable").forEach(row => {
         row.addEventListener("dragstart", (e) => {
-            draggedPlayId = row.getAttribute("data-id");
+            draggingRow = row;
             row.classList.add("is-dragging");
             e.dataTransfer.effectAllowed = "move";
-            e.dataTransfer.setData("text/plain", draggedPlayId);
+            e.dataTransfer.setData("text/plain", row.getAttribute("data-id"));
         });
 
-        row.addEventListener("dragend", () => {
-            row.classList.remove("is-dragging");
-            tableBody.querySelectorAll("tr").forEach(r => {
-                r.classList.remove("drag-over-top", "drag-over-bottom");
-            });
-            draggedPlayId = null;
-        });
+        row.addEventListener("dragend", async () => {
+            if (!draggingRow) return;
+            const movedRow = draggingRow;
+            draggingRow.classList.remove("is-dragging");
+            draggingRow = null;
 
-        row.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
+            // Extract new order from the live DOM structure
+            const rows = Array.from(tableBody.querySelectorAll("tr.is-draggable"));
+            const newOrderedIds = rows.map(r => r.getAttribute("data-id"));
 
-            if (!draggedPlayId || row.getAttribute("data-id") === draggedPlayId) return;
+            // Check if order actually changed
+            const currentProds = TLP_DB.getProductions();
+            const currentIds = currentProds.map(p => p.id);
+            const isDifferent = newOrderedIds.some((id, i) => id !== currentIds[i]);
 
-            const rect = row.getBoundingClientRect();
-            const midpoint = rect.top + rect.height / 2;
+            // Update order UI badges (#1, #2...) and buttons immediately
+            updatePlaysTableOrderUI();
 
-            tableBody.querySelectorAll("tr").forEach(r => {
-                if (r !== row) r.classList.remove("drag-over-top", "drag-over-bottom");
-            });
+            if (isDifferent) {
+                const reordered = newOrderedIds.map(id => currentProds.find(p => p.id === id)).filter(Boolean);
+                
+                movedRow.classList.add("row-moved-flash");
+                setTimeout(() => movedRow.classList.remove("row-moved-flash"), 1200);
 
-            if (e.clientY < midpoint) {
-                row.classList.add("drag-over-top");
-                row.classList.remove("drag-over-bottom");
-            } else {
-                row.classList.add("drag-over-bottom");
-                row.classList.remove("drag-over-top");
-            }
-        });
-
-        row.addEventListener("dragleave", () => {
-            row.classList.remove("drag-over-top", "drag-over-bottom");
-        });
-
-        row.addEventListener("drop", async (e) => {
-            e.preventDefault();
-            row.classList.remove("drag-over-top", "drag-over-bottom");
-
-            const sourceId = e.dataTransfer.getData("text/plain") || draggedPlayId;
-            const targetId = row.getAttribute("data-id");
-
-            if (!sourceId || sourceId === targetId) return;
-
-            const productions = TLP_DB.getProductions();
-            const sourceIndex = productions.findIndex(p => p.id === sourceId);
-            const targetIndex = productions.findIndex(p => p.id === targetId);
-
-            if (sourceIndex === -1 || targetIndex === -1) return;
-
-            const rect = row.getBoundingClientRect();
-            const isTopHalf = e.clientY < (rect.top + rect.height / 2);
-
-            const [movedItem] = productions.splice(sourceIndex, 1);
-            let insertIndex = productions.findIndex(p => p.id === targetId);
-            if (!isTopHalf) {
-                insertIndex += 1;
-            }
-
-            productions.splice(insertIndex, 0, movedItem);
-
-            renderPlaysTable();
-
-            try {
-                const res = await TLP_DB.saveProductions(productions);
-                if (res && res.cloud) {
-                    showToast(`Plays reordered! "${movedItem.title}" new position synced globally to live website.`, 'success');
-                } else if (res && res.error) {
-                    showToast(`Plays reordered locally. Cloud notice: ${res.error}`, 'info');
-                } else {
-                    showToast(`Plays reordered successfully!`, 'success');
+                try {
+                    const res = await TLP_DB.saveProductions(reordered);
+                    if (res && res.cloud) {
+                        showToast(`Plays reordered and synced to live website!`, 'success');
+                    } else if (res && res.error) {
+                        showToast(`Plays reordered locally. Cloud notice: ${res.error}`, 'info');
+                    } else {
+                        showToast(`Plays reordered successfully!`, 'success');
+                    }
+                } catch (err) {
+                    showToast("Failed to save reordered plays: " + err.message, 'error');
                 }
-            } catch (err) {
-                showToast("Failed to save reordered plays: " + err.message, 'error');
             }
         });
+    });
+
+    tableBody.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        
+        const dragging = tableBody.querySelector("tr.is-dragging");
+        if (!dragging) return;
+
+        const afterElement = getDragAfterRow(tableBody, e.clientY);
+        if (afterElement == null) {
+            tableBody.appendChild(dragging);
+        } else if (afterElement !== dragging) {
+            tableBody.insertBefore(dragging, afterElement);
+        }
     });
 }
 
