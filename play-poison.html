@@ -463,7 +463,7 @@
     
     <!-- Dynamic Play Rendering Script -->
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        function hydratePlay() {
             const urlParams = new URLSearchParams(window.location.search);
             const playId = urlParams.get("id") || "poison";
             const play = TLP_DB.getProductions().find(p => p.id === playId);
@@ -475,13 +475,19 @@
                     heroBg.style.backgroundImage = `url('${play.banner}')`;
                     if (play.mobileHeroAlign === "right") {
                         heroBg.classList.add("align-right");
+                    } else {
+                        heroBg.classList.remove("align-right");
                     }
                 }
 
                 // Update Hero Header & Tags
                 const titleTag = document.querySelector(".play-title-tag");
                 if (titleTag) {
-                    titleTag.textContent = play.isStudio ? "TLP Studio Production" : "TLP Production";
+                    if (play.pageType === "post-prod" || play.status === "past") {
+                        titleTag.textContent = play.isStudio ? "TLP Studio Production" : "Past Production";
+                    } else {
+                        titleTag.textContent = play.isStudio ? "TLP Studio Production" : "Upcoming Production";
+                    }
                     titleTag.style.backgroundColor = play.isStudio ? "#dfb75c" : "#8f1b2c";
                     titleTag.style.borderColor = play.isStudio ? "#dfb75c" : "#8f1b2c";
                     titleTag.style.color = play.isStudio ? "#06070a" : "#ffffff";
@@ -502,11 +508,11 @@
                 // Update Sidebar
                 const sidebarPanel = document.querySelector(".play-info-panel");
                 if (sidebarPanel) {
-                    let venuesList = play.venues.map(v => `${v.name}<br><small style="color:var(--text-muted);">${v.dates}</small>`).join("<br><br>");
+                    let venuesList = play.venues ? play.venues.map(v => `${v.name}<br><small style="color:var(--text-muted);">${v.dates}</small>`).join("<br><br>") : "";
                     sidebarPanel.innerHTML = `
                         <div class="play-info-item">
                             <div class="play-info-label">Playwright</div>
-                            <div class="play-info-value">${play.author}</div>
+                            <div class="play-info-value">${play.author || 'N/A'}</div>
                         </div>
                         ${play.translator ? `
                         <div class="play-info-item">
@@ -515,7 +521,7 @@
                         </div>` : ''}
                         <div class="play-info-item">
                             <div class="play-info-label">Director</div>
-                            <div class="play-info-value">${play.director}</div>
+                            <div class="play-info-value">${play.director || 'N/A'}</div>
                         </div>
                         ${play.cast ? `
                         <div class="play-info-item">
@@ -537,75 +543,83 @@
                 // Update Action Button
                 const actionBtn = document.querySelector(".play-sidebar .btn-primary");
                 if (actionBtn) {
-                    if (play.detailsLink && play.detailsLink !== "#" && (play.detailsLink.startsWith("http") || play.detailsLink.includes(".html") && !play.detailsLink.startsWith("play-"))) {
+                    if (play.pageType === "post-prod") {
+                        actionBtn.href = "#reviews";
+                        actionBtn.textContent = "See Reviews & Gallery";
+                        actionBtn.removeAttribute("target");
+                    } else if (play.detailsLink && play.detailsLink !== "#" && (play.detailsLink.startsWith("http") || (play.detailsLink.includes(".html") && !play.detailsLink.startsWith("play-")))) {
                         actionBtn.href = play.detailsLink;
                         actionBtn.textContent = "Book Tickets Now";
                         actionBtn.target = "_blank";
                     } else {
                         actionBtn.href = `contact.html?subject=Inquiry about ${encodeURIComponent(play.title)}`;
-                        actionBtn.textContent = play.pageType === "pre-prod" ? "Book / Enquire Now" : "Enquire About Production";
+                        actionBtn.textContent = "Book / Enquire Now";
+                        actionBtn.removeAttribute("target");
                     }
                 }
 
                 // Update Synopsis
                 const synopsisText = document.querySelector(".play-synopsis-text");
-                if (synopsisText) synopsisText.textContent = play.synopsis;
+                if (synopsisText) synopsisText.textContent = play.synopsis || "";
 
                 // Update Showreel Video if present
                 const videoSection = document.querySelector(".play-video-section");
                 const videoElement = document.getElementById("showcase-video-element");
-                if (videoSection && videoElement && play.video) {
-                    videoElement.src = play.video;
-                    if (play.videoPoster) videoElement.poster = play.videoPoster;
-                    videoSection.style.display = "block";
+                if (videoSection && videoElement) {
+                    if (play.video && play.video.trim() !== "") {
+                        videoElement.src = play.video;
+                        if (play.videoPoster) videoElement.poster = play.videoPoster;
+                        videoSection.style.display = "block";
+                    } else {
+                        videoSection.style.display = "none";
+                    }
                 }
 
-                // Update Reviews list based on Page Type
+                // Update Body Container (Pre-prod booking vs Post-prod reviews)
                 const bodyContainer = document.querySelector(".play-content-body");
                 if (bodyContainer) {
-                    // Remove old reviews headers & list if present to re-inject
-                    const oldReviewsHeader = bodyContainer.querySelector("h3:nth-of-type(2)");
-                    const oldReviewsList = bodyContainer.querySelector(".reviews-list");
-                    if (oldReviewsHeader) oldReviewsHeader.remove();
-                    if (oldReviewsList) oldReviewsList.remove();
+                    // Remove existing dynamic sections inside body container
+                    const oldCustomSections = bodyContainer.querySelectorAll(".dynamic-play-section, #reviews, .glass-card");
+                    oldCustomSections.forEach(el => el.remove());
 
                     if (play.pageType === "pre-prod") {
-                        // Pre-Production Booking & Audition Panels
                         const preProdHtml = `
-                            <div class="glass-card" style="padding: 2.2rem; margin-top: 3.5rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); text-align: left;">
+                            <div class="glass-card dynamic-play-section" style="padding: 2.2rem; margin-top: 3.5rem; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); text-align: left;">
                                 <h4 style="font-size: 1.15rem; color: #fff; margin-bottom: 1rem; text-transform: uppercase; font-family: var(--font-heading); font-weight: normal; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">Booking & Tickets</h4>
                                 <p style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6;">Tickets for upcoming runs are available directly through the Box Offices of our performing venues. You can pre-register or enquire below for group bookings, priority alerts, and cast updates.</p>
                                 ${(play.detailsLink && play.detailsLink.startsWith("http")) ? `<a href="${play.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Book Tickets</a>` : `<a href="contact.html?subject=Ticket%20Booking:%20${encodeURIComponent(play.title)}" class="btn btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.8rem;">Enquire / Book Tickets</a>`}
                             </div>
-
                         `;
                         bodyContainer.insertAdjacentHTML("beforeend", preProdHtml);
                     } else {
                         // Post-Production Reviews grouped by location
-                        let reviewsHtml = `<h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
+                        let reviewsHtml = `<div class="dynamic-play-section"><h3 id="reviews" style="margin-top: 4rem;">Press & Critical Reviews</h3>`;
                         let hasReviews = false;
-                        play.venues.forEach(v => {
-                            if (v.reviews && v.reviews.length > 0) {
-                                hasReviews = true;
-                                reviewsHtml += `
-                                    <div style="margin-top: 2.5rem; text-align: left;">
-                                        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.1em; font-weight: normal;">Critical Acclaim: ${v.name} (${v.dates})</h4>
-                                        <div class="reviews-list" style="display:flex; flex-direction:column; gap:1.5rem;">
-                                            ${v.reviews.map(r => `
-                                                <div class="review-quote-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 1.5rem 2rem; border-radius: 8px;">
-                                                    <p class="review-quote-text" style="font-style: italic; color: #fff; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.75rem;">"${r.quote}"</p>
-                                                    <span class="review-quote-author" style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">— ${r.reviewer}</span>
-                                                </div>
-                                            `).join('')}
+                        if (play.venues && Array.isArray(play.venues)) {
+                            play.venues.forEach(v => {
+                                if (v.reviews && v.reviews.length > 0) {
+                                    hasReviews = true;
+                                    reviewsHtml += `
+                                        <div style="margin-top: 2.5rem; text-align: left;">
+                                            <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.1em; font-weight: normal;">Critical Acclaim: ${v.name} (${v.dates})</h4>
+                                            <div class="reviews-list" style="display:flex; flex-direction:column; gap:1.5rem;">
+                                                ${v.reviews.map(r => `
+                                                    <div class="review-quote-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 1.5rem 2rem; border-radius: 8px;">
+                                                        <p class="review-quote-text" style="font-style: italic; color: #fff; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.75rem;">"${r.quote}"</p>
+                                                        <span class="review-quote-author" style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">— ${r.reviewer}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
                                         </div>
-                                    </div>
-                                `;
-                            }
-                        });
+                                    `;
+                                }
+                            });
+                        }
                         
                         if (!hasReviews) {
-                            reviewsHtml += `<p style="color:var(--text-muted);">No reviews posted for this production yet.</p>`;
+                            reviewsHtml += `<p style="color:var(--text-muted); margin-top: 1.5rem;">No press reviews published yet for this production.</p>`;
                         }
+                        reviewsHtml += `</div>`;
                         
                         bodyContainer.insertAdjacentHTML("beforeend", reviewsHtml);
                     }
@@ -618,21 +632,29 @@
                     const galleryHeader = gallerySection.querySelector("h2");
                     
                     if (play.pageType === "pre-prod") {
-                        galleryHeader.textContent = "Production Design & Teasers";
+                        if (galleryHeader) galleryHeader.textContent = "Production Design & Teasers";
                         if (galleryGrid) {
                             galleryGrid.innerHTML = `
                                 <div class="gallery-img-box" style="aspect-ratio: 16/9; max-height: 400px; grid-column: span 3; width: 100%;">
-                                    <img src="${play.image}" alt="${play.title} Poster" style="object-fit: cover; width: 100%; height: 100%;">
+                                    <img src="${play.image || play.banner}" alt="${play.title} Poster" style="object-fit: cover; width: 100%; height: 100%;">
                                 </div>
                             `;
                         }
                     } else {
-                        galleryHeader.textContent = "Production Gallery";
-                        const allImages = play.venues.flatMap(v => v.images || []);
+                        if (galleryHeader) galleryHeader.textContent = "Production Gallery";
+                        const allImages = play.venues ? play.venues.flatMap(v => v.images || []) : [];
                         if (galleryGrid) {
                             galleryGrid.innerHTML = "";
                             if (allImages.length === 0) {
-                                galleryGrid.innerHTML = `<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">Production gallery images coming soon.</p>`;
+                                if (play.image) {
+                                    galleryGrid.innerHTML = `
+                                        <div class="gallery-img-box">
+                                            <img src="${play.image}" alt="${play.title} Scene">
+                                        </div>
+                                    `;
+                                } else {
+                                    galleryGrid.innerHTML = `<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">Production gallery images coming soon.</p>`;
+                                }
                             } else {
                                 allImages.forEach(img => {
                                     galleryGrid.innerHTML += `
@@ -646,7 +668,10 @@
                     }
                 }
             }
-        });
+        }
+
+        document.addEventListener("DOMContentLoaded", hydratePlay);
+        window.addEventListener("tlp_data_synced", hydratePlay);
     </script>
 
     <!-- Local stage effects script for Poison (Atmospheric Slate-Purple Mist/Fog) -->
