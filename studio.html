@@ -285,13 +285,15 @@
     <script src="global.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("studio-productions-container");
+
             function renderStudioProductions() {
+                if (!container) return;
                 const productions = TLP_DB.getProductions();
                 
-                // Filter for studio plays
+                // Filter for studio plays (check boolean or string)
                 const studioPlays = productions.filter(p => p.isStudio === true || p.isStudio === "true");
                 
-                if (!container) return;
                 container.innerHTML = "";
                 
                 if (studioPlays.length === 0) {
@@ -369,7 +371,20 @@
                     `;
                     container.appendChild(playRow);
                 });
+
+                // Re-trigger scroll reveal for dynamic rows
+                const revealElements = container.querySelectorAll(".reveal");
+                const revealObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("active");
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                revealElements.forEach(el => revealObserver.observe(el));
             }
+
             renderStudioProductions();
             window.addEventListener("tlp_data_synced", renderStudioProductions);
 
