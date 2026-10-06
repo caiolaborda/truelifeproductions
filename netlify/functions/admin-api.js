@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { getStore, connectLambda } = require("@netlify/blobs");
 
 exports.handler = async (event, context) => {
     const headers = {
@@ -14,10 +14,28 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const store = getStore({
+        // Initialize Netlify Blobs runtime context for Lambda compatibility mode
+        if (typeof connectLambda === "function") {
+            try {
+                connectLambda(event);
+            } catch (lambdaErr) {
+                console.warn("connectLambda initialization note:", lambdaErr.message);
+            }
+        }
+
+        const storeOptions = {
             name: "tlp-live-data",
             consistency: "strong"
-        });
+        };
+
+        const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+        const token = process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_API_TOKEN || process.env.NETLIFY_BLOBS_TOKEN;
+        if (siteID && token) {
+            storeOptions.siteID = siteID;
+            storeOptions.token = token;
+        }
+
+        const store = getStore(storeOptions);
 
         // GET: Fetch live data
         if (event.httpMethod === "GET") {
