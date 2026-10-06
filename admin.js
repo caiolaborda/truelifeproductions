@@ -354,8 +354,12 @@ async function saveSiteSettings(event) {
                 document.body.classList.remove("has-announcement");
                 document.documentElement.style.setProperty("--banner-height", "0px");
             } else {
-                banner.style.display = "block";
-                bannerEl.textContent = settings.announcement;
+                banner.style.display = "flex";
+                if (settings.announcement.includes("<") && settings.announcement.includes(">")) {
+                    bannerEl.innerHTML = settings.announcement;
+                } else {
+                    bannerEl.textContent = settings.announcement;
+                }
                 document.body.classList.add("has-announcement");
                 setTimeout(() => {
                     const bannerHeight = banner.offsetHeight;

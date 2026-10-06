@@ -527,48 +527,22 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPageTransitionLinkInterceptors();
     setupMouseSpotlight();
 
-    // 1. Update site metadata from DB
-    const settings = TLP_DB.getSettings();
-    
-    // Update announcement banner and adjust header layout to prevent overlaps
-    const banner = document.querySelector(".announcement-banner");
-    const announcementEl = document.querySelector(".announcement-banner p");
-    if (banner && announcementEl) {
-        if (!settings.announcement || settings.announcement.trim() === "" || settings.announcement.toUpperCase() === "NONE") {
-            banner.style.display = "none";
-            document.body.classList.remove("has-announcement");
-            document.documentElement.style.setProperty("--banner-height", "0px");
-        } else {
-            banner.style.display = "block";
-            announcementEl.textContent = settings.announcement;
-            document.body.classList.add("has-announcement");
-            // Set dynamic CSS variable for the banner height
-            setTimeout(() => {
-                const bannerHeight = banner.offsetHeight;
-                document.documentElement.style.setProperty("--banner-height", `${bannerHeight}px`);
-            }, 50);
-        }
-    }
+    // 1. Update site metadata & announcement banner from DB
+    applySiteSettingsUI(TLP_DB.getSettings());
 
-    // Dynamic phone/email injection for footers or links
-    document.querySelectorAll(".meta-email").forEach(el => {
-        el.textContent = settings.email;
-        if (el.tagName === "A") el.href = `mailto:${settings.email}`;
-    });
-    document.querySelectorAll(".meta-phone").forEach(el => {
-        if (!settings.phone) {
-            const parentLi = el.closest("li");
-            const parentP = el.closest("p");
-            if (parentLi) parentLi.style.display = "none";
-            else if (parentP) parentP.style.display = "none";
-            else el.style.display = "none";
-        } else {
-            el.textContent = settings.phone;
-            if (el.tagName === "A") el.href = `tel:${settings.phone.replace(/\s+/g, '')}`;
+    // Listen for cloud sync event to live-update metadata
+    window.addEventListener("tlp_data_synced", (e) => {
+        if (e.detail && e.detail.settings) {
+            applySiteSettingsUI(e.detail.settings);
         }
     });
-    document.querySelectorAll(".meta-address").forEach(el => {
-        el.textContent = `${settings.address}, ${settings.registration}`;
+
+    // Keep banner height synchronized on resize
+    window.addEventListener("resize", () => {
+        const banner = document.querySelector(".announcement-banner");
+        if (banner && document.body.classList.contains("has-announcement") && banner.offsetHeight > 0) {
+            document.documentElement.style.setProperty("--banner-height", `${banner.offsetHeight}px`);
+        }
     });
 
     // 2. Navigation Scroll Effect
@@ -676,3 +650,67 @@ function setupMouseSpotlight() {
         });
     }
 }
+
+function applySiteSettingsUI(settings) {
+    if (!settings) return;
+
+    // Update announcement banner and adjust header layout to prevent overlaps
+    const banner = document.querySelector(".announcement-banner");
+    const announcementEl = document.querySelector(".announcement-banner p");
+    if (banner && announcementEl) {
+        const text = (settings.announcement || "").trim();
+        if (!text || text.toUpperCase() === "NONE") {
+            banner.style.display = "none";
+            document.body.classList.remove("has-announcement");
+            document.documentElement.style.setProperty("--banner-height", "0px");
+        } else {
+            banner.style.display = "flex";
+            if (text.includes("<") && text.includes(">")) {
+                announcementEl.innerHTML = text;
+            } else {
+                announcementEl.textContent = text;
+            }
+            document.body.classList.add("has-announcement");
+            
+            const syncHeight = () => {
+                if (banner.offsetHeight > 0) {
+                    document.documentElement.style.setProperty("--banner-height", `${banner.offsetHeight}px`);
+                }
+            };
+            syncHeight();
+            requestAnimationFrame(syncHeight);
+            setTimeout(syncHeight, 60);
+        }
+    }
+
+    // Dynamic phone/email injection for footers or links
+    document.querySelectorAll(".meta-email").forEach(el => {
+        if (settings.email) {
+            el.textContent = settings.email;
+            if (el.tagName === "A") el.href = `mailto:${settings.email}`;
+        }
+    });
+    document.querySelectorAll(".meta-phone").forEach(el => {
+        if (!settings.phone) {
+            const parentLi = el.closest("li");
+            const parentP = el.closest("p");
+            if (parentLi) parentLi.style.display = "none";
+            else if (parentP) parentP.style.display = "none";
+            else el.style.display = "none";
+        } else {
+            el.textContent = settings.phone;
+            if (el.tagName === "A") el.href = `tel:${settings.phone.replace(/\s+/g, '')}`;
+            const parentLi = el.closest("li");
+            const parentP = el.closest("p");
+            if (parentLi) parentLi.style.display = "";
+            else if (parentP) parentP.style.display = "";
+            else el.style.display = "";
+        }
+    });
+    document.querySelectorAll(".meta-address").forEach(el => {
+        if (settings.address || settings.registration) {
+            el.textContent = `${settings.address || ''}${settings.address && settings.registration ? ', ' : ''}${settings.registration || ''}`;
+        }
+    });
+}
+
