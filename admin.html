@@ -300,6 +300,84 @@
             border-color: rgba(255, 255, 255, 0.4);
         }
 
+        /* Drag and Drop Row Styling */
+        .plays-table tbody tr.is-draggable {
+            cursor: grab;
+            transition: background 0.15s ease, opacity 0.15s ease;
+        }
+
+        .plays-table tbody tr.is-draggable:active {
+            cursor: grabbing;
+        }
+
+        .plays-table tbody tr.is-dragging {
+            opacity: 0.35;
+            background: rgba(223, 183, 92, 0.15) !important;
+        }
+
+        .plays-table tbody tr.drag-over-top td {
+            border-top: 2px solid var(--primary) !important;
+        }
+
+        .plays-table tbody tr.drag-over-bottom td {
+            border-bottom: 2px solid var(--primary) !important;
+        }
+
+        .drag-handle-cell {
+            width: 80px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .drag-handle-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            justify-content: center;
+        }
+
+        .drag-grip-icon {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            cursor: grab;
+            line-height: 1;
+            padding: 0.2rem 0.1rem;
+            transition: color 0.15s ease;
+        }
+
+        .drag-grip-icon:hover {
+            color: var(--primary);
+        }
+
+        .reorder-btns-col {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .reorder-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--text-muted);
+            padding: 0.15rem 0.35rem;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.15s ease;
+        }
+
+        .reorder-btn:hover:not(:disabled) {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: rgba(223, 183, 92, 0.15);
+        }
+
+        .reorder-btn:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
         .action-icon-btn.edit:hover {
             border-color: var(--primary);
             color: var(--primary);
@@ -904,7 +982,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h2>Manage Plays & Seasons</h2>
-                        <p>Create, update, or remove productions displayed on the home slider and season grid.</p>
+                        <p>Create, edit, or archive productions. <strong>Drag & drop rows (or use ▲/▼ buttons) to set the live play order</strong> across Home, Season, and TLP Studio.</p>
                     </div>
                     <button class="btn btn-primary" onclick="openPlayModal('create')">+ Add Production</button>
                 </div>
@@ -913,6 +991,7 @@
                     <table class="plays-table">
                         <thead>
                             <tr>
+                                <th style="width: 80px; text-align: center;">Order</th>
                                 <th>Play Title</th>
                                 <th>Author / Director</th>
                                 <th>Year / Dates</th>

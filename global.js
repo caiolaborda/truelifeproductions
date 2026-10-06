@@ -177,8 +177,6 @@ const DEFAULT_PRODUCTIONS = [
         director: "Rosina Piovani",
         setDesign: "Adapted and directed by Rosina Piovani (True Life Productions)<br>Produced by Dan Lentell (49Knights)",
         year: "Soon on platforms",
-        customTag: "Soon on platforms, stay tuned for more info",
-        customStatus: "Digital Release",
         status: "upcoming",
         synopsis: "True Life Productions, in collaboration with 49Knights, presents a compelling new adaptation of John Drinkwater's classic historical drama. This 60-minute recorded production brings fresh life and a contemporary perspective to a classic. It's a powerful character study exploring the tensions between love, power, and destiny through Mary Stuart's relationships with David Riccio, Lord Darnley, and the Earl of Bothwell.",
         image: "play-mary.jpg",
@@ -339,7 +337,7 @@ class DatabasePortal {
             }
             
             // Force database reset/migration using database versioning to prevent outdated structures
-            const CURRENT_DB_VERSION = "5.1";
+            const CURRENT_DB_VERSION = "5.2";
             const storedDbVersion = localStorage.getItem("tlp_db_version");
             
             if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
@@ -509,11 +507,12 @@ class DatabasePortal {
                 return { success: true, cloud: true, message: result.message };
             } else {
                 const errData = await res.json().catch(() => ({}));
-                return { success: false, cloud: false, error: errData.error || `Server status ${res.status}` };
+                console.error("Cloud push rejected by server:", res.status, errData);
+                return { success: false, cloud: false, error: errData.error || `Server returned HTTP ${res.status}` };
             }
         } catch (err) {
-            console.warn("Cloud sync failed (running locally or network error):", err);
-            return { success: true, cloud: false, message: "Saved locally." };
+            console.warn("Cloud sync offline or Netlify Functions unavailable:", err.message);
+            return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
         }
     }
 }

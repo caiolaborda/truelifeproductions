@@ -314,10 +314,22 @@
                 let detailLink = `play-${p.id}.html?id=${p.id}`;
 
                 // Generate status color matching productions.html
-                let tagBg = "var(--primary)";
-                if (p.status === "upcoming") tagBg = "var(--accent-red)";
-                if (p.status === "current") tagBg = "var(--accent-purple-light)";
-                if (p.status === "past") tagBg = "rgba(255,255,255,0.15)";
+                let statusText = "Upcoming";
+                let tagBg = "var(--accent-red)";
+                let tagExtraStyle = "";
+                if (p.status === "past") {
+                    statusText = "Past Production";
+                    tagBg = "rgba(0,0,0,0.75)";
+                    tagExtraStyle = "border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75);";
+                } else if (p.status === "current") {
+                    statusText = "Current Season";
+                    tagBg = "#5c3ce6";
+                    tagExtraStyle = "color: #ffffff;";
+                } else {
+                    statusText = "Upcoming";
+                    tagBg = p.accent || "var(--accent-red)";
+                    tagExtraStyle = "color: #ffffff;";
+                }
 
                 let actionButtonsHtml = "";
                 if (p.status === "past") {
@@ -343,7 +355,7 @@
                 playRow.innerHTML = `
                     <div class="prod-image-box">
                         <img src="${p.image}" alt="${p.title}">
-                        <span class="prod-status-tag" style="background: ${tagBg}">${p.status}</span>
+                        <span class="prod-status-tag" style="background: ${tagBg}; ${tagExtraStyle}">${statusText}</span>
                     </div>
                     <div class="prod-info-box">
                         <span style="background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;">TLP Studio Production</span>

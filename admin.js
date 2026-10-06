@@ -384,17 +384,37 @@ function renderPlaysTable() {
     if (!tableBody) return;
     tableBody.innerHTML = "";
 
-    productions.forEach(play => {
-        let badgeColor = "background: var(--primary); color: var(--text-dark);";
-        if (play.status === "upcoming") badgeColor = "background: var(--accent-red); color: var(--text-main);";
-        if (play.status === "past") badgeColor = "background: rgba(255,255,255,0.1); color: var(--text-muted);";
+    productions.forEach((play, idx) => {
+        let badgeText = "Upcoming";
+        let badgeColor = "background: var(--accent-red); color: #ffffff;";
+        if (play.status === "past") {
+            badgeText = "Archive (Past)";
+            badgeColor = "background: rgba(255,255,255,0.12); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.15);";
+        } else if (play.status === "current") {
+            badgeText = "Current Season";
+            badgeColor = "background: #5c3ce6; color: #ffffff;";
+        }
 
         const row = document.createElement("tr");
+        row.className = "is-draggable";
+        row.setAttribute("draggable", "true");
+        row.setAttribute("data-id", play.id);
+        row.setAttribute("data-index", idx);
+        
         row.innerHTML = `
+            <td class="drag-handle-cell">
+                <div class="drag-handle-wrap">
+                    <span class="drag-grip-icon" title="Drag row to re-order play">⠿</span>
+                    <div class="reorder-btns-col">
+                        <button type="button" class="reorder-btn" title="Move Up" ${idx === 0 ? 'disabled' : ''} onclick="movePlayOrder('${play.id}', -1)">▲</button>
+                        <button type="button" class="reorder-btn" title="Move Down" ${idx === productions.length - 1 ? 'disabled' : ''} onclick="movePlayOrder('${play.id}', 1)">▼</button>
+                    </div>
+                </div>
+            </td>
             <td style="font-weight: 600;">${play.title}</td>
             <td>${play.author} <br><span style="font-size: 0.8rem; color: var(--text-muted);">Dir: ${play.director || 'N/A'}</span></td>
             <td>${play.year}</td>
-            <td><span class="status-badge" style="${badgeColor}">${play.customStatus || play.status}</span></td>
+            <td><span class="status-badge" style="${badgeColor}">${badgeText}</span></td>
             <td><span class="color-preview-dot" style="background: ${play.accent};"></span>${play.accent}</td>
             <td style="font-size: 0.85rem; color: var(--primary); font-family: monospace;">${play.animationType || 'none'}</td>
             <td>
@@ -405,6 +425,135 @@ function renderPlaysTable() {
             </td>
         `;
         tableBody.appendChild(row);
+    });
+
+    setupPlaysTableDragAndDrop();
+}
+
+/**
+ * Move play up or down by 1 position and sync live
+ */
+async function movePlayOrder(playId, direction) {
+    const productions = TLP_DB.getProductions();
+    const idx = productions.findIndex(p => p.id === playId);
+    if (idx === -1) return;
+
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= productions.length) return;
+
+    const [movedPlay] = productions.splice(idx, 1);
+    productions.splice(newIdx, 0, movedPlay);
+
+    renderPlaysTable();
+
+    try {
+        const res = await TLP_DB.saveProductions(productions);
+        if (res && res.cloud) {
+            showToast(`Order updated: "${movedPlay.title}" position saved and synced to live website!`, 'success');
+        } else if (res && res.error) {
+            showToast(`Order saved locally. Cloud notice: ${res.error}`, 'info');
+        } else {
+            showToast(`Order updated: "${movedPlay.title}" moved ${direction < 0 ? 'up' : 'down'}.`, 'success');
+        }
+    } catch (err) {
+        showToast("Error updating order: " + err.message, 'error');
+    }
+}
+
+/**
+ * HTML5 Drag and Drop Handlers for Plays Table
+ */
+let draggedPlayId = null;
+
+function setupPlaysTableDragAndDrop() {
+    const tableBody = document.getElementById("plays-table-body");
+    if (!tableBody) return;
+
+    const rows = tableBody.querySelectorAll("tr.is-draggable");
+
+    rows.forEach(row => {
+        row.addEventListener("dragstart", (e) => {
+            draggedPlayId = row.getAttribute("data-id");
+            row.classList.add("is-dragging");
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", draggedPlayId);
+        });
+
+        row.addEventListener("dragend", () => {
+            row.classList.remove("is-dragging");
+            tableBody.querySelectorAll("tr").forEach(r => {
+                r.classList.remove("drag-over-top", "drag-over-bottom");
+            });
+            draggedPlayId = null;
+        });
+
+        row.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+
+            if (!draggedPlayId || row.getAttribute("data-id") === draggedPlayId) return;
+
+            const rect = row.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+
+            tableBody.querySelectorAll("tr").forEach(r => {
+                if (r !== row) r.classList.remove("drag-over-top", "drag-over-bottom");
+            });
+
+            if (e.clientY < midpoint) {
+                row.classList.add("drag-over-top");
+                row.classList.remove("drag-over-bottom");
+            } else {
+                row.classList.add("drag-over-bottom");
+                row.classList.remove("drag-over-top");
+            }
+        });
+
+        row.addEventListener("dragleave", () => {
+            row.classList.remove("drag-over-top", "drag-over-bottom");
+        });
+
+        row.addEventListener("drop", async (e) => {
+            e.preventDefault();
+            row.classList.remove("drag-over-top", "drag-over-bottom");
+
+            const sourceId = e.dataTransfer.getData("text/plain") || draggedPlayId;
+            const targetId = row.getAttribute("data-id");
+
+            if (!sourceId || sourceId === targetId) return;
+
+            const productions = TLP_DB.getProductions();
+            const sourceIndex = productions.findIndex(p => p.id === sourceId);
+            const targetIndex = productions.findIndex(p => p.id === targetId);
+
+            if (sourceIndex === -1 || targetIndex === -1) return;
+
+            const rect = row.getBoundingClientRect();
+            const isTopHalf = e.clientY < (rect.top + rect.height / 2);
+
+            const [movedItem] = productions.splice(sourceIndex, 1);
+            let insertIndex = productions.findIndex(p => p.id === targetId);
+            if (!isTopHalf) {
+                insertIndex += 1;
+            }
+
+            productions.splice(insertIndex, 0, movedItem);
+
+            renderPlaysTable();
+
+            try {
+                const res = await TLP_DB.saveProductions(productions);
+                if (res && res.cloud) {
+                    showToast(`Plays reordered! "${movedItem.title}" new position synced globally to live website.`, 'success');
+                } else if (res && res.error) {
+                    showToast(`Plays reordered locally. Cloud notice: ${res.error}`, 'info');
+                } else {
+                    showToast(`Plays reordered successfully!`, 'success');
+                }
+            } catch (err) {
+                showToast("Failed to save reordered plays: " + err.message, 'error');
+            }
+        });
     });
 }
 
@@ -687,6 +836,9 @@ async function handlePlaySubmit(event) {
                 productions[playIdx].director = director;
                 productions[playIdx].year = year;
                 productions[playIdx].status = status;
+                // Delete legacy customStatus/customTag so the Schedule Status takes precedence
+                delete productions[playIdx].customStatus;
+                delete productions[playIdx].customTag;
                 productions[playIdx].accent = accent;
                 productions[playIdx].animationType = animation;
                 productions[playIdx].image = image;
@@ -707,9 +859,11 @@ async function handlePlaySubmit(event) {
         closePlayModal();
 
         if (result && result.cloud) {
-            showToast(`Production "${title}" saved and synced globally to live website!`, 'success');
+            showToast(`Production "${title}" saved and synced live to website!`, 'success');
+        } else if (result && result.error) {
+            showToast(`Saved in browser. Cloud sync notice: ${result.error}`, 'error', 7000);
         } else {
-            showToast(`Production "${title}" saved locally in browser.`, 'info');
+            showToast(`Production "${title}" saved.`, 'info');
         }
     } catch (err) {
         console.error("Save production error:", err);

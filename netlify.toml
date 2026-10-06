@@ -2,6 +2,7 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
+  command = "npm install"
   publish = "."
   functions = "netlify/functions"
 

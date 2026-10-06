@@ -341,34 +341,13 @@
                 const activeFilterBtn = document.querySelector(".filter-btn.active");
                 const filterType = activeFilterBtn ? activeFilterBtn.getAttribute("data-filter") : "all";
                 
-                // 2. Filter
+                // 2. Filter (preserves the exact database drag-and-drop order)
                 let filtered = productions.filter(p => {
                     if (filterType === "all") return true;
                     if (filterType === "upcoming") {
                         return p.status === "upcoming" || p.status === "current";
                     }
                     return p.status === filterType;
-                });
-
-                // 3. Sort
-                const sortValue = sortSelect.value;
-                filtered.sort((a, b) => {
-                    // Always put past productions at the bottom
-                    if (a.status === "past" && b.status !== "past") return 1;
-                    if (b.status === "past" && a.status !== "past") return -1;
-
-                    if (sortValue === "date-desc") {
-                        return getDateRank(b.year) - getDateRank(a.year);
-                    } else if (sortValue === "date-asc") {
-                        return getDateRank(a.year) - getDateRank(b.year);
-                    } else if (sortValue === "location-asc") {
-                        const locA = a.venues && a.venues[0] ? a.venues[0].name.toLowerCase() : "";
-                        const locB = b.venues && b.venues[0] ? b.venues[0].name.toLowerCase() : "";
-                        if (!locA) return 1;
-                        if (!locB) return -1;
-                        return locA.localeCompare(locB);
-                    }
-                    return 0;
                 });
 
                 if (filtered.length === 0) {
@@ -386,11 +365,23 @@
                     if (p.translator) creditsHtml += ` | Translated by ${p.translator}`;
                     if (p.cast) creditsHtml += `<br>Cast: ${p.cast}`;
 
-                    // Generate status color
-                    let tagBg = "var(--primary)";
-                    if (p.status === "upcoming") tagBg = "var(--accent-red)";
-                    if (p.status === "current") tagBg = "var(--accent-purple-light)";
-                    if (p.status === "past") tagBg = "rgba(255,255,255,0.15)";
+                    // Generate status badge label and color
+                    let statusText = "Upcoming";
+                    let tagBg = "var(--accent-red)";
+                    let tagExtraStyle = "";
+                    if (p.status === "past") {
+                        statusText = "Past Production";
+                        tagBg = "rgba(0,0,0,0.75)";
+                        tagExtraStyle = "border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75);";
+                    } else if (p.status === "current") {
+                        statusText = "Current Season";
+                        tagBg = "#5c3ce6";
+                        tagExtraStyle = "color: #ffffff;";
+                    } else {
+                        statusText = "Upcoming";
+                        tagBg = p.accent || "var(--accent-red)";
+                        tagExtraStyle = "color: #ffffff;";
+                    }
 
                     // Build reviews HTML
                     let reviewsHtml = "";
@@ -416,41 +407,41 @@
                         ? "background: #dfb75c; border: 1px solid #dfb75c; color: #06070a; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;"
                         : "background: #8f1b2c; border: 1px solid #8f1b2c; color: #ffffff; padding: 0.25rem 0.75rem; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.75rem;";
 
-                            let actionButtonsHtml = "";
-                            if (p.status === "past") {
-                                actionButtonsHtml = `
-                                    <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">See Reviews</a>
-                                    <button class="btn btn-outline gallery-trigger" data-id="${p.id}" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15); cursor: pointer;">Gallery</button>
-                                `;
-                            } else if (p.detailsLink && p.detailsLink.startsWith("http")) {
-                                actionButtonsHtml = `
-                                    <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">View Details</a>
-                                    <a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>
-                                `;
-                            } else {
-                                actionButtonsHtml = `
-                                    <a href="${detailLink}" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
-                                `;
-                            }
+                    let actionButtonsHtml = "";
+                    if (p.status === "past") {
+                        actionButtonsHtml = `
+                            <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">See Reviews</a>
+                            <button class="btn btn-outline gallery-trigger" data-id="${p.id}" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; border-color: rgba(255,255,255,0.15); cursor: pointer;">Gallery</button>
+                        `;
+                    } else if (p.detailsLink && p.detailsLink.startsWith("http")) {
+                        actionButtonsHtml = `
+                            <a href="${detailLink}" class="btn btn-outline" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">View Details</a>
+                            <a href="${p.detailsLink}" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Book Now</a>
+                        `;
+                    } else {
+                        actionButtonsHtml = `
+                            <a href="${detailLink}" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.8rem;">Explore Production</a>
+                        `;
+                    }
 
-                            const card = document.createElement("div");
-                            card.className = `${rowClass} reveal`;
-                            card.id = p.id;
-                            card.innerHTML = `
-                                <div class="prod-image-box">
-                                    <img src="${p.image}" alt="${p.title}">
-                                    <span class="prod-status-tag" style="background: ${p.accent || tagBg}">${p.customStatus || p.status}</span>
-                                </div>
-                                <div class="prod-info-box">
-                                    <span style="${tagStyle}">${tagText}</span>
-                                    <h2>${p.title}</h2>
-                                    <div class="prod-meta">${p.year}${creditsHtml}</div>
-                                    <p class="prod-synopsis">${p.synopsis}</p>
-                                    <div style="display: flex; gap: 1rem;">
-                                        ${actionButtonsHtml}
-                                    </div>
-                                    ${reviewsHtml}
-                                </div>
+                    const card = document.createElement("div");
+                    card.className = `${rowClass} reveal`;
+                    card.id = p.id;
+                    card.innerHTML = `
+                        <div class="prod-image-box">
+                            <img src="${p.image}" alt="${p.title}">
+                            <span class="prod-status-tag" style="background: ${tagBg}; ${tagExtraStyle}">${statusText}</span>
+                        </div>
+                        <div class="prod-info-box">
+                            <span style="${tagStyle}">${tagText}</span>
+                            <h2>${p.title}</h2>
+                            <div class="prod-meta">${p.year}${creditsHtml}</div>
+                            <p class="prod-synopsis">${p.synopsis}</p>
+                            <div style="display: flex; gap: 1rem;">
+                                ${actionButtonsHtml}
+                            </div>
+                            ${reviewsHtml}
+                        </div>
                     `;
                     container.appendChild(card);
                 });
