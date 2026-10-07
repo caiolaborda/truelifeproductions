@@ -1148,6 +1148,17 @@
                             </div>
                         </div>
 
+                        <div class="form-grid-2">
+                            <div class="admin-form-group">
+                                <label for="about-video-url-input">Founding Vision Video URL <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(YouTube, Vimeo, or MP4)</span></label>
+                                <input type="text" id="about-video-url-input" class="admin-control" placeholder="e.g. https://www.youtube.com/watch?v=... or assets/videos/video03.mp4">
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="about-video-poster-input">Video Thumbnail / Poster <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Optional)</span></label>
+                                <input type="text" id="about-video-poster-input" class="admin-control" placeholder="e.g. assets/videos/video03_poster.jpg">
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary" id="save-about-btn" style="margin-top: 1rem;">Save & Sync About Page</button>
                     </form>
                 </div>
@@ -1246,6 +1257,25 @@
                                 </div>
                             </div>
 
+                        </div>
+
+                        <!-- Video Trailer / Showreel -->
+                        <div class="admin-section-card">
+                            <div class="admin-section-title">🎬 Video Trailer or Showreel <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; text-transform: none;">(Optional)</span></div>
+                            <div class="admin-helper-text">Add a YouTube trailer, Vimeo video, or direct MP4 file to showcase on the play's dedicated page.</div>
+                            
+                            <div class="form-grid-2">
+                                <div class="admin-form-group">
+                                    <label for="play-video">Video Link (YouTube, Vimeo, or MP4)</label>
+                                    <input type="text" id="play-video" class="admin-control" placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtu.be/... or assets/videos/video02.mp4">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Paste standard YouTube link, shorts, Vimeo, or MP4 URL</span>
+                                </div>
+                                <div class="admin-form-group">
+                                    <label for="play-video-poster">Video Thumbnail / Poster Image</label>
+                                    <input type="text" id="play-video-poster" class="admin-control" placeholder="e.g. assets/videos/video02_poster.jpg">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Optional custom thumbnail (YouTube generates this automatically)</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- 2. Creative Team & Credits -->

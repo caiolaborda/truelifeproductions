@@ -737,6 +737,8 @@ function openPlayModal(mode, playId = '') {
         document.getElementById("play-prod-type").value = "full";
         document.getElementById("play-show-hero").checked = false;
         document.getElementById("play-details-link").value = "";
+        document.getElementById("play-video").value = "";
+        document.getElementById("play-video-poster").value = "";
         document.getElementById("play-image").value = "assets/images/play-poison-banner.jpg";
         
         renderImagePreview("play-image-preview", "play-image", "assets/images/play-poison-banner.jpg", "Default Banner");
@@ -763,6 +765,8 @@ function openPlayModal(mode, playId = '') {
             document.getElementById("play-accent").value = play.accent || '#dfb75c';
             document.getElementById("play-animation").value = play.animationType || 'none';
             document.getElementById("play-image").value = play.image || '';
+            document.getElementById("play-video").value = play.video || '';
+            document.getElementById("play-video-poster").value = play.videoPoster || '';
             document.getElementById("play-cast").value = play.cast || '';
             document.getElementById("play-set").value = play.setDesign || '';
             document.getElementById("play-synopsis").value = play.synopsis || '';
@@ -816,6 +820,8 @@ async function handlePlaySubmit(event) {
         const accent = document.getElementById("play-accent").value;
         const animation = document.getElementById("play-animation").value;
         const image = document.getElementById("play-image").value.trim();
+        const video = document.getElementById("play-video")?.value.trim() || '';
+        const videoPoster = document.getElementById("play-video-poster")?.value.trim() || '';
         const cast = document.getElementById("play-cast").value.trim();
         const set = document.getElementById("play-set").value.trim();
         const synopsis = document.getElementById("play-synopsis").value.trim();
@@ -851,6 +857,8 @@ async function handlePlaySubmit(event) {
                 synopsis,
                 image,
                 banner: image,
+                video,
+                videoPoster,
                 accent,
                 animationType: animation,
                 cast,
@@ -880,6 +888,8 @@ async function handlePlaySubmit(event) {
                 productions[playIdx].animationType = animation;
                 productions[playIdx].image = image;
                 productions[playIdx].banner = image;
+                productions[playIdx].video = video;
+                productions[playIdx].videoPoster = videoPoster;
                 productions[playIdx].cast = cast;
                 productions[playIdx].setDesign = set;
                 productions[playIdx].synopsis = synopsis;
@@ -1454,6 +1464,8 @@ function loadAboutContentForm() {
     document.getElementById("about-community-statement-input").value = about.communityStatement || '';
     document.getElementById("about-video-heading-input").value = about.videoVisionHeading || '';
     document.getElementById("about-video-text-input").value = about.videoVisionText || '';
+    document.getElementById("about-video-url-input").value = about.videoVisionUrl || '';
+    document.getElementById("about-video-poster-input").value = about.videoVisionPoster || '';
 }
 
 async function saveAboutContentForm(event) {
@@ -1477,7 +1489,9 @@ async function saveAboutContentForm(event) {
             visionQuoteAttribution: document.getElementById("about-vision-attr-input").value.trim(),
             communityStatement: document.getElementById("about-community-statement-input").value.trim(),
             videoVisionHeading: document.getElementById("about-video-heading-input").value.trim(),
-            videoVisionText: document.getElementById("about-video-text-input").value.trim()
+            videoVisionText: document.getElementById("about-video-text-input").value.trim(),
+            videoVisionUrl: document.getElementById("about-video-url-input").value.trim(),
+            videoVisionPoster: document.getElementById("about-video-poster-input").value.trim()
         };
 
         const result = await TLP_DB.saveAboutContent(about);

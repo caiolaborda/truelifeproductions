@@ -409,6 +409,15 @@
 
             const videoT = document.getElementById("about-video-text");
             if (videoT && about.videoVisionText) videoT.textContent = about.videoVisionText;
+
+            const videoContainer = document.querySelector(".video-player-container");
+            if (videoContainer) {
+                const vidUrl = about.videoVisionUrl || "assets/videos/video03.mp4";
+                const vidPoster = about.videoVisionPoster || "assets/videos/video03_poster.jpg?v=2";
+                if (typeof renderUniversalVideoPlayer === "function") {
+                    renderUniversalVideoPlayer(videoContainer, vidUrl, vidPoster);
+                }
+            }
         }
 
         function renderTeam() {

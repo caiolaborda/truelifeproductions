@@ -235,8 +235,8 @@ section {
     position: relative;
     z-index: 1001;
     width: 100%;
-    padding: 0.38rem 1.25rem;
-    min-height: 32px;
+    padding: 0.65rem 1.5rem;
+    min-height: 46px;
     background: linear-gradient(115deg, #090204 0%, #1c050a 20%, #3d0a15 50%, #1c050a 80%, #090204 100%);
     background-size: 250% 100%;
     animation: bannerGradientFlow 14s ease infinite;
@@ -273,16 +273,16 @@ body.has-announcement .announcement-banner {
     margin: 0 auto !important;
     padding: 0;
     font-family: var(--font-body);
-    font-size: 0.8rem;
+    font-size: 0.92rem;
     font-weight: 500;
     letter-spacing: 0.05em;
     color: #f1f2f6;
-    line-height: 1.25;
+    line-height: 1.35;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 0.65rem;
+    gap: 0.85rem;
     flex-wrap: wrap;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
     width: 100%;
@@ -292,43 +292,47 @@ body.has-announcement .announcement-banner {
 .announcement-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.45rem;
     background: linear-gradient(135deg, rgba(223, 183, 92, 0.25) 0%, rgba(184, 134, 11, 0.15) 100%);
     border: 1px solid rgba(223, 183, 92, 0.5);
     color: #f7d78a;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    padding: 0.12rem 0.55rem;
+    padding: 0.18rem 0.72rem;
     border-radius: 999px;
     box-shadow: 0 0 10px rgba(223, 183, 92, 0.2);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-    line-height: 1;
+    line-height: 1.1;
 }
 
 .announcement-badge::before {
     content: '✦';
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     color: #dfb75c;
     animation: badgePulse 2s ease-in-out infinite alternate;
 }
 
 .announcement-banner a {
     color: #f7d78a;
+    font-size: 0.92rem;
     font-weight: 700;
     text-decoration: none;
     border-bottom: 1px solid rgba(223, 183, 92, 0.5);
-    padding-bottom: 1px;
+    padding: 0.1rem 0.35rem 0.15rem 0.35rem;
+    border-radius: 4px;
     transition: all 0.25s ease;
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.3rem;
+    touch-action: manipulation;
 }
 
 .announcement-banner a:hover {
     color: #ffffff;
     border-bottom-color: #ffffff;
+    background: rgba(223, 183, 92, 0.12);
     text-shadow: 0 0 10px rgba(223, 183, 92, 0.9);
 }
 
@@ -350,15 +354,22 @@ body.has-announcement .announcement-banner {
 
 @media (max-width: 768px) {
     .announcement-banner {
-        padding: 0.35rem 0.75rem;
+        padding: 0.5rem 0.85rem;
+        min-height: 38px;
     }
     .announcement-banner p {
-        font-size: 0.75rem;
-        gap: 0.4rem;
+        font-size: 0.8rem;
+        line-height: 1.35;
+        gap: 0.5rem;
     }
     .announcement-badge {
-        font-size: 0.62rem;
-        padding: 0.1rem 0.45rem;
+        font-size: 0.66rem;
+        padding: 0.14rem 0.55rem;
+    }
+    .announcement-banner a {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.4rem;
+        background: rgba(223, 183, 92, 0.08);
     }
 }
 
@@ -378,7 +389,7 @@ header.global-header {
 }
 
 body.has-announcement header.global-header {
-    top: var(--banner-height, 36px);
+    top: var(--banner-height, 46px);
 }
 
 body.has-announcement header.global-header.scrolled {
@@ -705,6 +716,11 @@ footer.global-footer {
         gap: 2.5rem;
         transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         z-index: 999;
+    }
+    
+    body.has-announcement header.global-header:not(.scrolled) .nav-menu {
+        top: calc(70px + var(--banner-height, 40px));
+        height: calc(100vh - (70px + var(--banner-height, 40px)));
     }
     
     .nav-menu.open {

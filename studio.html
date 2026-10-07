@@ -419,13 +419,17 @@
                 lightboxContent.innerHTML = "";
 
                 if (item.type === "video") {
-                    const video = document.createElement("video");
-                    video.src = item.src;
-                    if (item.poster) video.poster = item.poster;
-                    video.controls = true;
-                    video.autoplay = true;
-                    video.style.cssText = "max-width: 100%; max-height: 80vh; border-radius: 8px;";
-                    lightboxContent.appendChild(video);
+                    if (typeof renderUniversalVideoPlayer === "function") {
+                        renderUniversalVideoPlayer(lightboxContent, item.src, item.poster || "", { autoplay: true });
+                    } else {
+                        const video = document.createElement("video");
+                        video.src = item.src;
+                        if (item.poster) video.poster = item.poster;
+                        video.controls = true;
+                        video.autoplay = true;
+                        video.style.cssText = "max-width: 100%; max-height: 80vh; border-radius: 8px;";
+                        lightboxContent.appendChild(video);
+                    }
                 } else {
                     const img = document.createElement("img");
                     img.src = item.src;

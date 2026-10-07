@@ -321,7 +321,9 @@ const DEFAULT_ABOUT_CONTENT = {
     visionQuoteAttribution: "True Life Productions CIC",
     communityStatement: "TLP is a registered Community Interest Company (CIC) committed to making theatre accessible to everyone. Every pound we earn is reinvested into our projects, supporting local talent development programmes, youth opportunities, and creating inclusive and bold theatre productions. By removing barriers to participation and performance, TLP helps nurture emerging artists and strengthen the cultural life of our communities. TLP Company reg.no. 16139873",
     videoVisionHeading: "Our Founding Vision",
-    videoVisionText: "Watch co-founders Martin Maynard and Rosina Piovani share TLP's founding vision, establishing a dynamic platform that bridges emerging regional talent with professional opportunities on the London stage."
+    videoVisionText: "Watch co-founders Martin Maynard and Rosina Piovani share TLP's founding vision, establishing a dynamic platform that bridges emerging regional talent with professional opportunities on the London stage.",
+    videoVisionUrl: "assets/videos/video03.mp4",
+    videoVisionPoster: "assets/videos/video03_poster.jpg?v=2"
 };
 
 // Database operations class
@@ -514,6 +516,96 @@ class DatabasePortal {
             console.warn("Cloud sync offline or Netlify Functions unavailable:", err.message);
             return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
         }
+    }
+}
+
+/**
+ * Parses video URL to determine if it is YouTube, Vimeo, or standard MP4/HTML5 video.
+ * Returns: { type: 'youtube'|'vimeo'|'html5', embedUrl: string, rawUrl: string, videoId: string|null }
+ */
+function parseVideoSource(url) {
+    if (!url || typeof url !== 'string') return null;
+    const cleanUrl = url.trim();
+    if (!cleanUrl) return null;
+
+    // YouTube regex (supports standard watch, short youtu.be, embed, shorts, mobile)
+    const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+    if (ytMatch && ytMatch[1]) {
+        return {
+            type: 'youtube',
+            videoId: ytMatch[1],
+            embedUrl: `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?rel=0&modestbranding=1`,
+            rawUrl: cleanUrl
+        };
+    }
+
+    // Vimeo regex
+    const vimeoMatch = cleanUrl.match(/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|))(\d+)/i);
+    if (vimeoMatch && (vimeoMatch[3] || vimeoMatch[2] || vimeoMatch[1])) {
+        const vimeoId = vimeoMatch[3] || vimeoMatch[2] || vimeoMatch[1];
+        return {
+            type: 'vimeo',
+            videoId: vimeoId,
+            embedUrl: `https://player.vimeo.com/video/${vimeoId}?color=dfb75c&title=0&byline=0&portrait=0`,
+            rawUrl: cleanUrl
+        };
+    }
+
+    // Default HTML5 video (mp4, webm, relative path or direct CDN link)
+    return {
+        type: 'html5',
+        videoId: null,
+        embedUrl: cleanUrl,
+        rawUrl: cleanUrl
+    };
+}
+
+/**
+ * Universal video container renderer.
+ * Automatically injects responsive YouTube/Vimeo iframe or HTML5 <video> tag into wrapper element.
+ */
+function renderUniversalVideoPlayer(container, videoUrl, posterUrl = '', options = {}) {
+    if (!container) return;
+    const parsed = parseVideoSource(videoUrl);
+    if (!parsed) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const {
+        autoplay = false,
+        className = 'showcase-video-player'
+    } = options;
+
+    if (parsed.type === 'youtube' || parsed.type === 'vimeo') {
+        const autoplayParam = autoplay ? (parsed.type === 'youtube' ? '&autoplay=1&mute=1' : '&autoplay=1&muted=1') : '';
+        container.innerHTML = `
+            <iframe 
+                src="${parsed.embedUrl}${autoplayParam}" 
+                class="${className}"
+                style="width: 100%; height: 100%; border: none; border-radius: 8px; aspect-ratio: 16/9; display: block;" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen
+                loading="lazy"
+                title="Video Showcase">
+            </iframe>
+        `;
+    } else {
+        const posterAttr = posterUrl ? `poster="${posterUrl}"` : '';
+        const autoplayAttr = autoplay ? 'autoplay muted' : '';
+        container.innerHTML = `
+            <video 
+                class="${className}" 
+                controls 
+                ${autoplayAttr} 
+                ${posterAttr} 
+                playsinline
+                preload="metadata"
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block;">
+                <source src="${parsed.embedUrl}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `;
     }
 }
 

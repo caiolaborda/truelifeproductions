@@ -516,11 +516,18 @@
 
                 // Update Showreel Video if present
                 const videoSection = document.querySelector(".play-video-section");
-                const videoElement = document.getElementById("showcase-video-element");
-                if (videoSection && videoElement) {
+                const videoWrapper = document.querySelector(".showcase-video-wrapper");
+                if (videoSection && videoWrapper) {
                     if (play.video && play.video.trim() !== "") {
-                        videoElement.src = play.video;
-                        if (play.videoPoster) videoElement.poster = play.videoPoster;
+                        if (typeof renderUniversalVideoPlayer === "function") {
+                            renderUniversalVideoPlayer(videoWrapper, play.video, play.videoPoster || "");
+                        } else {
+                            const videoElement = document.getElementById("showcase-video-element");
+                            if (videoElement) {
+                                videoElement.src = play.video;
+                                if (play.videoPoster) videoElement.poster = play.videoPoster;
+                            }
+                        }
                         videoSection.style.display = "block";
                     } else {
                         videoSection.style.display = "none";
