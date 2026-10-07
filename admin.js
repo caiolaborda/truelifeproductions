@@ -1064,8 +1064,8 @@ function addVenueField(data = null) {
         <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
-                    <label style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.15rem; display: block;">📸 Production Gallery (Photos & Videos)</label>
-                    <span style="font-size: 0.72rem; color: var(--text-muted);">Add scenic photos or YouTube/Vimeo/MP4 video clips for this production's gallery.</span>
+                    <label style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.15rem; display: block;">Production Gallery</label>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Upload photos or add YouTube/Vimeo/MP4 video clips for this production's gallery.</span>
                 </div>
                 <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="batch-file-${venueId}" multiple accept="image/*" style="display: none;" onchange="handleBatchVenuePhotoUpload(event, '${venueId}')">

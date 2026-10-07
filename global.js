@@ -517,6 +517,8 @@ class DatabasePortal {
             return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
         }
     }
+}
+
 /**
  * Determines whether a URL or media item represents a video (YouTube, Vimeo, MP4, etc.)
  */
