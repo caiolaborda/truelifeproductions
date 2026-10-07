@@ -543,30 +543,27 @@
                 }
             }
 
-            // Production Photo Gallery (Always render all uploaded photos)
+            // Production Gallery (Photos & Videos)
             const gallerySection = document.querySelector(".play-gallery");
             if (gallerySection) {
                 const galleryGrid = gallerySection.querySelector(".gallery-grid");
                 const galleryHeader = gallerySection.querySelector("h2");
                 
-                const rawImages = [
+                const rawMedia = [
                     ...(play.gallery || []),
                     ...(play.images || []),
-                    ...(play.venues ? play.venues.flatMap(v => v.images || []) : [])
+                    ...(play.videos || []),
+                    ...(play.venues ? play.venues.flatMap(v => [...(v.images || []), ...(v.videos || [])]) : [])
                 ];
-                const allImages = [...new Set(rawImages.filter(img => img && typeof img === 'string' && img.trim() !== ''))];
+                const allMedia = [...new Set(rawMedia.filter(m => m && typeof m === 'string' && m.trim() !== ''))];
 
                 if (galleryHeader) {
-                    if (play.pageType === "pre-prod") {
-                        galleryHeader.textContent = allImages.length > 0 ? "Production Gallery & Teasers" : "Production Design & Teasers";
-                    } else {
-                        galleryHeader.textContent = "Production Gallery";
-                    }
+                    galleryHeader.textContent = "Production Gallery";
                 }
 
                 if (galleryGrid) {
                     galleryGrid.innerHTML = "";
-                    if (allImages.length === 0) {
+                    if (allMedia.length === 0) {
                         if (play.image || play.banner) {
                             galleryGrid.innerHTML = `
                                 <div class="gallery-img-box" style="aspect-ratio: 16/9; max-height: 400px; grid-column: span 3; width: 100%; cursor: pointer;" onclick="if(typeof openGlobalLightbox === 'function') openGlobalLightbox(['${play.image || play.banner}'], 0)">
@@ -577,13 +574,35 @@
                             galleryGrid.innerHTML = `<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">Production gallery images coming soon.</p>`;
                         }
                     } else {
-                        window.currentPlayGallery = allImages;
-                        allImages.forEach((img, idx) => {
-                            galleryGrid.innerHTML += `
-                                <div class="gallery-img-box" style="cursor: pointer;" onclick="if(typeof openGlobalLightbox === 'function') openGlobalLightbox(window.currentPlayGallery, ${idx})">
-                                    <img src="${img}" alt="${play.title} Photo ${idx + 1}" loading="lazy">
-                                </div>
-                            `;
+                        window.currentPlayGallery = allMedia;
+                        allMedia.forEach((item, idx) => {
+                            const isVid = typeof isVideoMedia === "function" ? isVideoMedia(item) : (item.includes("youtube") || item.includes("youtu.be") || item.includes("vimeo") || item.endsWith(".mp4") || item.startsWith("data:video/"));
+                            
+                            if (isVid) {
+                                let thumbUrl = play.videoPoster || play.image || play.banner || 'assets/images/image06.png';
+                                const ytMatch = item.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+                                if (ytMatch) {
+                                    thumbUrl = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+                                }
+                                
+                                galleryGrid.innerHTML += `
+                                    <div class="gallery-img-box gallery-video-card" style="cursor: pointer; position: relative; overflow: hidden; background: #000;" onclick="if(typeof openGlobalLightbox === 'function') openGlobalLightbox(window.currentPlayGallery, ${idx})" title="Click to play video">
+                                        <img src="${thumbUrl}" alt="${play.title} Video ${idx + 1}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div class="video-play-overlay">
+                                            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(223, 183, 92, 0.95); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="#000" style="margin-left: 2px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                            </div>
+                                        </div>
+                                        <span style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.85); color: #dfb75c; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(223,183,92,0.3); z-index: 2;">▶ Video</span>
+                                    </div>
+                                `;
+                            } else {
+                                galleryGrid.innerHTML += `
+                                    <div class="gallery-img-box" style="cursor: pointer;" onclick="if(typeof openGlobalLightbox === 'function') openGlobalLightbox(window.currentPlayGallery, ${idx})">
+                                        <img src="${item}" alt="${play.title} Photo ${idx + 1}" loading="lazy">
+                                    </div>
+                                `;
+                            }
                         });
                     }
                 }

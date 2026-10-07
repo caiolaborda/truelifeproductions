@@ -1162,3 +1162,50 @@ select option:focus {
     border-color: var(--primary);
     background: #141824;
 }
+
+/* Production Gallery Video Elements */
+.gallery-video-card {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    background: #000;
+}
+
+.gallery-video-card img {
+    transition: transform var(--transition-normal), filter var(--transition-normal);
+}
+
+.gallery-video-card:hover img {
+    transform: scale(1.05);
+    filter: brightness(1.05);
+}
+
+.gallery-video-card .video-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    transition: background var(--transition-normal);
+}
+
+.gallery-video-card:hover .video-play-overlay {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.gallery-video-card .video-play-overlay div {
+    transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.gallery-video-card:hover .video-play-overlay div {
+    transform: scale(1.12);
+    background: #dfb75c !important;
+}
+
+.lightbox-video-container iframe,
+.lightbox-video-container video {
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+}

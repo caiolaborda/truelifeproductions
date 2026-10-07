@@ -595,17 +595,19 @@
                             });
                         }
                         
-                        // Add images from venues and direct gallery/images
-                        const allPlayImages = [
+                        // Add media from venues and direct gallery/images/videos
+                        const allPlayMedia = [
                             ...(play.gallery || []),
                             ...(play.images || []),
-                            ...(play.venues ? play.venues.flatMap(v => v.images || []) : [])
+                            ...(play.videos || []),
+                            ...(play.venues ? play.venues.flatMap(v => [...(v.images || []), ...(v.videos || [])]) : [])
                         ];
-                        allPlayImages.forEach(imgSrc => {
-                            if (imgSrc && typeof imgSrc === 'string' && imgSrc.trim() !== '' && !mediaItems.some(item => item.src === imgSrc)) {
+                        allPlayMedia.forEach(mediaSrc => {
+                            if (mediaSrc && typeof mediaSrc === 'string' && mediaSrc.trim() !== '' && !mediaItems.some(item => item.src === mediaSrc)) {
+                                const isVid = typeof isVideoMedia === "function" ? isVideoMedia(mediaSrc) : (mediaSrc.includes("youtube") || mediaSrc.includes("youtu.be") || mediaSrc.includes("vimeo") || mediaSrc.endsWith(".mp4") || mediaSrc.startsWith("data:video/"));
                                 mediaItems.push({
-                                    type: "image",
-                                    src: imgSrc
+                                    type: isVid ? "video" : "image",
+                                    src: mediaSrc
                                 });
                             }
                         });

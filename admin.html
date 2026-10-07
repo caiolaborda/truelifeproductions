@@ -1262,19 +1262,31 @@
                         <!-- Video Trailer / Showreel -->
                         <div class="admin-section-card">
                             <div class="admin-section-title">🎬 Video Trailer or Showreel <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; text-transform: none;">(Optional)</span></div>
-                            <div class="admin-helper-text">Add a YouTube trailer, Vimeo video, or direct MP4 file to showcase on the play's dedicated page.</div>
+                            <div class="admin-helper-text">Add a YouTube trailer, Vimeo video, or MP4 file to showcase on the play's dedicated page. You can paste a link or upload a video clip directly.</div>
                             
                             <div class="form-grid-2">
                                 <div class="admin-form-group">
-                                    <label for="play-video">Video Link (YouTube, Vimeo, or MP4)</label>
-                                    <input type="text" id="play-video" class="admin-control" placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtu.be/... or assets/videos/video02.mp4">
-                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Paste standard YouTube link, shorts, Vimeo, or MP4 URL</span>
+                                    <label for="play-video">Video Link or Upload</label>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <input type="text" id="play-video" class="admin-control" placeholder="e.g. https://www.youtube.com/watch?v=... or MP4 file" oninput="handlePlayVideoInput()">
+                                        <input type="file" id="play-video-upload-file" accept="video/mp4,video/webm" style="display: none;" onchange="handleShowreelFileUpload(event)">
+                                        <button type="button" class="btn btn-outline" style="padding: 0.55rem 0.8rem; font-size: 0.75rem; white-space: nowrap; color: #dfb75c; border-color: rgba(223,183,92,0.4);" onclick="document.getElementById('play-video-upload-file').click()">📁 Upload Video</button>
+                                    </div>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Paste YouTube link, Vimeo, MP4 URL, or click Upload Video</span>
                                 </div>
                                 <div class="admin-form-group">
                                     <label for="play-video-poster">Video Thumbnail / Poster Image</label>
-                                    <input type="text" id="play-video-poster" class="admin-control" placeholder="e.g. assets/videos/video02_poster.jpg">
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <input type="text" id="play-video-poster" class="admin-control" placeholder="e.g. assets/videos/video02_poster.jpg" oninput="handlePlayVideoInput()">
+                                        <input type="file" id="play-video-poster-file" accept="image/*" style="display: none;" onchange="handleShowreelPosterUpload(event)">
+                                        <button type="button" class="btn btn-outline" style="padding: 0.55rem 0.8rem; font-size: 0.75rem; white-space: nowrap;" onclick="document.getElementById('play-video-poster-file').click()">📁 Upload Poster</button>
+                                    </div>
                                     <span style="font-size: 0.72rem; color: var(--text-muted);">Optional custom thumbnail (YouTube generates this automatically)</span>
                                 </div>
+                            </div>
+                            <div id="play-video-preview-box" style="margin-top: 1rem; display: none;">
+                                <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 0.5rem;">Video Trailer Preview:</div>
+                                <div id="play-video-preview-player" style="max-width: 480px; aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; background: #000; border: 1px solid rgba(255,255,255,0.1);"></div>
                             </div>
                         </div>
 
@@ -1331,13 +1343,13 @@
                             </div>
                         </div>
 
-                        <!-- 5. Venues, Tour Dates, Photo Gallery & Critical Reviews Builder -->
+                        <!-- 5. Venues, Tour Dates, Photo & Video Gallery & Critical Reviews Builder -->
                         <div class="admin-section-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                                <div class="admin-section-title" style="margin-bottom: 0; border-bottom: none;">🏛️ 5. Venues, Dates & Reviews</div>
+                                <div class="admin-section-title" style="margin-bottom: 0; border-bottom: none;">🏛️ 5. Venues, Dates, Gallery & Reviews</div>
                                 <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.85rem; font-size: 0.75rem;" onclick="addVenueField()">+ Add Venue</button>
                             </div>
-                            <div class="admin-helper-text">Add performing theatres, tour runs, scenic photo galleries, and press quotes.</div>
+                            <div class="admin-helper-text">Add performing theatres, tour runs, Production Gallery photos & video clips, and press quotes.</div>
                             <div id="venues-editor-list">
                                 <!-- Dynamically populated venue cards -->
                             </div>

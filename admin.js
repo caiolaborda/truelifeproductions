@@ -699,19 +699,31 @@ function updatePlayLivePreview() {
     const gallerySection = document.getElementById("mock-gallery-section");
     if (galleryContainer) {
         const venues = getVenuesData();
-        const allPhotos = [];
+        const allMedia = [];
         venues.forEach(v => {
             if (v.images && Array.isArray(v.images)) {
                 v.images.forEach(img => {
-                    if (img && img.trim()) allPhotos.push(img.trim());
+                    if (img && img.trim()) allMedia.push(img.trim());
                 });
             }
         });
-        if (allPhotos.length > 0) {
+        if (allMedia.length > 0) {
             if (gallerySection) gallerySection.style.display = "block";
-            galleryContainer.innerHTML = allPhotos.map(p => `
-                <img src="${p}" class="mock-gallery-thumb" alt="Production Photo" onerror="this.src='assets/images/image06.png'">
-            `).join('');
+            galleryContainer.innerHTML = allMedia.map(p => {
+                const isVid = typeof isVideoMedia === 'function' ? isVideoMedia(p) : (p.includes("youtube") || p.includes("youtu.be") || p.includes("vimeo") || p.endsWith(".mp4") || p.startsWith("data:video/"));
+                if (isVid) {
+                    let thumb = 'assets/images/image06.png';
+                    const ytMatch = p.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+                    if (ytMatch) thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+                    return `
+                        <div style="position: relative; display: inline-block; width: 48px; height: 36px; border-radius: 4px; overflow: hidden; background: #000; border: 1px solid rgba(255,255,255,0.15);">
+                            <img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover;" alt="Video" onerror="this.src='assets/images/image06.png'">
+                            <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.35); font-size: 0.65rem; color: #dfb75c;">▶</span>
+                        </div>
+                    `;
+                }
+                return `<img src="${p}" class="mock-gallery-thumb" alt="Production Photo" onerror="this.src='assets/images/image06.png'">`;
+            }).join('');
         } else {
             if (gallerySection) gallerySection.style.display = "none";
             galleryContainer.innerHTML = "";
@@ -792,11 +804,84 @@ function openPlayModal(mode, playId = '') {
     }
 
     updatePlayLivePreview();
+    handlePlayVideoInput();
     overlay.classList.add("open");
 }
 
 function closePlayModal() {
     document.getElementById("play-modal-overlay").classList.remove("open");
+    const previewPlayer = document.getElementById("play-video-preview-player");
+    if (previewPlayer) previewPlayer.innerHTML = "";
+}
+
+function handlePlayVideoInput() {
+    const videoInput = document.getElementById("play-video");
+    const posterInput = document.getElementById("play-video-poster");
+    const previewBox = document.getElementById("play-video-preview-box");
+    const previewPlayer = document.getElementById("play-video-preview-player");
+    if (!videoInput || !previewBox || !previewPlayer) return;
+
+    const val = videoInput.value.trim();
+    const posterVal = posterInput ? posterInput.value.trim() : '';
+
+    if (val) {
+        previewBox.style.display = "block";
+        if (typeof renderUniversalVideoPlayer === "function") {
+            renderUniversalVideoPlayer(previewPlayer, val, posterVal);
+        } else {
+            previewPlayer.innerHTML = `<video src="${val}" controls style="width: 100%; height: 100%;"></video>`;
+        }
+    } else {
+        previewBox.style.display = "none";
+        previewPlayer.innerHTML = "";
+    }
+    updatePlayLivePreview();
+}
+
+async function handleShowreelFileUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const videoInput = document.getElementById("play-video");
+    if (!videoInput) return;
+    await handleVideoFileUpload(file, videoInput, handlePlayVideoInput);
+    event.target.value = "";
+}
+
+async function handleShowreelPosterUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+        const posterInput = document.getElementById("play-video-poster");
+        const result = await compressImageFile(file, 1200, 0.75);
+        if (posterInput) posterInput.value = result.dataUrl;
+        handlePlayVideoInput();
+        showToast("Video poster uploaded!", "success");
+    } catch (e) {
+        showToast("Poster upload failed: " + e.message, "error");
+    }
+    event.target.value = "";
+}
+
+async function handleVideoFileUpload(file, targetInput, callback) {
+    if (!file) return;
+    const maxMb = 10;
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+    if (file.size > maxMb * 1024 * 1024) {
+        alert(`This video file is ${sizeMb}MB.\n\nTo ensure your website loads fast on all mobile phones and desktop connections, videos larger than 10MB should be uploaded to YouTube or Vimeo, and then you can simply paste the link here.\n\nTip: You can set the video to 'Unlisted' on YouTube if you want it private!`);
+        return;
+    }
+    showToast(`Loading video clip (${sizeMb}MB)...`, 'info');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        targetInput.value = e.target.result;
+        if (typeof callback === 'function') callback();
+        updatePlayLivePreview();
+        showToast(`Video loaded (${sizeMb}MB)!`, 'success');
+    };
+    reader.onerror = () => {
+        showToast("Failed to read video file.", "error");
+    };
+    reader.readAsDataURL(file);
 }
 
 async function handlePlaySubmit(event) {
@@ -975,18 +1060,22 @@ function addVenueField(data = null) {
             </div>
         </div>
         
-        <!-- Images Sub-Section -->
+        <!-- Images & Videos Sub-Section -->
         <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0;">Scenic & Performance Photos</label>
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.15rem; display: block;">📸 Production Gallery (Photos & Videos)</label>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Add scenic photos or YouTube/Vimeo/MP4 video clips for this production's gallery.</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="batch-file-${venueId}" multiple accept="image/*" style="display: none;" onchange="handleBatchVenuePhotoUpload(event, '${venueId}')">
-                    <button type="button" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="document.getElementById('batch-file-${venueId}').click()">📁 Upload Multiple Photos</button>
-                    <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="addVenueImageInput('${venueId}')">+ Add URL</button>
+                    <button type="button" class="btn btn-primary" style="padding: 0.35rem 0.7rem; font-size: 0.72rem;" onclick="document.getElementById('batch-file-${venueId}').click()">📁 Upload Photos</button>
+                    <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.72rem; color: #dfb75c; border-color: rgba(223,183,92,0.4);" onclick="addVenueVideoInput('${venueId}')">🎬 Add Video</button>
+                    <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.55rem; font-size: 0.72rem;" onclick="addVenueImageInput('${venueId}')">+ Add Photo URL</button>
                 </div>
             </div>
             <div class="venue-images-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <!-- Image inputs -->
+                <!-- Image & Video inputs -->
             </div>
         </div>
 
@@ -1004,7 +1093,7 @@ function addVenueField(data = null) {
     
     container.appendChild(card);
     
-    // Add existing images
+    // Add existing images and videos
     images.forEach(imgUrl => addVenueImageInput(venueId, imgUrl));
     
     // Add existing reviews
@@ -1034,22 +1123,54 @@ async function handleBatchVenuePhotoUpload(event, venueId) {
 }
 
 function addVenueImageInput(venueId, value = '') {
+    addVenueMediaInput(venueId, value, false);
+}
+
+function addVenueVideoInput(venueId, value = '') {
+    addVenueMediaInput(venueId, value, true);
+}
+
+function addVenueMediaInput(venueId, value = '', isVideoExplicit = false) {
     const venueCard = document.getElementById(venueId);
     if (!venueCard) return;
     const imagesList = venueCard.querySelector(".venue-images-list");
-    const inputId = 'image-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const inputId = 'media-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const fileId = 'file-' + inputId;
+    const isVid = isVideoExplicit || (value && typeof isVideoMedia === 'function' && isVideoMedia(value));
     
     const wrapper = document.createElement("div");
     wrapper.id = inputId;
+    wrapper.className = "venue-media-item";
+    wrapper.setAttribute("data-media-type", isVid ? "video" : "image");
     wrapper.style.display = "flex";
     wrapper.style.gap = "0.5rem";
     wrapper.style.alignItems = "center";
+    wrapper.style.background = isVid ? "rgba(223,183,92,0.03)" : "transparent";
+    wrapper.style.padding = "0.25rem 0.4rem";
+    wrapper.style.borderRadius = "4px";
+    
+    let ytThumb = '';
+    if (isVid && value) {
+        const ytMatch = value.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+        if (ytMatch) ytThumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+    }
+
+    const placeholder = isVid ? "Paste YouTube link, Vimeo, or MP4 URL..." : "e.g. photo.jpg or https://...";
+    const uploadBtnHtml = isVid 
+        ? `<button type="button" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; white-space: nowrap; color: #dfb75c; border-color: rgba(223,183,92,0.4);" onclick="document.getElementById('${fileId}').click()">📁 Upload Video</button>`
+        : `<button type="button" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; white-space: nowrap;" onclick="document.getElementById('${fileId}').click()">📁 Upload</button>`;
+
+    const acceptType = isVid ? "video/mp4,video/webm" : "image/*";
+    const uploadHandler = isVid ? `handleVenueVideoUpload(event, '${inputId}')` : `handleVenuePhotoUpload(event, '${inputId}')`;
+
     wrapper.innerHTML = `
-        <img src="${value || 'assets/images/image06.png'}" class="venue-photo-thumb" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; background: #000; ${value ? '' : 'display: none;'}" alt="Thumb" onerror="this.src='assets/images/image06.png'">
-        <input type="text" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="e.g. photo.jpg or https://..." style="flex-grow: 1;" required oninput="handleVenueUrlInput('${inputId}')">
-        <input type="file" id="${fileId}" accept="image/*" style="display: none;" onchange="handleVenuePhotoUpload(event, '${inputId}')">
-        <button type="button" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; white-space: nowrap;" onclick="document.getElementById('${fileId}').click()">📁 Upload</button>
+        <div class="venue-video-badge" style="width: 36px; height: 36px; border-radius: 4px; background: #141824; border: 1px solid rgba(223,183,92,0.3); display: ${isVid ? 'flex' : 'none'}; align-items: center; justify-content: center; flex-shrink: 0; color: #dfb75c; font-size: 0.85rem; overflow: hidden;">
+            ${ytThumb ? `<img src="${ytThumb}" style="width: 100%; height: 100%; object-fit: cover;">` : `🎬`}
+        </div>
+        <img src="${(!isVid && value) ? value : 'assets/images/image06.png'}" class="venue-photo-thumb" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; background: #000; ${(value && !isVid) ? '' : 'display: none;'}" alt="Thumb" onerror="this.src='assets/images/image06.png'">
+        <input type="text" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="${placeholder}" style="flex-grow: 1;" required oninput="handleVenueUrlInput('${inputId}')">
+        <input type="file" id="${fileId}" accept="${acceptType}" style="display: none;" onchange="${uploadHandler}">
+        ${uploadBtnHtml}
         <button type="button" class="action-icon-btn delete" style="padding: 0.55rem 0.75rem;" onclick="document.getElementById('${inputId}').remove(); updatePlayLivePreview();">×</button>
     `;
     imagesList.appendChild(wrapper);
@@ -1059,14 +1180,30 @@ function handleVenueUrlInput(wrapperId) {
     const wrapper = document.getElementById(wrapperId);
     if (!wrapper) return;
     const input = wrapper.querySelector(".venue-image-url");
-    const thumb = wrapper.querySelector(".venue-photo-thumb");
     const val = input ? input.value.trim() : '';
-    if (thumb) {
-        if (val) {
-            thumb.src = val;
-            thumb.style.display = "block";
-        } else {
-            thumb.style.display = "none";
+    const isVid = typeof isVideoMedia === 'function' ? isVideoMedia(val) : false;
+    
+    const photoThumb = wrapper.querySelector(".venue-photo-thumb");
+    const videoBadge = wrapper.querySelector(".venue-video-badge");
+    
+    if (isVid) {
+        let ytThumb = '';
+        const ytMatch = val.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+        if (ytMatch) ytThumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+        if (photoThumb) photoThumb.style.display = "none";
+        if (videoBadge) {
+            videoBadge.style.display = "flex";
+            videoBadge.innerHTML = ytThumb ? `<img src="${ytThumb}" style="width: 100%; height: 100%; object-fit: cover;">` : `🎬`;
+        }
+    } else {
+        if (videoBadge) videoBadge.style.display = "none";
+        if (photoThumb) {
+            if (val) {
+                photoThumb.src = val;
+                photoThumb.style.display = "block";
+            } else {
+                photoThumb.style.display = "none";
+            }
         }
     }
     updatePlayLivePreview();
@@ -1089,6 +1226,17 @@ async function handleVenuePhotoUpload(event, wrapperId) {
     } catch(e) {
         alert("Photo upload error: " + e.message);
     }
+}
+
+async function handleVenueVideoUpload(event, wrapperId) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+    const input = wrapper.querySelector(".venue-image-url");
+    if (!input) return;
+    await handleVideoFileUpload(file, input, () => handleVenueUrlInput(wrapperId));
+    event.target.value = "";
 }
 
 function addVenueReviewInput(venueId, reviewData = null) {

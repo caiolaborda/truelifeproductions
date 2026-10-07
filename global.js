@@ -517,6 +517,17 @@ class DatabasePortal {
             return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
         }
     }
+/**
+ * Determines whether a URL or media item represents a video (YouTube, Vimeo, MP4, etc.)
+ */
+function isVideoMedia(url) {
+    if (!url || typeof url !== 'string') return false;
+    const clean = url.trim().toLowerCase();
+    if (clean.includes("youtube.com/") || clean.includes("youtu.be/")) return true;
+    if (clean.includes("vimeo.com/")) return true;
+    if (clean.startsWith("data:video/")) return true;
+    if (/\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(clean)) return true;
+    return false;
 }
 
 /**
@@ -685,14 +696,22 @@ function renderGlobalLightboxItem() {
 
     content.innerHTML = "";
     const current = globalLightboxMedia[globalLightboxIdx];
-    const imgSrc = typeof current === "string" ? current : (current.src || current.image);
+    const mediaSrc = typeof current === "string" ? current : (current.src || current.image || current.video);
 
-    if (imgSrc) {
-        const img = document.createElement("img");
-        img.src = imgSrc;
-        img.alt = "Production Photo";
-        img.style.cssText = "max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid var(--border-color);";
-        content.appendChild(img);
+    if (mediaSrc) {
+        if (isVideoMedia(mediaSrc)) {
+            const videoWrapper = document.createElement("div");
+            videoWrapper.className = "lightbox-video-container";
+            videoWrapper.style.cssText = "width: 88vw; max-width: 960px; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.95); border: 1px solid rgba(223, 183, 92, 0.4); background: #000; display: flex; align-items: center; justify-content: center;";
+            renderUniversalVideoPlayer(videoWrapper, mediaSrc, '', { autoplay: true });
+            content.appendChild(videoWrapper);
+        } else {
+            const img = document.createElement("img");
+            img.src = mediaSrc;
+            img.alt = "Production Photo";
+            img.style.cssText = "max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid var(--border-color);";
+            content.appendChild(img);
+        }
     }
 
     if (counter) {
