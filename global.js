@@ -609,6 +609,102 @@ function renderUniversalVideoPlayer(container, videoUrl, posterUrl = '', options
     }
 }
 
+/* ==========================================================================
+   GLOBAL LIGHTBOX MODAL (USED ACROSS PLAYS & GALLERIES)
+   ========================================================================== */
+let globalLightboxMedia = [];
+let globalLightboxIdx = 0;
+
+function openGlobalLightbox(mediaList, startIdx = 0) {
+    if (!mediaList || mediaList.length === 0) return;
+    globalLightboxMedia = Array.isArray(mediaList) ? mediaList : [mediaList];
+    globalLightboxIdx = Math.max(0, Math.min(startIdx, globalLightboxMedia.length - 1));
+
+    let overlay = document.getElementById("universal-lightbox");
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "universal-lightbox";
+        overlay.className = "lightbox-overlay";
+        overlay.style.display = "none";
+        overlay.innerHTML = `
+            <button class="lightbox-close" aria-label="Close Lightbox">&times;</button>
+            <button class="lightbox-prev" aria-label="Previous">&lsaquo;</button>
+            <button class="lightbox-next" aria-label="Next">&rsaquo;</button>
+            <div class="lightbox-content"></div>
+            <div class="lightbox-counter" style="position: absolute; bottom: 1.5rem; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.1em; font-family: var(--font-body); z-index: 2100;"></div>
+        `;
+        document.body.appendChild(overlay);
+
+        overlay.querySelector(".lightbox-close").addEventListener("click", closeGlobalLightbox);
+        overlay.querySelector(".lightbox-prev").addEventListener("click", (e) => { e.stopPropagation(); stepGlobalLightbox(-1); });
+        overlay.querySelector(".lightbox-next").addEventListener("click", (e) => { e.stopPropagation(); stepGlobalLightbox(1); });
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay || e.target.classList.contains("lightbox-content")) {
+                closeGlobalLightbox();
+            }
+        });
+        document.addEventListener("keydown", (e) => {
+            const el = document.getElementById("universal-lightbox");
+            if (el && el.style.display === "flex") {
+                if (e.key === "ArrowRight") stepGlobalLightbox(1);
+                if (e.key === "ArrowLeft") stepGlobalLightbox(-1);
+                if (e.key === "Escape") closeGlobalLightbox();
+            }
+        });
+    }
+
+    renderGlobalLightboxItem();
+    overlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closeGlobalLightbox() {
+    const overlay = document.getElementById("universal-lightbox");
+    if (overlay) {
+        overlay.style.display = "none";
+        const content = overlay.querySelector(".lightbox-content");
+        if (content) content.innerHTML = "";
+    }
+    document.body.style.overflow = "";
+}
+
+function stepGlobalLightbox(direction) {
+    if (globalLightboxMedia.length <= 1) return;
+    globalLightboxIdx = (globalLightboxIdx + direction + globalLightboxMedia.length) % globalLightboxMedia.length;
+    renderGlobalLightboxItem();
+}
+
+function renderGlobalLightboxItem() {
+    const overlay = document.getElementById("universal-lightbox");
+    if (!overlay) return;
+    const content = overlay.querySelector(".lightbox-content");
+    const counter = overlay.querySelector(".lightbox-counter");
+    const prevBtn = overlay.querySelector(".lightbox-prev");
+    const nextBtn = overlay.querySelector(".lightbox-next");
+    if (!content) return;
+
+    content.innerHTML = "";
+    const current = globalLightboxMedia[globalLightboxIdx];
+    const imgSrc = typeof current === "string" ? current : (current.src || current.image);
+
+    if (imgSrc) {
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.alt = "Production Photo";
+        img.style.cssText = "max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid var(--border-color);";
+        content.appendChild(img);
+    }
+
+    if (counter) {
+        counter.textContent = `${globalLightboxIdx + 1} / ${globalLightboxMedia.length}`;
+        counter.style.display = globalLightboxMedia.length > 1 ? "block" : "none";
+    }
+    if (prevBtn && nextBtn) {
+        prevBtn.style.display = globalLightboxMedia.length > 1 ? "block" : "none";
+        nextBtn.style.display = globalLightboxMedia.length > 1 ? "block" : "none";
+    }
+}
+
 // Global DB instance
 const TLP_DB = new DatabasePortal();
 

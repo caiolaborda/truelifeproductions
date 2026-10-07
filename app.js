@@ -60,7 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             // Map production ID to custom detail page URLs
-            let detailLink = `play-${slide.id}.html?id=${slide.id}`;
+            const EXISTING_PLAY_PAGES = ["poison", "continuity", "how-to-cry", "mary-stuart", "19-6", "ernest"];
+            let detailLink = EXISTING_PLAY_PAGES.includes(slide.id) ? `play-${slide.id}.html?id=${slide.id}` : `play-details.html?id=${slide.id}`;
 
             // Dynamic Booking Link (goes to ticketing website if setup, otherwise falls back to booking inquiry)
             let ticketLink = slide.detailsLink || "#";

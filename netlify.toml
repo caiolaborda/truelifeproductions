@@ -20,3 +20,8 @@
 
 [build.processing.html]
   pretty_urls = true
+
+[[redirects]]
+  from = "/play-*"
+  to = "/play-details.html"
+  status = 200

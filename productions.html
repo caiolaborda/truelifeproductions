@@ -405,7 +405,8 @@
                     }
 
                     // Map production ID to custom detail page URLs
-                    let detailLink = `play-${p.id}.html?id=${p.id}`;
+                    const EXISTING_PLAY_PAGES = ["poison", "continuity", "how-to-cry", "mary-stuart", "19-6", "ernest"];
+                    let detailLink = EXISTING_PLAY_PAGES.includes(p.id) ? `play-${p.id}.html?id=${p.id}` : `play-details.html?id=${p.id}`;
 
                     const tagText = p.isStudio ? "TLP Studio Production" : "TLP Production";
                     const tagStyle = p.isStudio 
@@ -594,21 +595,20 @@
                             });
                         }
                         
-                        // Add images from venues
-                        if (play.venues) {
-                            play.venues.forEach(v => {
-                                if (v.images) {
-                                    v.images.forEach(imgSrc => {
-                                        if (!mediaItems.some(item => item.src === imgSrc)) {
-                                            mediaItems.push({
-                                                type: "image",
-                                                src: imgSrc
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
+                        // Add images from venues and direct gallery/images
+                        const allPlayImages = [
+                            ...(play.gallery || []),
+                            ...(play.images || []),
+                            ...(play.venues ? play.venues.flatMap(v => v.images || []) : [])
+                        ];
+                        allPlayImages.forEach(imgSrc => {
+                            if (imgSrc && typeof imgSrc === 'string' && imgSrc.trim() !== '' && !mediaItems.some(item => item.src === imgSrc)) {
+                                mediaItems.push({
+                                    type: "image",
+                                    src: imgSrc
+                                });
+                            }
+                        });
                         
                         if (mediaItems.length > 0) {
                             openLightbox(mediaItems, 0);

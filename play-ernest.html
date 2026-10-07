@@ -590,39 +590,44 @@
                     const galleryGrid = gallerySection.querySelector(".gallery-grid");
                     const galleryHeader = gallerySection.querySelector("h2");
                     
-                    if (play.pageType === "pre-prod") {
-                        if (galleryHeader) galleryHeader.textContent = "Production Design & Teasers";
-                        if (galleryGrid) {
-                            galleryGrid.innerHTML = `
-                                <div class="gallery-img-box" style="aspect-ratio: 16/9; max-height: 400px; grid-column: span 3; width: 100%;">
-                                    <img src="${play.image || play.banner}" alt="${play.title} Poster" style="object-fit: cover; width: 100%; height: 100%;">
-                                </div>
-                            `;
+                    // Collect all images from venues and any direct gallery/images array
+                    const rawImages = [
+                        ...(play.gallery || []),
+                        ...(play.images || []),
+                        ...(play.venues ? play.venues.flatMap(v => v.images || []) : [])
+                    ];
+                    // Clean and deduplicate while filtering out empty entries
+                    const allImages = [...new Set(rawImages.filter(img => img && typeof img === 'string' && img.trim() !== ''))];
+
+                    if (galleryHeader) {
+                        if (play.pageType === "pre-prod") {
+                            galleryHeader.textContent = allImages.length > 0 ? "Production Gallery & Teasers" : "Production Design & Teasers";
+                        } else {
+                            galleryHeader.textContent = "Production Gallery";
                         }
-                    } else {
-                        if (galleryHeader) galleryHeader.textContent = "Production Gallery";
-                        const allImages = play.venues ? play.venues.flatMap(v => v.images || []) : [];
-                        if (galleryGrid) {
-                            galleryGrid.innerHTML = "";
-                            if (allImages.length === 0) {
-                                if (play.image) {
-                                    galleryGrid.innerHTML = `
-                                        <div class="gallery-img-box">
-                                            <img src="${play.image}" alt="${play.title} Scene">
-                                        </div>
-                                    `;
-                                } else {
-                                    galleryGrid.innerHTML = `<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">Production gallery images coming soon.</p>`;
-                                }
+                    }
+
+                    if (galleryGrid) {
+                        galleryGrid.innerHTML = "";
+                        if (allImages.length === 0) {
+                            if (play.image || play.banner) {
+                                galleryGrid.innerHTML = `
+                                    <div class="gallery-img-box" style="aspect-ratio: 16/9; max-height: 400px; grid-column: span 3; width: 100%; cursor: pointer;" onclick="if(typeof openGlobalLightbox === 'function') openGlobalLightbox(['${play.image || play.banner}'], 0)">
+                                        <img src="${play.image || play.banner}" alt="${play.title} Poster" style="object-fit: cover; width: 100%; height: 100%;">
+                                    </div>
+                                `;
                             } else {
-                                allImages.forEach(img => {
-                                    galleryGrid.innerHTML += `
-                                        <div class="gallery-img-box">
-                                            <img src="${img}" alt="${play.title} Scene">
-                                        </div>
-                                    `;
-                                });
+                                galleryGrid.innerHTML = `<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">Production gallery images coming soon.</p>`;
                             }
+                        } else {
+                            window.currentPlayGallery = allImages;
+                            allImages.forEach((img, idx) => {
+                                galleryGrid.innerHTML += `
+                                    <div class="gallery-img-box" style="cursor: pointer;" onclick="if(typeof openGlobalLightbox === 'function') openGlobalLightbox(window.currentPlayGallery, ${idx})">
+                                        <img src="${img}" alt="${play.title} Photo ${idx + 1}" loading="lazy">
+                                    </div>
+                                `;
+                            });
                         }
                     }
                 }
