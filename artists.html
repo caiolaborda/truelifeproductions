@@ -402,20 +402,22 @@
             workshops.forEach((ws, idx) => {
                 const isEven = idx % 2 === 0;
                 const rowClass = isEven ? "artist-opp-row reverse reveal" : "artist-opp-row reveal";
-                const images = ws.slideshowImages && ws.slideshowImages.length > 0 
-                    ? ws.slideshowImages 
-                    : (ws.image ? [ws.image] : ["assets/images/slideshow11-86368c53.jpg"]);
+                const rawSlides = Array.isArray(ws.slideshowImages) ? ws.slideshowImages.filter(Boolean) : [];
+                const leadImage = ws.image ? ws.image.trim() : "";
+                const combined = leadImage ? [leadImage, ...rawSlides.filter(img => img !== leadImage)] : rawSlides;
+                const images = combined.length > 0 ? combined : ["assets/images/workshop-theatre-club.jpg"];
 
                 let imageBoxHtml = "";
                 if (images.length > 1) {
                     imageBoxHtml = `
-                        <div class="slideshow-container" id="ws-slideshow-${idx}">
+                        <div class="slideshow-container" id="ws-slideshow-${idx}" style="cursor: pointer;" title="Click to view gallery (${images.length} photos)">
                             ${images.map((img, i) => `<div class="slide ${i === 0 ? 'active' : ''}" style="background-image: url('${img}');"></div>`).join('')}
+                            <div style="position: absolute; bottom: 0.75rem; right: 0.75rem; background: rgba(6,7,10,0.75); border: 1px solid rgba(223,183,92,0.4); color: #fff; font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 4px; z-index: 5; pointer-events: none;">📷 ${images.length} Photos</div>
                         </div>
                     `;
                 } else {
                     imageBoxHtml = `
-                        <div class="slideshow-container" style="position: relative;">
+                        <div class="slideshow-container" style="position: relative; cursor: pointer;" title="Click to enlarge photo">
                             <div class="slide active" style="background-image: url('${images[0]}');"></div>
                         </div>
                     `;
@@ -438,15 +440,21 @@
                 `;
                 container.appendChild(card);
 
-                // Multi-image slideshow loop
+                // Multi-image slideshow loop + Lightbox click
+                const slideshowEl = card.querySelector(".slideshow-container");
+                let current = 0;
                 if (images.length > 1) {
                     const slideEls = card.querySelectorAll(".slide");
-                    let current = 0;
                     setInterval(() => {
                         slideEls[current].classList.remove("active");
                         current = (current + 1) % slideEls.length;
                         slideEls[current].classList.add("active");
                     }, 3000 + (idx * 300));
+                }
+                if (slideshowEl && typeof openGlobalLightbox === "function") {
+                    slideshowEl.addEventListener("click", () => {
+                        openGlobalLightbox(images, current);
+                    });
                 }
             });
         }

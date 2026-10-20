@@ -1491,6 +1491,24 @@
                     </div>
                 </div>
 
+                <!-- Workshop Slideshow / Gallery Photos -->
+                <div class="admin-form-group" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px; padding: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <label style="margin-bottom: 0.15rem; display: block;">Workshop Gallery / Slideshow Photos</label>
+                            <small style="color: var(--text-muted); font-size: 0.78rem;">Upload multiple photos to cycle through in the workshop slideshow on the For Artists page.</small>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <input type="file" id="ws-gallery-multi-file" accept="image/*" multiple style="display: none;" onchange="handleWorkshopMultiPhotoUpload(event)">
+                            <button type="button" class="btn btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.75rem;" onclick="document.getElementById('ws-gallery-multi-file').click()">📁 Upload Photos</button>
+                            <button type="button" class="btn btn-outline" style="padding: 0.45rem 0.9rem; font-size: 0.75rem;" onclick="addWorkshopGalleryInput('')">+ Add Photo Slot</button>
+                        </div>
+                    </div>
+                    <div id="workshop-gallery-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 280px; overflow-y: auto; padding-right: 0.25rem;">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
                 <div class="admin-form-group">
                     <label for="workshop-desc">Primary Description</label>
                     <textarea id="workshop-desc" class="admin-control" rows="3" placeholder="Overview of the workshop curriculum..." required></textarea>

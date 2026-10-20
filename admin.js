@@ -1421,15 +1421,17 @@ function openWorkshopModal(mode, wsId = '') {
     const overlay = document.getElementById("workshop-modal-overlay");
     const form = overlay.querySelector("form");
     const titleEl = document.getElementById("workshop-modal-action-title");
+    const galleryList = document.getElementById("workshop-gallery-list");
     
     form.reset();
     document.getElementById("workshop-form-mode").value = mode;
     document.getElementById("workshop-form-id").value = wsId;
+    if (galleryList) galleryList.innerHTML = "";
 
     if (mode === "create") {
         titleEl.textContent = "Add New Workshop";
-        document.getElementById("workshop-image").value = "assets/images/slideshow11-86368c53.jpg";
-        renderImagePreview("ws-image-preview", "workshop-image", "assets/images/slideshow11-86368c53.jpg", "Default Image");
+        document.getElementById("workshop-image").value = "assets/images/workshop-theatre-club.jpg";
+        renderImagePreview("ws-image-preview", "workshop-image", "assets/images/workshop-theatre-club.jpg", "Default Image");
     } else if (mode === "edit" && wsId) {
         titleEl.textContent = "Edit Workshop";
         const workshops = TLP_DB.getWorkshops();
@@ -1452,10 +1454,106 @@ function openWorkshopModal(mode, wsId = '') {
             } else {
                 renderImagePreview("ws-image-preview", "workshop-image", "");
             }
+
+            const slides = Array.isArray(ws.slideshowImages) ? ws.slideshowImages : [];
+            slides.forEach(imgUrl => addWorkshopGalleryInput(imgUrl));
         }
     }
 
     overlay.classList.add("open");
+}
+
+function addWorkshopGalleryInput(value = '') {
+    const galleryList = document.getElementById("workshop-gallery-list");
+    if (!galleryList) return;
+
+    const itemId = 'ws-slide-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    const fileId = 'file-' + itemId;
+
+    const row = document.createElement("div");
+    row.id = itemId;
+    row.className = "ws-gallery-item";
+    row.style.cssText = "display: flex; gap: 0.5rem; align-items: center; background: rgba(255,255,255,0.02); padding: 0.3rem 0.45rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);";
+
+    row.innerHTML = `
+        <img src="${value || 'assets/images/image06.png'}" class="ws-slide-thumb" style="width: 38px; height: 38px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; background: #000; ${value ? '' : 'display: none;'}" alt="Slide" onerror="this.src='assets/images/image06.png'">
+        <input type="text" class="admin-control ws-slide-url" value="${(value || '').replace(/"/g, '&quot;')}" placeholder="Paste image URL or upload photo..." style="flex-grow: 1; padding: 0.45rem 0.65rem; font-size: 0.82rem;" oninput="handleWorkshopSlideUrlInput('${itemId}')">
+        <input type="file" id="${fileId}" accept="image/*" multiple style="display: none;" onchange="handleWorkshopSinglePhotoUpload(event, '${itemId}')">
+        <button type="button" class="btn btn-outline" style="padding: 0.45rem 0.7rem; font-size: 0.72rem; white-space: nowrap;" onclick="document.getElementById('${fileId}').click()">📁 Upload</button>
+        <button type="button" class="action-icon-btn delete" style="padding: 0.45rem 0.7rem;" onclick="document.getElementById('${itemId}').remove()" title="Remove Photo">×</button>
+    `;
+    galleryList.appendChild(row);
+}
+
+function handleWorkshopSlideUrlInput(itemId) {
+    const row = document.getElementById(itemId);
+    if (!row) return;
+    const input = row.querySelector(".ws-slide-url");
+    const thumb = row.querySelector(".ws-slide-thumb");
+    const val = input ? input.value.trim() : '';
+    if (thumb) {
+        if (val) {
+            thumb.src = val;
+            thumb.style.display = "block";
+        } else {
+            thumb.style.display = "none";
+        }
+    }
+}
+
+async function handleWorkshopMultiPhotoUpload(event) {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length === 0) return;
+
+    try {
+        for (const file of files) {
+            const result = await compressImageFile(file);
+            const finalUrl = await uploadMediaToCloud(result.dataUrl);
+            addWorkshopGalleryInput(finalUrl);
+            showToast(`Workshop photo "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, "success", 2500);
+        }
+    } catch (e) {
+        showToast("Workshop photo upload error: " + e.message, "error");
+    }
+    event.target.value = "";
+}
+
+async function handleWorkshopSinglePhotoUpload(event, itemId) {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length === 0) return;
+
+    try {
+        const row = document.getElementById(itemId);
+        for (let i = 0; i < files.length; i++) {
+            const result = await compressImageFile(files[i]);
+            const finalUrl = await uploadMediaToCloud(result.dataUrl);
+            if (i === 0 && row) {
+                const input = row.querySelector(".ws-slide-url");
+                const thumb = row.querySelector(".ws-slide-thumb");
+                if (input) input.value = finalUrl;
+                if (thumb) {
+                    thumb.src = finalUrl;
+                    thumb.style.display = "block";
+                }
+            } else {
+                addWorkshopGalleryInput(finalUrl);
+            }
+            showToast(`Workshop photo "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, "success", 2500);
+        }
+    } catch (e) {
+        showToast("Workshop photo upload error: " + e.message, "error");
+    }
+    event.target.value = "";
+}
+
+function getWorkshopGalleryData() {
+    const inputs = document.querySelectorAll("#workshop-gallery-list .ws-slide-url");
+    const urls = [];
+    inputs.forEach(input => {
+        const val = input.value.trim();
+        if (val) urls.push(val);
+    });
+    return urls;
 }
 
 function closeWorkshopModal() {
@@ -1485,13 +1583,14 @@ async function handleWorkshopSubmit(event) {
         const subDescription = document.getElementById("workshop-sub-desc").value.trim();
         const ctaText = document.getElementById("workshop-cta-text").value.trim();
         const ctaLink = document.getElementById("workshop-cta-link").value.trim();
+        const slideshowImages = getWorkshopGalleryData();
 
         const workshops = TLP_DB.getWorkshops();
 
         if (mode === "create") {
             const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             workshops.push({
-                id, title, category, instructor, schedule, location, image, description, subDescription, ctaText, ctaLink, status: "active"
+                id, title, category, instructor, schedule, location, image, slideshowImages, description, subDescription, ctaText, ctaLink, status: "active"
             });
         } else {
             const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
@@ -1502,6 +1601,7 @@ async function handleWorkshopSubmit(event) {
                 workshops[idx].schedule = schedule;
                 workshops[idx].location = location;
                 workshops[idx].image = image;
+                workshops[idx].slideshowImages = slideshowImages;
                 workshops[idx].description = description;
                 workshops[idx].subDescription = subDescription;
                 workshops[idx].ctaText = ctaText;
