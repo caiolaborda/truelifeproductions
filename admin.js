@@ -2,11 +2,15 @@
    TRUE LIFE PRODUCTIONS - ADMIN PANEL CRUD OPERATIONS & LIVE PREVIEW
    ========================================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     // 1. Session check to maintain authentication state
-    if (sessionStorage.getItem("tlp_admin_logged_in") === "true" && sessionStorage.getItem("tlp_admin_token")) {
+    const savedToken = sessionStorage.getItem("tlp_admin_token") || "";
+    if (sessionStorage.getItem("tlp_admin_logged_in") === "true" && savedToken && (await hashPasscode(savedToken)) === TLP_EXPECTED_HASH) {
         document.getElementById("login-overlay").classList.add("hidden");
         loadAllAdminPanels();
+    } else {
+        sessionStorage.removeItem("tlp_admin_logged_in");
+        sessionStorage.removeItem("tlp_admin_token");
     }
 
     // Enter key support for passcode login
@@ -40,7 +44,7 @@ function loadAllAdminPanels() {
 
 // Passcode Verification
 const TLP_AUTH_SALT = "tlp-cic-auth-v2-2026:";
-const TLP_EXPECTED_HASH = "021509cffb01eb6e875a53d9d19e3a5ad484c80c9195299e802089e626042ded";
+const TLP_EXPECTED_HASH = "b6ba0fe5d259baaa0ba5186fcd32d645b87947440f99e11be6e8d49d4151a3e5";
 
 async function hashPasscode(passcode) {
     const encoder = new TextEncoder();

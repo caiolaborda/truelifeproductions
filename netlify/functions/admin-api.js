@@ -2,7 +2,7 @@ const { getStore, connectLambda } = require("@netlify/blobs");
 const crypto = require("crypto");
 
 const AUTH_SALT = "tlp-cic-auth-v2-2026:";
-const EXPECTED_HASH = "021509cffb01eb6e875a53d9d19e3a5ad484c80c9195299e802089e626042ded";
+const EXPECTED_HASH = "b6ba0fe5d259baaa0ba5186fcd32d645b87947440f99e11be6e8d49d4151a3e5";
 
 function isAuthorized(authInput) {
     if (!authInput || typeof authInput !== "string") return false;
