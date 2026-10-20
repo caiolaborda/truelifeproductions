@@ -205,16 +205,16 @@ const DEFAULT_PRODUCTIONS = [
         cast: "Rosemary Eason, Peter Simmons, Asher Guy, Reece Bond, Chris Hay, Craig Allen",
         setDesign: "Playwright & Director: David Sear<br>Stage Management: Rosina Piovani<br>Lighting: Leah Ward",
         year: "September 2026",
-        status: "upcoming",
+        status: "past",
         synopsis: "Set in 1968, the story follows Mick, an undercover English detective facing a secret army of Welsh nationalists as Wales prepares for a new Prince. Decades later in 2019, Mick and his wife reflect on the turbulent choices that changed their destiny. Presented as a Studio at TLP production for the Cambridge Festival of Drama.",
         image: "play-19-6.jpg",
         banner: "play-19-6.jpg",
         accent: "#dfb75c", // Gold / Studio accent
         animationType: "digital-particles",
-        detailsLink: "https://www.adctheatre.com/whats-on/festival/cambridge-festival-of-drama-event-5/",
-        showInHero: true,
+        detailsLink: "play-19-6.html",
+        showInHero: false,
         isStudio: true,
-        pageType: "pre-prod",
+        pageType: "post-prod",
         mobileHeroAlign: "right",
         venues: [
             {
