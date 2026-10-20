@@ -401,7 +401,7 @@
 
             workshops.forEach((ws, idx) => {
                 const isEven = idx % 2 === 0;
-                const rowClass = isEven ? "artist-opp-row reverse reveal" : "artist-opp-row reveal";
+                const rowClass = isEven ? "artist-opp-row reverse reveal active" : "artist-opp-row reveal active";
                 const rawSlides = Array.isArray(ws.slideshowImages) ? ws.slideshowImages.filter(Boolean) : [];
                 const leadImage = ws.image ? ws.image.trim() : "";
                 const combined = leadImage ? [leadImage, ...rawSlides.filter(img => img !== leadImage)] : rawSlides;

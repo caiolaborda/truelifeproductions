@@ -795,11 +795,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Update site metadata & announcement banner from DB
     applySiteSettingsUI(TLP_DB.getSettings());
 
-    // Listen for cloud sync event to live-update metadata
+    // Listen for cloud sync event to live-update metadata and re-observe newly rendered .reveal elements
     window.addEventListener("tlp_data_synced", (e) => {
         if (e.detail && e.detail.settings) {
             applySiteSettingsUI(e.detail.settings);
         }
+        requestAnimationFrame(observeRevealElements);
+        setTimeout(observeRevealElements, 60);
     });
 
     // Keep banner height synchronized on resize
@@ -858,22 +860,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // 5. Scroll Reveal Intersection Observer
-    const revealElements = document.querySelectorAll(".reveal");
-    if (revealElements.length > 0) {
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add("active");
-                    revealObserver.unobserve(entry.target); // Animates only once
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: "0px 0px -50px 0px"
-        });
-
-        revealElements.forEach(el => revealObserver.observe(el));
-    }
+    observeRevealElements();
 
     // 6. Back to Top Button
     const backToTopBtn = document.querySelector(".back-to-top");
@@ -890,6 +877,25 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ==========================================================================
    DYNAMIC STAGE EFFECTS MODULES (INJECTION & INTERCEPTORS)
    ========================================================================== */
+
+function observeRevealElements() {
+    const revealElements = document.querySelectorAll(".reveal:not(.active)");
+    if (revealElements.length > 0) {
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("active");
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.05,
+            rootMargin: "0px 0px -30px 0px"
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+    }
+}
 
 function injectTheatricalFX() {
     // Mouse Spotlight Overlay
