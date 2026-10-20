@@ -234,6 +234,31 @@ async function uploadMediaToCloud(dataUrl) {
     return dataUrl;
 }
 
+let activeMediaUploads = 0;
+
+function setUploadLock(delta, statusText = "Uploading media...") {
+    activeMediaUploads = Math.max(0, activeMediaUploads + delta);
+    const saveBtns = [
+        document.getElementById("save-play-btn"),
+        document.getElementById("save-ws-btn"),
+        document.getElementById("save-team-btn")
+    ].filter(Boolean);
+
+    saveBtns.forEach(btn => {
+        if (activeMediaUploads > 0) {
+            if (!btn.dataset.origLabel) btn.dataset.origLabel = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = statusText;
+        } else {
+            btn.disabled = false;
+            if (btn.dataset.origLabel) {
+                btn.textContent = btn.dataset.origLabel;
+                delete btn.dataset.origLabel;
+            }
+        }
+    });
+}
+
 /**
  * Handles image file selection from file input or drag-and-drop
  */
@@ -241,6 +266,7 @@ async function handleImageFileUpload(event, inputId, previewId, callback = null)
     const file = event.target.files && event.target.files[0];
     if (!file) return;
 
+    setUploadLock(1, "Uploading image...");
     try {
         const inputEl = document.getElementById(inputId);
         const previewEl = document.getElementById(previewId);
@@ -265,6 +291,8 @@ async function handleImageFileUpload(event, inputId, previewId, callback = null)
         showToast(`Image "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, 'success', 3000);
     } catch (err) {
         showToast("Image upload error: " + err.message, 'error');
+    } finally {
+        setUploadLock(-1);
     }
 }
 
@@ -1170,25 +1198,32 @@ function addVenueField(data = null) {
 }
 
 async function handleBatchVenuePhotoUpload(event, venueId) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length === 0) return;
 
-    showToast(`Compressing & optimizing ${files.length} photo${files.length > 1 ? 's' : ''}...`, 'info');
+    setUploadLock(1, `Uploading 1/${files.length} photos...`);
+    showToast(`Compressing & uploading ${files.length} photo${files.length > 1 ? 's' : ''}...`, 'info');
 
     let successCount = 0;
-    for (let i = 0; i < files.length; i++) {
-        try {
-            const result = await compressImageFile(files[i], 1000, 0.72);
-            addVenueImageInput(venueId, result.dataUrl);
-            successCount++;
-        } catch (err) {
-            console.error("Batch upload failed for", files[i].name, err);
+    try {
+        for (let i = 0; i < files.length; i++) {
+            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
+            try {
+                const result = await compressImageFile(files[i], 1200, 0.75);
+                const finalUrl = await uploadMediaToCloud(result.dataUrl);
+                addVenueImageInput(venueId, finalUrl);
+                successCount++;
+            } catch (err) {
+                console.error("Batch upload failed for", files[i].name, err);
+            }
         }
+    } finally {
+        setUploadLock(-1);
     }
 
     event.target.value = "";
     updatePlayLivePreview();
-    showToast(`Successfully added ${successCount} photo${successCount > 1 ? 's' : ''}!`, 'success');
+    showToast(`Successfully uploaded ${successCount} photo${successCount > 1 ? 's' : ''}! Click "Save Production" to publish.`, 'success');
 }
 
 function addVenueImageInput(venueId, value = '') {
@@ -1281,12 +1316,14 @@ function handleVenueUrlInput(wrapperId) {
 async function handleVenuePhotoUpload(event, wrapperId) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
+    setUploadLock(1, `Uploading ${files.length} photo${files.length > 1 ? 's' : ''}...`);
     try {
         const wrapper = document.getElementById(wrapperId);
         const venueCard = wrapper ? wrapper.closest(".venue-editor-card") : null;
         const venueId = venueCard ? venueCard.id : null;
 
         for (let i = 0; i < files.length; i++) {
+            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
             const file = files[i];
             const result = await compressImageFile(file);
             const finalUrl = await uploadMediaToCloud(result.dataUrl);
@@ -1307,6 +1344,8 @@ async function handleVenuePhotoUpload(event, wrapperId) {
         updatePlayLivePreview();
     } catch(e) {
         showToast("Photo upload error: " + e.message, "error");
+    } finally {
+        setUploadLock(-1);
     }
     event.target.value = "";
 }
@@ -1505,8 +1544,11 @@ async function handleWorkshopMultiPhotoUpload(event) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
 
+    setUploadLock(1, `Uploading 1/${files.length} photos...`);
     try {
-        for (const file of files) {
+        for (let i = 0; i < files.length; i++) {
+            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
+            const file = files[i];
             const result = await compressImageFile(file);
             const finalUrl = await uploadMediaToCloud(result.dataUrl);
             addWorkshopGalleryInput(finalUrl);
@@ -1514,6 +1556,8 @@ async function handleWorkshopMultiPhotoUpload(event) {
         }
     } catch (e) {
         showToast("Workshop photo upload error: " + e.message, "error");
+    } finally {
+        setUploadLock(-1);
     }
     event.target.value = "";
 }
@@ -1522,9 +1566,11 @@ async function handleWorkshopSinglePhotoUpload(event, itemId) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
 
+    setUploadLock(1, `Uploading 1/${files.length} photos...`);
     try {
         const row = document.getElementById(itemId);
         for (let i = 0; i < files.length; i++) {
+            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
             const result = await compressImageFile(files[i]);
             const finalUrl = await uploadMediaToCloud(result.dataUrl);
             if (i === 0 && row) {
@@ -1542,6 +1588,8 @@ async function handleWorkshopSinglePhotoUpload(event, itemId) {
         }
     } catch (e) {
         showToast("Workshop photo upload error: " + e.message, "error");
+    } finally {
+        setUploadLock(-1);
     }
     event.target.value = "";
 }
