@@ -136,60 +136,102 @@ function showToast(message, type = 'info', duration = 4000) {
 
 /**
  * Compresses an image file client-side using an HTML5 Canvas to high-efficiency JPEG.
- * Returns a Promise that resolves to an optimized base64 Data URL (typically 30KB–90KB).
+ * Automatically handles very large camera files (15MB–30MB+) via multi-pass downscaling
+ * and quality stepping so every image stays crisp (~40KB–120KB).
  */
-function compressImageFile(file, maxWidth = 1200, quality = 0.75) {
+function compressImageFile(file, maxWidth = 1200, quality = 0.78) {
     return new Promise((resolve, reject) => {
         if (!file.type.startsWith("image/")) {
             return reject(new Error("Selected file is not an image."));
         }
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                let width = img.width;
-                let height = img.height;
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            let width = img.width;
+            let height = img.height;
 
-                if (width > maxWidth || height > maxWidth) {
-                    if (width > height) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    } else {
-                        width = Math.round((width * maxWidth) / height);
-                        height = maxWidth;
-                    }
+            if (width > maxWidth || height > maxWidth) {
+                if (width > height) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                } else {
+                    width = Math.round((width * maxWidth) / height);
+                    height = maxWidth;
                 }
+            }
 
-                const canvas = document.createElement("canvas");
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+
+            // Fill background with dark tone for transparent PNGs
+            ctx.fillStyle = "#06070a";
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let currentQuality = quality;
+            let dataUrl = canvas.toDataURL("image/jpeg", currentQuality);
+
+            // Multi-pass adaptive compression if image is still above ~180KB
+            while (dataUrl.length > 240000 && currentQuality > 0.5) {
+                currentQuality = Math.round((currentQuality - 0.1) * 100) / 100;
+                dataUrl = canvas.toDataURL("image/jpeg", currentQuality);
+            }
+
+            // If still large (e.g. ultra-detailed texture), step dimensions down slightly
+            if (dataUrl.length > 280000 && (width > 960 || height > 960)) {
+                const scale = 960 / Math.max(width, height);
+                width = Math.round(width * scale);
+                height = Math.round(height * scale);
                 canvas.width = width;
                 canvas.height = height;
-                const ctx = canvas.getContext("2d");
-
-                // Fill background with dark tone for transparent PNGs
                 ctx.fillStyle = "#06070a";
                 ctx.fillRect(0, 0, width, height);
                 ctx.drawImage(img, 0, 0, width, height);
+                dataUrl = canvas.toDataURL("image/jpeg", 0.68);
+            }
 
-                // Standardize to image/jpeg for strong compression and broad browser support
-                let currentQuality = quality;
-                let dataUrl = canvas.toDataURL("image/jpeg", currentQuality);
-
-                // If dataUrl exceeds 300KB, scale quality down further to guarantee light payloads
-                if (dataUrl.length > 350000) {
-                    currentQuality = 0.65;
-                    dataUrl = canvas.toDataURL("image/jpeg", currentQuality);
-                }
-
-                const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
-                resolve({ dataUrl, width, height, originalName: file.name, sizeKb });
-            };
-            img.onerror = () => reject(new Error("Failed to load image into canvas."));
-            img.src = e.target.result;
+            const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
+            resolve({ dataUrl, width, height, originalName: file.name, sizeKb });
         };
-        reader.onerror = () => reject(new Error("Failed to read file."));
-        reader.readAsDataURL(file);
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Failed to decode image file."));
+        };
+        img.src = objectUrl;
     });
+}
+
+/**
+ * Uploads a compressed base64 dataUrl to Netlify Blobs as an individual media file
+ * and returns its lightweight cloud URL (falls back to dataUrl if offline/local).
+ */
+async function uploadMediaToCloud(dataUrl) {
+    if (!dataUrl || !dataUrl.startsWith("data:")) return dataUrl;
+    try {
+        const authToken = sessionStorage.getItem("tlp_admin_token") || "";
+        const res = await fetch("/.netlify/functions/admin-api", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                auth: authToken,
+                type: "upload_media",
+                data: { dataUrl }
+            })
+        });
+        if (res.ok) {
+            const out = await res.json();
+            if (out && out.url) return out.url;
+        }
+    } catch (e) {
+        console.debug("Direct media upload fallback to inline dataUrl:", e.message);
+    }
+    return dataUrl;
 }
 
 /**
@@ -205,21 +247,22 @@ async function handleImageFileUpload(event, inputId, previewId, callback = null)
         
         if (previewEl) {
             previewEl.style.display = "block";
-            previewEl.innerHTML = `<p style="font-size: 0.8rem; color: var(--primary);">Compressing and optimizing image...</p>`;
+            previewEl.innerHTML = `<p style="font-size: 0.8rem; color: var(--primary);">Compressing and uploading image...</p>`;
         }
 
         const result = await compressImageFile(file);
+        const finalUrl = await uploadMediaToCloud(result.dataUrl);
         
         if (inputEl) {
-            inputEl.value = result.dataUrl;
+            inputEl.value = finalUrl;
         }
 
-        renderImagePreview(previewId, inputId, result.dataUrl, result.originalName, `${result.width}×${result.height} (${result.sizeKb} KB)`, callback);
+        renderImagePreview(previewId, inputId, finalUrl, result.originalName, `${result.width}×${result.height} (${result.sizeKb} KB)`, callback);
 
         if (callback && typeof callback === "function") {
             callback();
         }
-        showToast(`Image "${result.originalName}" compressed successfully (${result.sizeKb} KB).`, 'success', 3000);
+        showToast(`Image "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, 'success', 3000);
     } catch (err) {
         showToast("Image upload error: " + err.message, 'error');
     }
@@ -256,7 +299,9 @@ function renderImagePreview(previewId, inputId, url, name = "Image", meta = "", 
         return;
     }
 
-    const displayName = url.startsWith("data:") ? "Uploaded Image (compressed)" : (name || url.split("/").pop() || "Image");
+    const displayName = (url.startsWith("data:") || url.includes("type=media&id="))
+        ? (name && !name.includes("type=media") ? name : "Uploaded Cloud Image")
+        : (name || url.split("/").pop() || "Image");
 
     previewEl.style.display = "block";
     previewEl.innerHTML = `
@@ -361,6 +406,8 @@ async function saveSiteSettings(event) {
         
         if (result && result.cloud) {
             showToast("Site settings saved & synced to live website!", 'success');
+        } else if (result && result.error) {
+            showToast(`Cloud sync error: ${result.error}`, 'error', 7000);
         } else {
             showToast("Site settings saved locally in browser.", 'info');
         }
@@ -873,9 +920,10 @@ async function handleShowreelPosterUpload(event) {
     try {
         const posterInput = document.getElementById("play-video-poster");
         const result = await compressImageFile(file, 1200, 0.75);
-        if (posterInput) posterInput.value = result.dataUrl;
+        const finalUrl = await uploadMediaToCloud(result.dataUrl);
+        if (posterInput) posterInput.value = finalUrl;
         handlePlayVideoInput();
-        showToast("Video poster uploaded!", "success");
+        showToast(`Video poster compressed & uploaded (${result.sizeKb} KB)!`, "success");
     } catch (e) {
         showToast("Poster upload failed: " + e.message, "error");
     }
@@ -884,19 +932,20 @@ async function handleShowreelPosterUpload(event) {
 
 async function handleVideoFileUpload(file, targetInput, callback) {
     if (!file) return;
-    const maxMb = 10;
+    const maxMb = 4;
     const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
     if (file.size > maxMb * 1024 * 1024) {
-        alert(`This video file is ${sizeMb}MB.\n\nTo ensure your website loads fast on all mobile phones and desktop connections, videos larger than 10MB should be uploaded to YouTube or Vimeo, and then you can simply paste the link here.\n\nTip: You can set the video to 'Unlisted' on YouTube if you want it private!`);
+        alert(`This video file is ${sizeMb}MB.\n\nDirect video uploads must be under ${maxMb}MB due to cloud server limits. For larger videos, please upload to YouTube or Vimeo (you can set it to 'Unlisted') and paste the link here!`);
         return;
     }
-    showToast(`Loading video clip (${sizeMb}MB)...`, 'info');
+    showToast(`Uploading video clip (${sizeMb}MB)...`, 'info');
     const reader = new FileReader();
-    reader.onload = (e) => {
-        targetInput.value = e.target.result;
+    reader.onload = async (e) => {
+        const finalUrl = await uploadMediaToCloud(e.target.result);
+        targetInput.value = finalUrl;
         if (typeof callback === 'function') callback();
         updatePlayLivePreview();
-        showToast(`Video loaded (${sizeMb}MB)!`, 'success');
+        showToast(`Video uploaded (${sizeMb}MB)!`, 'success');
     };
     reader.onerror = () => {
         showToast("Failed to read video file.", "error");
@@ -1189,7 +1238,7 @@ function addVenueMediaInput(venueId, value = '', isVideoExplicit = false) {
         </div>
         <img src="${(!isVid && value) ? value : 'assets/images/image06.png'}" class="venue-photo-thumb" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; background: #000; ${(value && !isVid) ? '' : 'display: none;'}" alt="Thumb" onerror="this.src='assets/images/image06.png'">
         <input type="text" class="admin-control venue-image-url" value="${value.replace(/"/g, '&quot;')}" placeholder="${placeholder}" style="flex-grow: 1;" required oninput="handleVenueUrlInput('${inputId}')">
-        <input type="file" id="${fileId}" accept="${acceptType}" style="display: none;" onchange="${uploadHandler}">
+        <input type="file" id="${fileId}" accept="${acceptType}" ${isVid ? '' : 'multiple'} style="display: none;" onchange="${uploadHandler}">
         ${uploadBtnHtml}
         <button type="button" class="action-icon-btn delete" style="padding: 0.55rem 0.75rem;" onclick="document.getElementById('${inputId}').remove(); updatePlayLivePreview();">×</button>
     `;
@@ -1230,22 +1279,36 @@ function handleVenueUrlInput(wrapperId) {
 }
 
 async function handleVenuePhotoUpload(event, wrapperId) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length === 0) return;
     try {
         const wrapper = document.getElementById(wrapperId);
-        const input = wrapper.querySelector(".venue-image-url");
-        const thumb = wrapper.querySelector(".venue-photo-thumb");
-        const result = await compressImageFile(file);
-        if (input) input.value = result.dataUrl;
-        if (thumb) {
-            thumb.src = result.dataUrl;
-            thumb.style.display = "block";
+        const venueCard = wrapper ? wrapper.closest(".venue-editor-card") : null;
+        const venueId = venueCard ? venueCard.id : null;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const result = await compressImageFile(file);
+            const finalUrl = await uploadMediaToCloud(result.dataUrl);
+
+            if (i === 0 && wrapper) {
+                const input = wrapper.querySelector(".venue-image-url");
+                const thumb = wrapper.querySelector(".venue-photo-thumb");
+                if (input) input.value = finalUrl;
+                if (thumb) {
+                    thumb.src = finalUrl;
+                    thumb.style.display = "block";
+                }
+            } else if (venueId) {
+                addVenueMediaInput(venueId, finalUrl, false);
+            }
+            showToast(`Photo "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, "success", 2500);
         }
         updatePlayLivePreview();
     } catch(e) {
-        alert("Photo upload error: " + e.message);
+        showToast("Photo upload error: " + e.message, "error");
     }
+    event.target.value = "";
 }
 
 async function handleVenueVideoUpload(event, wrapperId) {
@@ -1452,6 +1515,8 @@ async function handleWorkshopSubmit(event) {
 
         if (result && result.cloud) {
             showToast(`Workshop "${title}" saved and synced to live website!`, 'success');
+        } else if (result && result.error) {
+            showToast(`Cloud sync error: ${result.error}`, 'error', 7000);
         } else {
             showToast(`Workshop "${title}" saved locally in browser.`, 'info');
         }
@@ -1585,6 +1650,8 @@ async function handleTeamSubmit(event) {
 
         if (result && result.cloud) {
             showToast(`Team member "${name}" saved and synced to live website!`, 'success');
+        } else if (result && result.error) {
+            showToast(`Cloud sync error: ${result.error}`, 'error', 7000);
         } else {
             showToast(`Team member "${name}" saved locally in browser.`, 'info');
         }
@@ -1666,6 +1733,8 @@ async function saveAboutContentForm(event) {
         
         if (result && result.cloud) {
             showToast("About page content saved & synced to live website!", 'success');
+        } else if (result && result.error) {
+            showToast(`Cloud sync error: ${result.error}`, 'error', 7000);
         } else {
             showToast("About page content saved locally in browser.", 'info');
         }

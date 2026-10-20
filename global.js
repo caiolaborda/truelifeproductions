@@ -564,8 +564,13 @@ class DatabasePortal {
                 return { success: false, cloud: false, error: errData.error || `Server returned HTTP ${res.status}` };
             }
         } catch (err) {
-            console.warn("Cloud sync offline or Netlify Functions unavailable:", err.message);
-            return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
+            const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
+            if (isLocal) {
+                console.warn("Cloud sync offline or Netlify Functions unavailable:", err.message);
+                return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
+            }
+            console.error("Cloud sync failed:", err);
+            return { success: false, cloud: false, error: "Network error or payload too large for cloud sync." };
         }
     }
 }
