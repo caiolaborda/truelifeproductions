@@ -101,12 +101,9 @@ exports.handler = async (event, context) => {
                 return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid JSON body" }) };
             }
 
-            // Allow unauthenticated client recovery_backup slot (only if not yet set)
+            // Allow unauthenticated client recovery_backup slot
             if (body.type === "recovery_backup" && body.data) {
-                const existingBackup = await store.get("recovery_backup", { type: "json" });
-                if (!existingBackup) {
-                    await store.setJSON("recovery_backup", body.data);
-                }
+                await store.setJSON(`recovery_backup_${Date.now()}`, body.data);
                 return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
             }
 

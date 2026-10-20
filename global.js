@@ -69,6 +69,61 @@ const DEFAULT_PRODUCTIONS = [
         ]
     },
     {
+        id: "how-to-cry",
+        title: "How to Cry in a House Full of Children",
+        author: "Victoria Vera",
+        director: "Victoria Vera",
+        cast: "Carolina Piñeyro Duarte",
+        setDesign: "Playwright & Director: Victoria Vera<br>Performer & Choreographer: Carolina Piñeyro Duarte<br>Local UK Producer: Rosina Piovani (True Life Productions)<br>Stage Design: Malena Paz<br>Assistant Director: Valeria de Souza<br>Audiovisual: María Victoria Parada<br>Graphic Design: Natalia Vera<br>Sound Design: Romina Peluffo & Gonzalo Silva<br>Audio Description: Graciana Albertoni",
+        year: "November 2026",
+        status: "upcoming",
+        synopsis: "A raw and poetic exploration of motherhood, this one-night-only performance arrives in the UK directly from a hugely successful run in Uruguay. A haunting, unfiltered portrait of motherhood, identity, and the invisible storms we carry. Through memory and confession, the play confronts the invisible labour of parenting, the relentless pressure to be everything to everyone, and the longing to be truly seen. True Life Productions brings this play from Uruguay to the London the Voila! Theatre Festival produced by The Cockpit.",
+        image: "play-how-to-cry-v3.jpg",
+        banner: "play-how-to-cry-v3.jpg",
+        accent: "#8f1b2c", // Crimson red
+        animationType: "dripping-rain",
+        detailsLink: "https://space.org.uk/event/how-to-cry-in-a-house-full-of-children/",
+        showInHero: true,
+        isStudio: false,
+        pageType: "pre-prod",
+        mobileHeroAlign: "right",
+        venues: [
+            {
+                name: "The Space Theatre, London",
+                dates: "6th November 2026 (Voila! Theatre Festival by The Cockpit)",
+                reviews: [],
+                images: ["play-how-to-cry-v3.jpg"]
+            }
+        ]
+    },
+    {
+        id: "mary-stuart",
+        title: "Mary Stuart",
+        author: "John Drinkwater",
+        director: "Rosina Piovani",
+        setDesign: "Adapted and directed by Rosina Piovani (True Life Productions)<br>Produced by Dan Lentell (49Knights)",
+        year: "Soon on platforms",
+        status: "upcoming",
+        synopsis: "True Life Productions, in collaboration with 49Knights, presents a compelling new adaptation of John Drinkwater's classic historical drama. This 60-minute recorded production brings fresh life and a contemporary perspective to a classic. It's a powerful character study exploring the tensions between love, power, and destiny through Mary Stuart's relationships with David Riccio, Lord Darnley, and the Earl of Bothwell.",
+        image: "play-mary.jpg",
+        banner: "play-mary.jpg",
+        accent: "#6c5b7b", // Royal Purple
+        animationType: "royal-embers",
+        detailsLink: "#",
+        showInHero: true,
+        isStudio: false,
+        pageType: "pre-prod",
+        mobileHeroAlign: "right",
+        venues: [
+            {
+                name: "Digital & Streaming Platforms",
+                dates: "Soon on platforms, stay tuned for more info",
+                reviews: [],
+                images: ["play-mary.jpg"]
+            }
+        ]
+    },
+    {
         id: "continuity",
         title: "Continuity (7)",
         author: "David Sear",
@@ -139,61 +194,6 @@ const DEFAULT_PRODUCTIONS = [
                     "assets/images/slideshow04-4ca86362.jpg",
                     "assets/images/slideshow04-623ac5b7.jpg"
                 ]
-            }
-        ]
-    },
-    {
-        id: "how-to-cry",
-        title: "How to Cry in a House Full of Children",
-        author: "Victoria Vera",
-        director: "Victoria Vera",
-        cast: "Carolina Piñeyro Duarte",
-        setDesign: "Playwright & Director: Victoria Vera<br>Performer & Choreographer: Carolina Piñeyro Duarte<br>Local UK Producer: Rosina Piovani (True Life Productions)<br>Stage Design: Malena Paz<br>Assistant Director: Valeria de Souza<br>Audiovisual: María Victoria Parada<br>Graphic Design: Natalia Vera<br>Sound Design: Romina Peluffo & Gonzalo Silva<br>Audio Description: Graciana Albertoni",
-        year: "November 2026",
-        status: "upcoming",
-        synopsis: "A raw and poetic exploration of motherhood, this one-night-only performance arrives in the UK directly from a hugely successful run in Uruguay. A haunting, unfiltered portrait of motherhood, identity, and the invisible storms we carry. Through memory and confession, the play confronts the invisible labour of parenting, the relentless pressure to be everything to everyone, and the longing to be truly seen. True Life Productions brings this play from Uruguay to the London the Voila! Theatre Festival produced by The Cockpit.",
-        image: "play-how-to-cry-v3.jpg",
-        banner: "play-how-to-cry-v3.jpg",
-        accent: "#8f1b2c", // Crimson red
-        animationType: "dripping-rain",
-        detailsLink: "https://space.org.uk/event/how-to-cry-in-a-house-full-of-children/",
-        showInHero: true,
-        isStudio: false,
-        pageType: "pre-prod",
-        mobileHeroAlign: "right",
-        venues: [
-            {
-                name: "The Space Theatre, London",
-                dates: "6th November 2026 (Voila! Theatre Festival by The Cockpit)",
-                reviews: [],
-                images: ["play-how-to-cry-v3.jpg"]
-            }
-        ]
-    },
-    {
-        id: "mary-stuart",
-        title: "Mary Stuart",
-        author: "John Drinkwater",
-        director: "Rosina Piovani",
-        setDesign: "Adapted and directed by Rosina Piovani (True Life Productions)<br>Produced by Dan Lentell (49Knights)",
-        year: "Soon on platforms",
-        status: "upcoming",
-        synopsis: "True Life Productions, in collaboration with 49Knights, presents a compelling new adaptation of John Drinkwater's classic historical drama. This 60-minute recorded production brings fresh life and a contemporary perspective to a classic. It's a powerful character study exploring the tensions between love, power, and destiny through Mary Stuart's relationships with David Riccio, Lord Darnley, and the Earl of Bothwell.",
-        image: "play-mary.jpg",
-        banner: "play-mary.jpg",
-        accent: "#6c5b7b", // Royal Purple
-        animationType: "royal-embers",
-        detailsLink: "#",
-        showInHero: true,
-        isStudio: false,
-        pageType: "pre-prod",
-        mobileHeroAlign: "right",
-        venues: [
-            {
-                name: "Digital & Streaming Platforms",
-                dates: "Soon on platforms, stay tuned for more info",
-                reviews: [],
-                images: ["play-mary.jpg"]
             }
         ]
     },
