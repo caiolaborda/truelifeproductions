@@ -4,7 +4,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Session check to maintain authentication state
-    if (sessionStorage.getItem("tlp_admin_logged_in") === "true") {
+    if (sessionStorage.getItem("tlp_admin_logged_in") === "true" && sessionStorage.getItem("tlp_admin_token")) {
         document.getElementById("login-overlay").classList.add("hidden");
         loadAllAdminPanels();
     }
@@ -32,13 +32,25 @@ function loadAllAdminPanels() {
 }
 
 // Passcode Verification
-function verifyPasscode() {
+const TLP_AUTH_SALT = "tlp-cic-auth-v2-2026:";
+const TLP_EXPECTED_HASH = "021509cffb01eb6e875a53d9d19e3a5ad484c80c9195299e802089e626042ded";
+
+async function hashPasscode(passcode) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(TLP_AUTH_SALT + passcode);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function verifyPasscode() {
     const passcode = document.getElementById("passcode").value;
     const errorEl = document.getElementById("login-error");
     
-    // Passcode check
-    if (passcode === "admin") {
+    const hashed = await hashPasscode(passcode);
+    if (hashed === TLP_EXPECTED_HASH) {
         sessionStorage.setItem("tlp_admin_logged_in", "true");
+        sessionStorage.setItem("tlp_admin_token", passcode);
         document.getElementById("login-overlay").classList.add("hidden");
         loadAllAdminPanels();
         errorEl.style.display = "none";
@@ -50,6 +62,7 @@ function verifyPasscode() {
 // Log Out Admin
 function logoutAdmin() {
     sessionStorage.removeItem("tlp_admin_logged_in");
+    sessionStorage.removeItem("tlp_admin_token");
     document.getElementById("passcode").value = "";
     document.getElementById("login-overlay").classList.remove("hidden");
 }

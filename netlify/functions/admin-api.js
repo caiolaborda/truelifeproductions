@@ -1,4 +1,27 @@
 const { getStore, connectLambda } = require("@netlify/blobs");
+const crypto = require("crypto");
+
+const AUTH_SALT = "tlp-cic-auth-v2-2026:";
+const EXPECTED_HASH = "021509cffb01eb6e875a53d9d19e3a5ad484c80c9195299e802089e626042ded";
+
+function isAuthorized(authInput) {
+    if (!authInput || typeof authInput !== "string") return false;
+    if (process.env.ADMIN_PASSWORD && authInput === process.env.ADMIN_PASSWORD) {
+        return true;
+    }
+    const candidateHash = crypto
+        .createHash("sha256")
+        .update(AUTH_SALT + authInput, "utf8")
+        .digest("hex");
+    try {
+        return crypto.timingSafeEqual(
+            Buffer.from(candidateHash, "hex"),
+            Buffer.from(EXPECTED_HASH, "hex")
+        );
+    } catch (e) {
+        return false;
+    }
+}
 
 exports.handler = async (event, context) => {
     const headers = {
@@ -78,11 +101,18 @@ exports.handler = async (event, context) => {
                 return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid JSON body" }) };
             }
 
-            if (body.auth !== "admin") {
+            if (!isAuthorized(body.auth)) {
                 return { statusCode: 401, headers, body: JSON.stringify({ error: "Unauthorized passcode" }) };
             }
 
             const { type, data } = body;
+            if (type === "verify") {
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ success: true })
+                };
+            }
             if (!type || !data) {
                 return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing type or data" }) };
             }

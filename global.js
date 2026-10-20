@@ -339,7 +339,7 @@ class DatabasePortal {
             }
             
             // Force database reset/migration using database versioning to prevent outdated structures
-            const CURRENT_DB_VERSION = "5.2";
+            const CURRENT_DB_VERSION = "5.3";
             const storedDbVersion = localStorage.getItem("tlp_db_version");
             
             if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
@@ -495,11 +495,12 @@ class DatabasePortal {
 
     async pushToCloud(type, data) {
         try {
+            const authToken = sessionStorage.getItem("tlp_admin_token") || "";
             const res = await fetch("/.netlify/functions/admin-api", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    auth: "admin",
+                    auth: authToken,
                     type: type,
                     data: data
                 })
