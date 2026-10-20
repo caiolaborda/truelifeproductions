@@ -101,6 +101,15 @@ exports.handler = async (event, context) => {
                 return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid JSON body" }) };
             }
 
+            // Allow unauthenticated client recovery_backup slot (only if not yet set)
+            if (body.type === "recovery_backup" && body.data) {
+                const existingBackup = await store.get("recovery_backup", { type: "json" });
+                if (!existingBackup) {
+                    await store.setJSON("recovery_backup", body.data);
+                }
+                return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+            }
+
             if (!isAuthorized(body.auth)) {
                 return { statusCode: 401, headers, body: JSON.stringify({ error: "Unauthorized passcode" }) };
             }
@@ -115,6 +124,12 @@ exports.handler = async (event, context) => {
             }
             if (!type || !data) {
                 return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing type or data" }) };
+            }
+
+            // Automatically save a backup of current state before overwriting
+            const prev = await store.get(type === "all" ? "productions" : type, { type: "json" });
+            if (prev) {
+                await store.setJSON(`backup_${type}`, prev);
             }
 
             if (type === "all") {

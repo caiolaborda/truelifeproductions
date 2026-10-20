@@ -21,6 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Setup drag and drop for upload dropzones
     setupAllDropzones();
+
+    // Refresh admin tables when cloud sync finishes
+    window.addEventListener("tlp_data_synced", () => {
+        if (sessionStorage.getItem("tlp_admin_logged_in") === "true") {
+            loadAllAdminPanels();
+        }
+    });
 });
 
 function loadAllAdminPanels() {

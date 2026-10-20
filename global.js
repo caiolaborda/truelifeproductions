@@ -290,7 +290,7 @@ const DEFAULT_WORKSHOPS = [
         location: "Royston & South of England Community Hubs",
         description: "The theatre class for kids (7 to 12 years old) aims to introduce young children to the basics of theatre and dramatic arts through fun, engaging, and interactive activities. The class focuses on fostering creativity, teamwork, and self-expression while teaching essential theatre skills such as voice projection, movement, character development, and storytelling.",
         subDescription: "Led by TLP's Artistic Directors, it focuses on developing an understanding of basic theatre concepts, enhancing communication and social skills, encouraging creativity, and building confidence and teamwork abilities.",
-        image: "assets/images/slideshow11-86368c53.jpg",
+        image: "assets/images/workshop-theatre-club.jpg",
         slideshowImages: [
             "assets/images/slideshow11-86368c53.jpg",
             "assets/images/slideshow11-375e204f.jpg",
@@ -329,17 +329,56 @@ const DEFAULT_ABOUT_CONTENT = {
 // Database operations class
 class DatabasePortal {
     constructor() {
+        this.memoryStore = {};
         this.init();
     }
 
     init() {
         try {
+            // Preserve any existing non-vandalized local edits before cloud sync overwrites localStorage
+            if (!localStorage.getItem("tlp_recovery_saved_v1")) {
+                const rawSettings = localStorage.getItem("tlp_settings") || "";
+                const rawAbout = localStorage.getItem("tlp_about") || "";
+                const isVandalized = rawSettings.toLowerCase().includes("deadsec") || rawSettings.toLowerCase().includes("dead sec") || rawAbout.toLowerCase().includes("deadsec");
+                if (!isVandalized && (localStorage.getItem("tlp_productions") || localStorage.getItem("tlp_about"))) {
+                    const snapshot = {
+                        timestamp: new Date().toISOString(),
+                        settings: JSON.parse(localStorage.getItem("tlp_settings") || "null"),
+                        productions: JSON.parse(localStorage.getItem("tlp_productions") || "null"),
+                        team: JSON.parse(localStorage.getItem("tlp_team") || "null"),
+                        workshops: JSON.parse(localStorage.getItem("tlp_workshops") || "null"),
+                        about: JSON.parse(localStorage.getItem("tlp_about") || "null")
+                    };
+                    try {
+                        localStorage.setItem("tlp_recovery_saved_v1", JSON.stringify(snapshot));
+                    } catch (e) {}
+                    // Also send snapshot to cloud recovery slot if it differs from defaults
+                    const isDiff =
+                        (snapshot.about && JSON.stringify(snapshot.about) !== JSON.stringify(DEFAULT_ABOUT_CONTENT)) ||
+                        (snapshot.productions && JSON.stringify(snapshot.productions) !== JSON.stringify(DEFAULT_PRODUCTIONS)) ||
+                        (snapshot.team && JSON.stringify(snapshot.team) !== JSON.stringify(DEFAULT_TEAM));
+                    if (isDiff) {
+                        fetch("/.netlify/functions/admin-api", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ type: "recovery_backup", data: snapshot })
+                        }).catch(() => {});
+                    }
+                } else if (isVandalized) {
+                    localStorage.removeItem("tlp_settings");
+                    localStorage.removeItem("tlp_productions");
+                    localStorage.removeItem("tlp_team");
+                    localStorage.removeItem("tlp_workshops");
+                    localStorage.removeItem("tlp_about");
+                }
+            }
+
             if (!localStorage.getItem("tlp_settings")) {
                 localStorage.setItem("tlp_settings", JSON.stringify(DEFAULT_SITE_SETTINGS));
             }
             
             // Force database reset/migration using database versioning to prevent outdated structures
-            const CURRENT_DB_VERSION = "5.3";
+            const CURRENT_DB_VERSION = "5.2";
             const storedDbVersion = localStorage.getItem("tlp_db_version");
             
             if (storedDbVersion !== CURRENT_DB_VERSION || !localStorage.getItem("tlp_productions")) {
@@ -375,29 +414,30 @@ class DatabasePortal {
             const data = await res.json();
             
             let hasChanges = false;
-            try {
-                if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
-                    localStorage.setItem("tlp_settings", JSON.stringify(data.settings));
-                    hasChanges = true;
+            const saveKey = (key, val) => {
+                this.memoryStore[key] = val;
+                try {
+                    localStorage.setItem(key, JSON.stringify(val));
+                } catch (quotaErr) {
+                    console.warn(`LocalStorage quota reached for ${key}, using in-memory store.`);
                 }
-                if (data.productions && Array.isArray(data.productions) && data.productions.length > 0) {
-                    localStorage.setItem("tlp_productions", JSON.stringify(data.productions));
-                    hasChanges = true;
-                }
-                if (data.team && Array.isArray(data.team) && data.team.length > 0) {
-                    localStorage.setItem("tlp_team", JSON.stringify(data.team));
-                    hasChanges = true;
-                }
-                if (data.workshops && Array.isArray(data.workshops) && data.workshops.length > 0) {
-                    localStorage.setItem("tlp_workshops", JSON.stringify(data.workshops));
-                    hasChanges = true;
-                }
-                if (data.about && typeof data.about === "object" && !Array.isArray(data.about)) {
-                    localStorage.setItem("tlp_about", JSON.stringify(data.about));
-                    hasChanges = true;
-                }
-            } catch (quotaErr) {
-                console.warn("LocalStorage cache limit reached during cloud sync:", quotaErr);
+                hasChanges = true;
+            };
+
+            if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
+                saveKey("tlp_settings", data.settings);
+            }
+            if (data.productions && Array.isArray(data.productions) && data.productions.length > 0) {
+                saveKey("tlp_productions", data.productions);
+            }
+            if (data.team && Array.isArray(data.team) && data.team.length > 0) {
+                saveKey("tlp_team", data.team);
+            }
+            if (data.workshops && Array.isArray(data.workshops) && data.workshops.length > 0) {
+                saveKey("tlp_workshops", data.workshops);
+            }
+            if (data.about && typeof data.about === "object" && !Array.isArray(data.about)) {
+                saveKey("tlp_about", data.about);
             }
 
             if (hasChanges) {
@@ -409,6 +449,7 @@ class DatabasePortal {
     }
 
     getSettings() {
+        if (this.memoryStore["tlp_settings"]) return this.memoryStore["tlp_settings"];
         try {
             return JSON.parse(localStorage.getItem("tlp_settings")) || DEFAULT_SITE_SETTINGS;
         } catch(e) {
@@ -417,6 +458,7 @@ class DatabasePortal {
     }
 
     async saveSettings(settings) {
+        this.memoryStore["tlp_settings"] = settings;
         try {
             localStorage.setItem("tlp_settings", JSON.stringify(settings));
         } catch(e) {
@@ -426,6 +468,7 @@ class DatabasePortal {
     }
 
     getProductions() {
+        if (this.memoryStore["tlp_productions"]) return this.memoryStore["tlp_productions"];
         try {
             return JSON.parse(localStorage.getItem("tlp_productions")) || DEFAULT_PRODUCTIONS;
         } catch(e) {
@@ -434,6 +477,7 @@ class DatabasePortal {
     }
 
     async saveProductions(productions) {
+        this.memoryStore["tlp_productions"] = productions;
         try {
             localStorage.setItem("tlp_productions", JSON.stringify(productions));
         } catch(e) {
@@ -443,6 +487,7 @@ class DatabasePortal {
     }
 
     getTeam() {
+        if (this.memoryStore["tlp_team"]) return this.memoryStore["tlp_team"];
         try {
             return JSON.parse(localStorage.getItem("tlp_team")) || DEFAULT_TEAM;
         } catch(e) {
@@ -451,6 +496,7 @@ class DatabasePortal {
     }
 
     async saveTeam(team) {
+        this.memoryStore["tlp_team"] = team;
         try {
             localStorage.setItem("tlp_team", JSON.stringify(team));
         } catch(e) {
@@ -460,6 +506,7 @@ class DatabasePortal {
     }
 
     getWorkshops() {
+        if (this.memoryStore["tlp_workshops"]) return this.memoryStore["tlp_workshops"];
         try {
             return JSON.parse(localStorage.getItem("tlp_workshops")) || DEFAULT_WORKSHOPS;
         } catch(e) {
@@ -468,6 +515,7 @@ class DatabasePortal {
     }
 
     async saveWorkshops(workshops) {
+        this.memoryStore["tlp_workshops"] = workshops;
         try {
             localStorage.setItem("tlp_workshops", JSON.stringify(workshops));
         } catch(e) {
@@ -477,6 +525,7 @@ class DatabasePortal {
     }
 
     getAboutContent() {
+        if (this.memoryStore["tlp_about"]) return this.memoryStore["tlp_about"];
         try {
             return JSON.parse(localStorage.getItem("tlp_about")) || DEFAULT_ABOUT_CONTENT;
         } catch(e) {
@@ -485,6 +534,7 @@ class DatabasePortal {
     }
 
     async saveAboutContent(about) {
+        this.memoryStore["tlp_about"] = about;
         try {
             localStorage.setItem("tlp_about", JSON.stringify(about));
         } catch(e) {
