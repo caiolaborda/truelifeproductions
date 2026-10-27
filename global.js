@@ -416,12 +416,18 @@ class DatabasePortal {
             let hasChanges = false;
             const saveKey = (key, val) => {
                 this.memoryStore[key] = val;
+                const serialized = JSON.stringify(val);
+                let prev = null;
                 try {
-                    localStorage.setItem(key, JSON.stringify(val));
+                    prev = localStorage.getItem(key);
+                    if (prev !== serialized) {
+                        localStorage.setItem(key, serialized);
+                        hasChanges = true;
+                    }
                 } catch (quotaErr) {
                     console.warn(`LocalStorage quota reached for ${key}, using in-memory store.`);
+                    hasChanges = true;
                 }
-                hasChanges = true;
             };
 
             if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
@@ -638,6 +644,8 @@ function renderUniversalVideoPlayer(container, videoUrl, posterUrl = '', options
     const parsed = parseVideoSource(videoUrl);
     if (!parsed) {
         container.innerHTML = '';
+        delete container.dataset.renderedVideoUrl;
+        delete container.dataset.renderedPosterUrl;
         return;
     }
 
@@ -645,6 +653,18 @@ function renderUniversalVideoPlayer(container, videoUrl, posterUrl = '', options
         autoplay = false,
         className = 'showcase-video-player'
     } = options;
+
+    // Avoid tearing down and re-creating identical video player on redundant re-renders
+    if (
+        !autoplay &&
+        container.dataset.renderedVideoUrl === parsed.embedUrl &&
+        container.dataset.renderedPosterUrl === (posterUrl || '') &&
+        container.children.length > 0
+    ) {
+        return;
+    }
+    container.dataset.renderedVideoUrl = parsed.embedUrl;
+    container.dataset.renderedPosterUrl = posterUrl || '';
 
     if (parsed.type === 'youtube' || parsed.type === 'vimeo') {
         const autoplayParam = autoplay ? (parsed.type === 'youtube' ? '&autoplay=1&mute=1' : '&autoplay=1&muted=1') : '';
@@ -662,6 +682,7 @@ function renderUniversalVideoPlayer(container, videoUrl, posterUrl = '', options
     } else {
         const posterAttr = posterUrl ? `poster="${posterUrl}"` : '';
         const autoplayAttr = autoplay ? 'autoplay muted' : '';
+        const preloadMode = autoplay ? 'auto' : (posterUrl ? 'none' : 'metadata');
         container.innerHTML = `
             <video 
                 class="${className}" 
@@ -669,7 +690,7 @@ function renderUniversalVideoPlayer(container, videoUrl, posterUrl = '', options
                 ${autoplayAttr} 
                 ${posterAttr} 
                 playsinline
-                preload="metadata"
+                preload="${preloadMode}"
                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block;">
                 <source src="${parsed.embedUrl}" type="video/mp4">
                 Your browser does not support the video tag.

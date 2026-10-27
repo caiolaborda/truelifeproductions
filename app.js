@@ -220,19 +220,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 slide.classList.add("active");
                 dots[idx].classList.add("active");
                 
-                // Mount HTML5 loop video preview if active
+                // Mount or resume HTML5 loop video preview if active
                 if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
-                    if (!videoContainer.querySelector("video")) {
+                    let video = videoContainer.querySelector("video");
+                    if (!video) {
                         const videoSrc = slide.getAttribute("data-video-preview") || "assets/videos/continuity_preview.mp4";
                         videoContainer.innerHTML = `
-                            <video src="${videoSrc}" autoplay loop muted playsinline></video>
+                            <video src="${videoSrc}" autoplay loop muted playsinline preload="metadata"></video>
                         `;
-                        const video = videoContainer.querySelector("video");
+                        video = videoContainer.querySelector("video");
                         if (video) {
                             video.addEventListener("canplay", () => {
                                 video.style.opacity = "1";
                             });
                         }
+                    } else {
+                        video.style.opacity = "1";
+                        video.play().catch(() => {});
                     }
                 }
                 
@@ -246,11 +250,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 slide.classList.remove("active");
                 dots[idx].classList.remove("active");
                 
-                // Unmount loop preview after transition finishes to save resources
+                // Pause loop preview after transition finishes (keep element mounted to avoid re-downloading)
                 if (slide.getAttribute("data-animation") === "stage-glow" && videoContainer) {
                     setTimeout(() => {
                         if (!slide.classList.contains("active")) {
-                            videoContainer.innerHTML = "";
+                            const video = videoContainer.querySelector("video");
+                            if (video && !video.paused) {
+                                video.pause();
+                            }
                         }
                     }, 1000);
                 }

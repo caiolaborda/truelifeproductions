@@ -727,8 +727,8 @@
             <!-- 1. Theatrical Showreel & Welcome Banner -->
             <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 4rem; align-items: center; margin-bottom: 6rem;" class="home-trailer-row">
                 <div class="showcase-video-wrapper" style="margin-bottom: 0;">
-                    <!-- HTML5 Looping Autoplay Showreel Video -->
-                    <video id="homepage-trailer-video" class="showcase-video-player" src="assets/videos/video03.mp4" poster="assets/videos/video03_poster.jpg" autoplay preload="auto" loop playsinline disablepictureinpicture disableremoteplayback webkit-playsinline muted>
+                    <!-- HTML5 Looping Autoplay Showreel Video (lazy-loaded on scroll) -->
+                    <video id="homepage-trailer-video" class="showcase-video-player" data-src="assets/videos/video03.mp4" poster="assets/videos/video03_poster.jpg" preload="none" loop playsinline disablepictureinpicture disableremoteplayback webkit-playsinline muted>
                         Your browser does not support the HTML5 video tag.
                     </video>
                     <!-- Floating Video Controls -->
@@ -968,6 +968,35 @@
             const muteUnmuteIcon = document.getElementById("mute-unmute-icon");
 
             if (trailerVideo && playBtn && muteBtn) {
+                let userPausedTrailer = false;
+
+                function ensureTrailerLoaded() {
+                    if (!trailerVideo.getAttribute("src") && trailerVideo.dataset.src) {
+                        trailerVideo.src = trailerVideo.dataset.src;
+                        trailerVideo.load();
+                    }
+                }
+
+                // Lazy-load and autoplay only when scrolled near/into view
+                if ("IntersectionObserver" in window) {
+                    const trailerObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                ensureTrailerLoaded();
+                                if (!userPausedTrailer) {
+                                    trailerVideo.play().catch(() => {});
+                                }
+                            } else if (trailerVideo.getAttribute("src") && !trailerVideo.paused) {
+                                trailerVideo.pause();
+                            }
+                        });
+                    }, { rootMargin: "200px 0px", threshold: 0.1 });
+                    trailerObserver.observe(trailerVideo);
+                } else {
+                    ensureTrailerLoaded();
+                    trailerVideo.play().catch(() => {});
+                }
+
                 // Hover styling
                 [playBtn, muteBtn].forEach(btn => {
                     btn.addEventListener("mouseenter", () => {
@@ -982,11 +1011,14 @@
 
                 // Play / Pause Toggle
                 playBtn.addEventListener("click", () => {
+                    ensureTrailerLoaded();
                     if (trailerVideo.paused) {
+                        userPausedTrailer = false;
                         trailerVideo.play();
                         playPauseIcon.innerHTML = `<path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>`;
                         playBtn.setAttribute("aria-label", "Pause Video");
                     } else {
+                        userPausedTrailer = true;
                         trailerVideo.pause();
                         playPauseIcon.innerHTML = `<path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C3.713 12.579 3 12.114 3 11.4v-6.8c0-.714.713-1.179 1.433-.784v-.002z"/>`;
                         playBtn.setAttribute("aria-label", "Play Video");
