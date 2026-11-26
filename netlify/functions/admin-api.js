@@ -79,7 +79,8 @@ exports.handler = async (event, context) => {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache, must-revalidate"
     };
 
     // Handle preflight CORS
@@ -99,7 +100,7 @@ exports.handler = async (event, context) => {
 
         const storeOptions = {
             name: "tlp-live-data",
-            consistency: "eventual"
+            consistency: "strong"
         };
 
         const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
@@ -137,11 +138,13 @@ exports.handler = async (event, context) => {
             }
 
             if (type === "all") {
-                const settings = await store.get("settings", { type: "json" });
-                const productions = await store.get("productions", { type: "json" });
-                const team = await store.get("team", { type: "json" });
-                const workshops = await store.get("workshops", { type: "json" });
-                const about = await store.get("about", { type: "json" });
+                const [settings, productions, team, workshops, about] = await Promise.all([
+                    store.get("settings", { type: "json" }),
+                    store.get("productions", { type: "json" }),
+                    store.get("team", { type: "json" }),
+                    store.get("workshops", { type: "json" }),
+                    store.get("about", { type: "json" })
+                ]);
 
                 return {
                     statusCode: 200,
@@ -150,7 +153,7 @@ exports.handler = async (event, context) => {
                         settings: settings || null,
                         productions: productions || null,
                         team: team || null,
-                        workshops: workshops || null,
+                        workshops: workshops !== null && workshops !== undefined ? workshops : null,
                         about: about || null
                     })
                 };

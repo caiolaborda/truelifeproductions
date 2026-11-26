@@ -330,7 +330,76 @@ const DEFAULT_ABOUT_CONTENT = {
 class DatabasePortal {
     constructor() {
         this.memoryStore = {};
+        this._inFlightByType = {};
+        this._queuedByType = {};
+        this._drainPromises = {};
+        this._activeSyncCount = 0;
+        this._lastSyncError = null;
         this.init();
+    }
+
+    _getDirtyMap() {
+        try {
+            const raw = JSON.parse(localStorage.getItem("tlp_dirty_types") || "{}");
+            if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+            const now = Date.now();
+            const cleaned = {};
+            let expired = false;
+            for (const [k, ts] of Object.entries(raw)) {
+                // Expire unauthenticated dirty markers after 2 hours so stale local state never lingers forever
+                if (typeof ts === "number" && (now - ts) < 2 * 60 * 60 * 1000) {
+                    cleaned[k] = ts;
+                } else {
+                    expired = true;
+                }
+            }
+            if (expired) {
+                localStorage.setItem("tlp_dirty_types", JSON.stringify(cleaned));
+            }
+            return cleaned;
+        } catch (e) {
+            return {};
+        }
+    }
+
+    _markDirty(type) {
+        try {
+            const map = this._getDirtyMap();
+            map[type] = Date.now();
+            localStorage.setItem("tlp_dirty_types", JSON.stringify(map));
+        } catch (e) {}
+    }
+
+    _clearDirty(type) {
+        try {
+            const map = this._getDirtyMap();
+            if (type in map) {
+                delete map[type];
+                localStorage.setItem("tlp_dirty_types", JSON.stringify(map));
+            }
+        } catch (e) {}
+    }
+
+    hasPendingSync() {
+        return this._activeSyncCount > 0 || Object.keys(this._queuedByType).length > 0;
+    }
+
+    hasUnsyncedChanges() {
+        return this.hasPendingSync() || Object.keys(this._getDirtyMap()).length > 0;
+    }
+
+    _emitSyncState(status, detail = {}) {
+        try {
+            window.dispatchEvent(new CustomEvent("tlp_sync_state", {
+                detail: {
+                    status,
+                    activeCount: this._activeSyncCount,
+                    unsyncedTypes: Object.keys(this._getDirtyMap()),
+                    error: this._lastSyncError,
+                    ...detail
+                }
+            }));
+        } catch (e) {}
     }
 
     init() {
@@ -403,18 +472,55 @@ class DatabasePortal {
             console.warn("LocalStorage initialization warning (quota or cookies restricted):", e);
         }
 
-        // Sync live updates from Netlify cloud storage in background
-        this.syncFromCloud();
+        // Sync live updates from Netlify cloud storage in background (flushing any interrupted admin saves first)
+        this.bootCloudSync();
+    }
+
+    async bootCloudSync() {
+        const authToken = sessionStorage.getItem("tlp_admin_token") || "";
+        if (authToken) {
+            await this.flushUnsyncedChanges();
+        }
+        await this.syncFromCloud();
+    }
+
+    async flushUnsyncedChanges() {
+        const authToken = sessionStorage.getItem("tlp_admin_token") || "";
+        if (!authToken) return;
+        const dirtyMap = this._getDirtyMap();
+        const dirtyTypes = Object.keys(dirtyMap);
+        if (dirtyTypes.length === 0) return;
+
+        const getters = {
+            settings: () => this.getSettings(),
+            productions: () => this.getProductions(),
+            team: () => this.getTeam(),
+            workshops: () => this.getWorkshops(),
+            about: () => this.getAboutContent()
+        };
+
+        for (const type of dirtyTypes) {
+            if (getters[type]) {
+                await this.pushToCloud(type, getters[type]());
+            } else {
+                this._clearDirty(type);
+            }
+        }
     }
 
     async syncFromCloud() {
         try {
-            const res = await fetch("/.netlify/functions/admin-api?type=all");
+            const res = await fetch("/.netlify/functions/admin-api?type=all", { cache: "no-store" });
             if (!res.ok) return;
             const data = await res.json();
+            const dirtyMap = this._getDirtyMap();
             
             let hasChanges = false;
-            const saveKey = (key, val) => {
+            const saveKey = (key, typeName, val) => {
+                // Never overwrite local data that is currently syncing or waiting to flush to cloud
+                if (this._inFlightByType[typeName] || this._queuedByType[typeName] || dirtyMap[typeName]) {
+                    return;
+                }
                 this.memoryStore[key] = val;
                 const serialized = JSON.stringify(val);
                 let prev = null;
@@ -431,19 +537,19 @@ class DatabasePortal {
             };
 
             if (data.settings && typeof data.settings === "object" && !Array.isArray(data.settings)) {
-                saveKey("tlp_settings", data.settings);
+                saveKey("tlp_settings", "settings", data.settings);
             }
             if (data.productions && Array.isArray(data.productions) && data.productions.length > 0) {
-                saveKey("tlp_productions", data.productions);
+                saveKey("tlp_productions", "productions", data.productions);
             }
             if (data.team && Array.isArray(data.team) && data.team.length > 0) {
-                saveKey("tlp_team", data.team);
+                saveKey("tlp_team", "team", data.team);
             }
-            if (data.workshops && Array.isArray(data.workshops) && data.workshops.length > 0) {
-                saveKey("tlp_workshops", data.workshops);
+            if (data.workshops !== null && data.workshops !== undefined && Array.isArray(data.workshops)) {
+                saveKey("tlp_workshops", "workshops", data.workshops);
             }
             if (data.about && typeof data.about === "object" && !Array.isArray(data.about)) {
-                saveKey("tlp_about", data.about);
+                saveKey("tlp_about", "about", data.about);
             }
 
             if (hasChanges) {
@@ -454,130 +560,231 @@ class DatabasePortal {
         }
     }
 
-    getSettings() {
-        if (this.memoryStore["tlp_settings"]) return this.memoryStore["tlp_settings"];
+    _clone(val) {
         try {
-            return JSON.parse(localStorage.getItem("tlp_settings")) || DEFAULT_SITE_SETTINGS;
+            return JSON.parse(JSON.stringify(val));
+        } catch (e) {
+            return val;
+        }
+    }
+
+    getSettings() {
+        if (this.memoryStore["tlp_settings"]) return this._clone(this.memoryStore["tlp_settings"]);
+        try {
+            return JSON.parse(localStorage.getItem("tlp_settings")) || this._clone(DEFAULT_SITE_SETTINGS);
         } catch(e) {
-            return DEFAULT_SITE_SETTINGS;
+            return this._clone(DEFAULT_SITE_SETTINGS);
         }
     }
 
     async saveSettings(settings) {
-        this.memoryStore["tlp_settings"] = settings;
+        const copy = this._clone(settings);
+        this.memoryStore["tlp_settings"] = copy;
         try {
-            localStorage.setItem("tlp_settings", JSON.stringify(settings));
+            localStorage.setItem("tlp_settings", JSON.stringify(copy));
         } catch(e) {
             console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
         }
-        return await this.pushToCloud("settings", settings);
+        return await this.pushToCloud("settings", copy);
     }
 
     getProductions() {
-        if (this.memoryStore["tlp_productions"]) return this.memoryStore["tlp_productions"];
+        if (this.memoryStore["tlp_productions"]) return this._clone(this.memoryStore["tlp_productions"]);
         try {
-            return JSON.parse(localStorage.getItem("tlp_productions")) || DEFAULT_PRODUCTIONS;
+            return JSON.parse(localStorage.getItem("tlp_productions")) || this._clone(DEFAULT_PRODUCTIONS);
         } catch(e) {
-            return DEFAULT_PRODUCTIONS;
+            return this._clone(DEFAULT_PRODUCTIONS);
         }
     }
 
     async saveProductions(productions) {
-        this.memoryStore["tlp_productions"] = productions;
+        const copy = this._clone(productions);
+        this.memoryStore["tlp_productions"] = copy;
         try {
-            localStorage.setItem("tlp_productions", JSON.stringify(productions));
+            localStorage.setItem("tlp_productions", JSON.stringify(copy));
         } catch(e) {
             console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
         }
-        return await this.pushToCloud("productions", productions);
+        return await this.pushToCloud("productions", copy);
     }
 
     getTeam() {
-        if (this.memoryStore["tlp_team"]) return this.memoryStore["tlp_team"];
+        if (this.memoryStore["tlp_team"]) return this._clone(this.memoryStore["tlp_team"]);
         try {
-            return JSON.parse(localStorage.getItem("tlp_team")) || DEFAULT_TEAM;
+            return JSON.parse(localStorage.getItem("tlp_team")) || this._clone(DEFAULT_TEAM);
         } catch(e) {
-            return DEFAULT_TEAM;
+            return this._clone(DEFAULT_TEAM);
         }
     }
 
     async saveTeam(team) {
-        this.memoryStore["tlp_team"] = team;
+        const copy = this._clone(team);
+        this.memoryStore["tlp_team"] = copy;
         try {
-            localStorage.setItem("tlp_team", JSON.stringify(team));
+            localStorage.setItem("tlp_team", JSON.stringify(copy));
         } catch(e) {
             console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
         }
-        return await this.pushToCloud("team", team);
+        return await this.pushToCloud("team", copy);
     }
 
     getWorkshops() {
-        if (this.memoryStore["tlp_workshops"]) return this.memoryStore["tlp_workshops"];
+        if (this.memoryStore["tlp_workshops"] !== undefined) return this._clone(this.memoryStore["tlp_workshops"]);
         try {
-            return JSON.parse(localStorage.getItem("tlp_workshops")) || DEFAULT_WORKSHOPS;
+            const raw = localStorage.getItem("tlp_workshops");
+            if (raw !== null) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed;
+            }
+            return this._clone(DEFAULT_WORKSHOPS);
         } catch(e) {
-            return DEFAULT_WORKSHOPS;
+            return this._clone(DEFAULT_WORKSHOPS);
         }
     }
 
     async saveWorkshops(workshops) {
-        this.memoryStore["tlp_workshops"] = workshops;
+        const copy = this._clone(workshops);
+        this.memoryStore["tlp_workshops"] = copy;
         try {
-            localStorage.setItem("tlp_workshops", JSON.stringify(workshops));
+            localStorage.setItem("tlp_workshops", JSON.stringify(copy));
         } catch(e) {
             console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
         }
-        return await this.pushToCloud("workshops", workshops);
+        return await this.pushToCloud("workshops", copy);
     }
 
     getAboutContent() {
-        if (this.memoryStore["tlp_about"]) return this.memoryStore["tlp_about"];
+        if (this.memoryStore["tlp_about"]) return this._clone(this.memoryStore["tlp_about"]);
         try {
-            return JSON.parse(localStorage.getItem("tlp_about")) || DEFAULT_ABOUT_CONTENT;
+            return JSON.parse(localStorage.getItem("tlp_about")) || this._clone(DEFAULT_ABOUT_CONTENT);
         } catch(e) {
-            return DEFAULT_ABOUT_CONTENT;
+            return this._clone(DEFAULT_ABOUT_CONTENT);
         }
     }
 
     async saveAboutContent(about) {
-        this.memoryStore["tlp_about"] = about;
+        const copy = this._clone(about);
+        this.memoryStore["tlp_about"] = copy;
         try {
-            localStorage.setItem("tlp_about", JSON.stringify(about));
+            localStorage.setItem("tlp_about", JSON.stringify(copy));
         } catch(e) {
             console.warn("LocalStorage quota exceeded, proceeding with cloud sync:", e);
         }
-        return await this.pushToCloud("about", about);
+        return await this.pushToCloud("about", copy);
     }
 
+    /**
+     * Serialized, coalescing per-type cloud sync queue:
+     * - Rapid consecutive updates (e.g. spamming ▲/▼ or dragging multiple rows) never race out of order.
+     * - Intermediate updates coalesce into the latest state while an earlier request is in flight.
+     * - Uses keepalive for normal JSON payloads (< 60KB) so closing/navigating away finishes sending.
+     * - Retries automatically once on transient network/server errors.
+     */
     async pushToCloud(type, data) {
-        try {
-            const authToken = sessionStorage.getItem("tlp_admin_token") || "";
-            const res = await fetch("/.netlify/functions/admin-api", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    auth: authToken,
-                    type: type,
-                    data: data
-                })
-            });
-            if (res.ok) {
-                const result = await res.json();
-                return { success: true, cloud: true, message: result.message };
-            } else {
-                const errData = await res.json().catch(() => ({}));
-                console.error("Cloud push rejected by server:", res.status, errData);
-                return { success: false, cloud: false, error: errData.error || `Server returned HTTP ${res.status}` };
-            }
-        } catch (err) {
-            const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
-            if (isLocal) {
-                console.warn("Cloud sync offline or Netlify Functions unavailable:", err.message);
-                return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
-            }
-            console.error("Cloud sync failed:", err);
-            return { success: false, cloud: false, error: "Network error or payload too large for cloud sync." };
+        this._markDirty(type);
+        this._queuedByType[type] = { data };
+
+        if (this._drainPromises[type]) {
+            return await this._drainPromises[type];
         }
+
+        this._drainPromises[type] = this._drainTypeQueue(type);
+        try {
+            return await this._drainPromises[type];
+        } finally {
+            delete this._drainPromises[type];
+        }
+    }
+
+    async _drainTypeQueue(type) {
+        this._inFlightByType[type] = true;
+        this._activeSyncCount++;
+        this._emitSyncState("syncing", { type });
+
+        let lastResult = { success: false, cloud: false };
+        try {
+            while (this._queuedByType[type]) {
+                const payload = this._queuedByType[type].data;
+                delete this._queuedByType[type];
+
+                lastResult = await this._sendSingleCloudRequest(type, payload);
+
+                // Only clear dirty marker if no newer edit arrived while this request was in flight
+                if (!this._queuedByType[type]) {
+                    if (lastResult.cloud || lastResult.offline) {
+                        this._clearDirty(type);
+                        this._lastSyncError = null;
+                    } else {
+                        this._lastSyncError = lastResult.error || "Sync failed";
+                    }
+                }
+            }
+            return lastResult;
+        } finally {
+            delete this._inFlightByType[type];
+            this._activeSyncCount = Math.max(0, this._activeSyncCount - 1);
+            if (this._activeSyncCount === 0) {
+                const hasDirty = Object.keys(this._getDirtyMap()).length > 0;
+                this._emitSyncState(hasDirty ? "error" : "synced", { type, result: lastResult });
+            } else {
+                this._emitSyncState("syncing", { type });
+            }
+        }
+    }
+
+    async _sendSingleCloudRequest(type, data) {
+        const authToken = sessionStorage.getItem("tlp_admin_token") || "";
+        const bodyStr = JSON.stringify({
+            auth: authToken,
+            type: type,
+            data: data
+        });
+        // Enable browser background keepalive for payloads under 60KB so tab close/navigation doesn't abort the save
+        const useKeepalive = bodyStr.length < 60000;
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const res = await fetch("/.netlify/functions/admin-api", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: bodyStr,
+                    keepalive: useKeepalive
+                });
+                if (res.ok) {
+                    const result = await res.json();
+                    return { success: true, cloud: true, message: result.message };
+                }
+                const errData = await res.json().catch(() => ({}));
+                // Do not retry 400/401 client errors
+                if (res.status === 401) {
+                    window.dispatchEvent(new CustomEvent("tlp_auth_expired"));
+                    return { success: false, cloud: false, status: 401, error: "Admin session expired — please log in again." };
+                }
+                if (res.status >= 400 && res.status < 500) {
+                    console.error("Cloud push rejected by server:", res.status, errData);
+                    return { success: false, cloud: false, status: res.status, error: errData.error || `Server returned HTTP ${res.status}` };
+                }
+                // 5xx server error: retry once after short backoff
+                if (attempt === 0) {
+                    await new Promise(r => setTimeout(r, 700));
+                    continue;
+                }
+                return { success: false, cloud: false, status: res.status, error: errData.error || `Server returned HTTP ${res.status}` };
+            } catch (err) {
+                const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
+                if (isLocal) {
+                    console.warn("Cloud sync offline or Netlify Functions unavailable:", err.message);
+                    return { success: true, cloud: false, offline: true, message: "Saved locally in browser." };
+                }
+                if (attempt === 0) {
+                    await new Promise(r => setTimeout(r, 700));
+                    continue;
+                }
+                console.error("Cloud sync failed:", err);
+                return { success: false, cloud: false, error: "Network connection interrupted — click Sync Status to retry." };
+            }
+        }
+        return { success: false, cloud: false, error: "Unknown sync error." };
     }
 }
 

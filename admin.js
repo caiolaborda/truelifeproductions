@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (sessionStorage.getItem("tlp_admin_logged_in") === "true" && savedToken && (await hashPasscode(savedToken)) === TLP_EXPECTED_HASH) {
         document.getElementById("login-overlay").classList.add("hidden");
         loadAllAdminPanels();
+        if (typeof TLP_DB !== "undefined" && TLP_DB.flushUnsyncedChanges) {
+            TLP_DB.flushUnsyncedChanges();
+        }
     } else {
         sessionStorage.removeItem("tlp_admin_logged_in");
         sessionStorage.removeItem("tlp_admin_token");
@@ -26,13 +29,86 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Setup drag and drop for upload dropzones
     setupAllDropzones();
 
-    // Refresh admin tables when cloud sync finishes
+    // Refresh admin tables when cloud sync finishes without wiping focused form inputs
     window.addEventListener("tlp_data_synced", () => {
         if (sessionStorage.getItem("tlp_admin_logged_in") === "true") {
-            loadAllAdminPanels();
+            if (!document.querySelector("tr.is-dragging")) {
+                renderPlaysTable();
+                renderWorkshopsTable();
+                renderTeamTable();
+            }
+            const active = document.activeElement;
+            const settingsPanel = document.getElementById("panel-settings");
+            const aboutPanel = document.getElementById("panel-about");
+            if (!settingsPanel || !settingsPanel.contains(active)) {
+                loadSiteSettingsForm();
+            }
+            if (!aboutPanel || !aboutPanel.contains(active)) {
+                loadAboutContentForm();
+            }
         }
     });
+
+    // Live Cloud Sync Pill updates
+    window.addEventListener("tlp_sync_state", () => {
+        updateAdminSyncPill();
+    });
+
+    // Re-prompt login immediately if session ever expires or gets 401
+    window.addEventListener("tlp_auth_expired", () => {
+        logoutAdmin();
+        showToast("Your admin session expired — please enter your password again to sync your changes.", "warning", 7000);
+    });
+
+    // Warn before closing or navigating away while media uploads or cloud saves are still running
+    window.addEventListener("beforeunload", (e) => {
+        const syncing = (typeof TLP_DB !== "undefined" && TLP_DB.hasPendingSync && TLP_DB.hasPendingSync());
+        if (activeMediaUploads > 0 || syncing) {
+            e.preventDefault();
+            e.returnValue = "Photos or website changes are still uploading to the live site. Please wait a few seconds before closing!";
+            return e.returnValue;
+        }
+    });
+
+    updateAdminSyncPill();
 });
+
+let currentUploadStatusText = "";
+
+function updateAdminSyncPill() {
+    const pill = document.getElementById("admin-sync-pill");
+    const textEl = document.getElementById("admin-sync-text");
+    if (!pill || !textEl) return;
+
+    const pendingSync = (typeof TLP_DB !== "undefined" && TLP_DB.hasPendingSync && TLP_DB.hasPendingSync());
+    const unsynced = (typeof TLP_DB !== "undefined" && TLP_DB.hasUnsyncedChanges && TLP_DB.hasUnsyncedChanges());
+
+    pill.classList.remove("synced", "syncing", "error");
+    if (activeMediaUploads > 0) {
+        pill.classList.add("syncing");
+        textEl.textContent = currentUploadStatusText || "Uploading media — keep tab open...";
+    } else if (pendingSync) {
+        pill.classList.add("syncing");
+        textEl.textContent = "Saving to live site — keep tab open...";
+    } else if (unsynced) {
+        pill.classList.add("error");
+        textEl.textContent = "Sync pending — click to retry";
+    } else {
+        pill.classList.add("synced");
+        textEl.textContent = "All changes live";
+    }
+}
+
+async function handleSyncPillClick() {
+    if (typeof TLP_DB !== "undefined" && TLP_DB.hasUnsyncedChanges && TLP_DB.hasUnsyncedChanges() && !TLP_DB.hasPendingSync()) {
+        showToast("Retrying cloud sync to live website...", "info", 2500);
+        await TLP_DB.flushUnsyncedChanges();
+        updateAdminSyncPill();
+        if (!TLP_DB.hasUnsyncedChanges()) {
+            showToast("All pending changes synced to live website!", "success");
+        }
+    }
+}
 
 function loadAllAdminPanels() {
     loadSiteSettingsForm();
@@ -65,6 +141,10 @@ async function verifyPasscode() {
         document.getElementById("login-overlay").classList.add("hidden");
         loadAllAdminPanels();
         errorEl.style.display = "none";
+        if (typeof TLP_DB !== "undefined" && TLP_DB.flushUnsyncedChanges) {
+            TLP_DB.flushUnsyncedChanges();
+        }
+        updateAdminSyncPill();
     } else {
         errorEl.style.display = "block";
     }
@@ -217,23 +297,39 @@ function compressImageFile(file, maxWidth = 1200, quality = 0.78) {
  */
 async function uploadMediaToCloud(dataUrl) {
     if (!dataUrl || !dataUrl.startsWith("data:")) return dataUrl;
-    try {
-        const authToken = sessionStorage.getItem("tlp_admin_token") || "";
-        const res = await fetch("/.netlify/functions/admin-api", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                auth: authToken,
-                type: "upload_media",
-                data: { dataUrl }
-            })
-        });
-        if (res.ok) {
-            const out = await res.json();
-            if (out && out.url) return out.url;
+    const authToken = sessionStorage.getItem("tlp_admin_token") || "";
+    const payloadStr = JSON.stringify({
+        auth: authToken,
+        type: "upload_media",
+        data: { dataUrl }
+    });
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const res = await fetch("/.netlify/functions/admin-api", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: payloadStr
+            });
+            if (res.ok) {
+                const out = await res.json();
+                if (out && out.url) return out.url;
+            }
+            if (res.status === 401) {
+                window.dispatchEvent(new CustomEvent("tlp_auth_expired"));
+                break;
+            }
+            if (res.status >= 400 && res.status < 500) break;
+        } catch (e) {
+            const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:";
+            if (isLocal) {
+                console.debug("Direct media upload fallback to inline dataUrl (local):", e.message);
+                break;
+            }
         }
-    } catch (e) {
-        console.debug("Direct media upload fallback to inline dataUrl:", e.message);
+        if (attempt === 0) {
+            await new Promise(r => setTimeout(r, 600));
+        }
     }
     return dataUrl;
 }
@@ -242,6 +338,7 @@ let activeMediaUploads = 0;
 
 function setUploadLock(delta, statusText = "Uploading media...") {
     activeMediaUploads = Math.max(0, activeMediaUploads + delta);
+    currentUploadStatusText = activeMediaUploads > 0 ? statusText : "";
     const saveBtns = [
         document.getElementById("save-play-btn"),
         document.getElementById("save-ws-btn"),
@@ -261,6 +358,46 @@ function setUploadLock(delta, statusText = "Uploading media...") {
             }
         }
     });
+    updateAdminSyncPill();
+}
+
+/**
+ * Compresses and uploads multiple image files in parallel (up to 3 concurrent workers)
+ * while preserving the exact original file order and reporting live progress.
+ */
+async function processBatchImagesOrdered(files, maxWidth = 1200, quality = 0.78) {
+    const total = files.length;
+    const results = new Array(total).fill(null);
+    let completed = 0;
+    let cursor = 0;
+    const concurrency = Math.min(3, total);
+
+    setUploadLock(0, `Uploading 0/${total} photo${total > 1 ? 's' : ''}...`);
+
+    async function worker() {
+        while (true) {
+            const i = cursor++;
+            if (i >= total) break;
+            try {
+                const compressed = await compressImageFile(files[i], maxWidth, quality);
+                const finalUrl = await uploadMediaToCloud(compressed.dataUrl);
+                results[i] = { ...compressed, finalUrl };
+            } catch (err) {
+                console.error("Batch photo processing failed for", files[i].name, err);
+                results[i] = { error: err, originalName: files[i].name };
+            } finally {
+                completed++;
+                if (completed < total) {
+                    setUploadLock(0, `Uploading ${completed}/${total} photo${total > 1 ? 's' : ''}...`);
+                } else {
+                    setUploadLock(0, `Finishing ${total}/${total} photo${total > 1 ? 's' : ''}...`);
+                }
+            }
+        }
+    }
+
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    return results;
 }
 
 /**
@@ -910,7 +1047,10 @@ function openPlayModal(mode, playId = '') {
     overlay.classList.add("open");
 }
 
-function closePlayModal() {
+function closePlayModal(force = false) {
+    if (!force && activeMediaUploads > 0 && !confirm("Photos or video are still uploading. Cancel anyway and discard unfinished uploads?")) {
+        return;
+    }
     document.getElementById("play-modal-overlay").classList.remove("open");
     const previewPlayer = document.getElementById("play-video-preview-player");
     if (previewPlayer) previewPlayer.innerHTML = "";
@@ -952,6 +1092,7 @@ async function handleShowreelFileUpload(event) {
 async function handleShowreelPosterUpload(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
+    setUploadLock(1, "Uploading video poster...");
     try {
         const posterInput = document.getElementById("play-video-poster");
         const result = await compressImageFile(file, 1200, 0.75);
@@ -961,6 +1102,8 @@ async function handleShowreelPosterUpload(event) {
         showToast(`Video poster compressed & uploaded (${result.sizeKb} KB)!`, "success");
     } catch (e) {
         showToast("Poster upload failed: " + e.message, "error");
+    } finally {
+        setUploadLock(-1);
     }
     event.target.value = "";
 }
@@ -973,23 +1116,33 @@ async function handleVideoFileUpload(file, targetInput, callback) {
         alert(`This video file is ${sizeMb}MB.\n\nDirect video uploads must be under ${maxMb}MB due to cloud server limits. For larger videos, please upload to YouTube or Vimeo (you can set it to 'Unlisted') and paste the link here!`);
         return;
     }
+    setUploadLock(1, `Uploading video (${sizeMb}MB)...`);
     showToast(`Uploading video clip (${sizeMb}MB)...`, 'info');
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const finalUrl = await uploadMediaToCloud(e.target.result);
+    try {
+        const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => reject(new Error("Failed to read video file."));
+            reader.readAsDataURL(file);
+        });
+        const finalUrl = await uploadMediaToCloud(dataUrl);
         targetInput.value = finalUrl;
         if (typeof callback === 'function') callback();
         updatePlayLivePreview();
         showToast(`Video uploaded (${sizeMb}MB)!`, 'success');
-    };
-    reader.onerror = () => {
-        showToast("Failed to read video file.", "error");
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+        showToast(err.message || "Failed to upload video file.", "error");
+    } finally {
+        setUploadLock(-1);
+    }
 }
 
 async function handlePlaySubmit(event) {
     event.preventDefault();
+    if (activeMediaUploads > 0) {
+        showToast("Please wait a moment for your photos or video to finish uploading before saving!", "warning");
+        return;
+    }
     const submitBtn = document.getElementById("save-play-btn");
     const originalBtnText = submitBtn ? submitBtn.textContent : "Save Production";
     if (submitBtn) {
@@ -1092,7 +1245,7 @@ async function handlePlaySubmit(event) {
 
         const result = await TLP_DB.saveProductions(productions);
         renderPlaysTable();
-        closePlayModal();
+        closePlayModal(true);
 
         if (result && result.cloud) {
             showToast(`Production "${title}" saved and synced live to website!`, 'success');
@@ -1121,9 +1274,16 @@ async function deletePlay(playId) {
     const confirmDelete = confirm(`Are you sure you want to delete "${play.title}"?\nThis cannot be undone.`);
     if (confirmDelete) {
         const updated = productions.filter(p => p.id !== playId);
-        await TLP_DB.saveProductions(updated);
+        const savePromise = TLP_DB.saveProductions(updated);
         renderPlaysTable();
-        alert(`Production "${play.title}" deleted.`);
+        const res = await savePromise;
+        if (res && res.cloud) {
+            showToast(`Production "${play.title}" deleted and synced to live website.`, 'success');
+        } else if (res && res.error) {
+            showToast(`Deleted locally. Cloud notice: ${res.error}`, 'error', 6000);
+        } else {
+            showToast(`Production "${play.title}" deleted.`, 'info');
+        }
     }
 }
 
@@ -1208,29 +1368,29 @@ async function handleBatchVenuePhotoUpload(event, venueId) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
 
-    setUploadLock(1, `Uploading 1/${files.length} photos...`);
+    setUploadLock(1, `Uploading 0/${files.length} photo${files.length > 1 ? 's' : ''}...`);
     showToast(`Compressing & uploading ${files.length} photo${files.length > 1 ? 's' : ''}...`, 'info');
 
     let successCount = 0;
     try {
-        for (let i = 0; i < files.length; i++) {
-            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
-            try {
-                const result = await compressImageFile(files[i], 1200, 0.75);
-                const finalUrl = await uploadMediaToCloud(result.dataUrl);
-                addVenueImageInput(venueId, finalUrl);
+        const results = await processBatchImagesOrdered(files, 1200, 0.75);
+        results.forEach(item => {
+            if (item && item.finalUrl) {
+                addVenueImageInput(venueId, item.finalUrl);
                 successCount++;
-            } catch (err) {
-                console.error("Batch upload failed for", files[i].name, err);
             }
-        }
+        });
     } finally {
         setUploadLock(-1);
     }
 
     event.target.value = "";
     updatePlayLivePreview();
-    showToast(`Successfully uploaded ${successCount} photo${successCount > 1 ? 's' : ''}! Click "Save Production" to publish.`, 'success');
+    if (successCount > 0) {
+        showToast(`Successfully uploaded ${successCount} photo${successCount > 1 ? 's' : ''}! Click "Save Production" to publish.`, 'success');
+    } else {
+        showToast("Could not upload selected photos. Please check image format.", 'error');
+    }
 }
 
 function addVenueImageInput(venueId, value = '') {
@@ -1323,30 +1483,32 @@ function handleVenueUrlInput(wrapperId) {
 async function handleVenuePhotoUpload(event, wrapperId) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
-    setUploadLock(1, `Uploading ${files.length} photo${files.length > 1 ? 's' : ''}...`);
+    setUploadLock(1, `Uploading 0/${files.length} photo${files.length > 1 ? 's' : ''}...`);
     try {
         const wrapper = document.getElementById(wrapperId);
         const venueCard = wrapper ? wrapper.closest(".venue-editor-card") : null;
         const venueId = venueCard ? venueCard.id : null;
 
-        for (let i = 0; i < files.length; i++) {
-            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
-            const file = files[i];
-            const result = await compressImageFile(file);
-            const finalUrl = await uploadMediaToCloud(result.dataUrl);
-
-            if (i === 0 && wrapper) {
+        const results = await processBatchImagesOrdered(files);
+        let filledFirst = false;
+        results.forEach(item => {
+            if (!item || !item.finalUrl) return;
+            if (!filledFirst && wrapper) {
+                filledFirst = true;
                 const input = wrapper.querySelector(".venue-image-url");
                 const thumb = wrapper.querySelector(".venue-photo-thumb");
-                if (input) input.value = finalUrl;
+                if (input) input.value = item.finalUrl;
                 if (thumb) {
-                    thumb.src = finalUrl;
+                    thumb.src = item.finalUrl;
                     thumb.style.display = "block";
                 }
             } else if (venueId) {
-                addVenueMediaInput(venueId, finalUrl, false);
+                addVenueMediaInput(venueId, item.finalUrl, false);
             }
-            showToast(`Photo "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, "success", 2500);
+        });
+        const okCount = results.filter(r => r && r.finalUrl).length;
+        if (okCount > 0) {
+            showToast(`Uploaded ${okCount} photo${okCount > 1 ? 's' : ''}!`, "success", 2500);
         }
         updatePlayLivePreview();
     } catch(e) {
@@ -1716,15 +1878,19 @@ async function handleWorkshopMultiPhotoUpload(event) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
 
-    setUploadLock(1, `Uploading 1/${files.length} photos...`);
+    setUploadLock(1, `Uploading 0/${files.length} photo${files.length > 1 ? 's' : ''}...`);
+    showToast(`Compressing & uploading ${files.length} photo${files.length > 1 ? 's' : ''}...`, 'info');
     try {
-        for (let i = 0; i < files.length; i++) {
-            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
-            const file = files[i];
-            const result = await compressImageFile(file);
-            const finalUrl = await uploadMediaToCloud(result.dataUrl);
-            addWorkshopGalleryInput(finalUrl);
-            showToast(`Workshop photo "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, "success", 2500);
+        const results = await processBatchImagesOrdered(files);
+        let okCount = 0;
+        results.forEach(item => {
+            if (item && item.finalUrl) {
+                addWorkshopGalleryInput(item.finalUrl);
+                okCount++;
+            }
+        });
+        if (okCount > 0) {
+            showToast(`Uploaded ${okCount} workshop photo${okCount > 1 ? 's' : ''}! Click "Save Workshop" to publish.`, "success", 3500);
         }
     } catch (e) {
         showToast("Workshop photo upload error: " + e.message, "error");
@@ -1738,25 +1904,29 @@ async function handleWorkshopSinglePhotoUpload(event, itemId) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) return;
 
-    setUploadLock(1, `Uploading 1/${files.length} photos...`);
+    setUploadLock(1, `Uploading 0/${files.length} photo${files.length > 1 ? 's' : ''}...`);
     try {
         const row = document.getElementById(itemId);
-        for (let i = 0; i < files.length; i++) {
-            setUploadLock(0, `Uploading ${i + 1}/${files.length} photos...`);
-            const result = await compressImageFile(files[i]);
-            const finalUrl = await uploadMediaToCloud(result.dataUrl);
-            if (i === 0 && row) {
+        const results = await processBatchImagesOrdered(files);
+        let filledFirst = false;
+        results.forEach(item => {
+            if (!item || !item.finalUrl) return;
+            if (!filledFirst && row) {
+                filledFirst = true;
                 const input = row.querySelector(".ws-slide-url");
                 const thumb = row.querySelector(".ws-slide-thumb");
-                if (input) input.value = finalUrl;
+                if (input) input.value = item.finalUrl;
                 if (thumb) {
-                    thumb.src = finalUrl;
+                    thumb.src = item.finalUrl;
                     thumb.style.display = "block";
                 }
             } else {
-                addWorkshopGalleryInput(finalUrl);
+                addWorkshopGalleryInput(item.finalUrl);
             }
-            showToast(`Workshop photo "${result.originalName}" compressed & uploaded (${result.sizeKb} KB).`, "success", 2500);
+        });
+        const okCount = results.filter(r => r && r.finalUrl).length;
+        if (okCount > 0) {
+            showToast(`Uploaded ${okCount} workshop photo${okCount > 1 ? 's' : ''}!`, "success", 2500);
         }
     } catch (e) {
         showToast("Workshop photo upload error: " + e.message, "error");
@@ -1776,12 +1946,19 @@ function getWorkshopGalleryData() {
     return urls;
 }
 
-function closeWorkshopModal() {
+function closeWorkshopModal(force = false) {
+    if (!force && activeMediaUploads > 0 && !confirm("Photos are still uploading. Cancel anyway and discard unfinished uploads?")) {
+        return;
+    }
     document.getElementById("workshop-modal-overlay").classList.remove("open");
 }
 
 async function handleWorkshopSubmit(event) {
     event.preventDefault();
+    if (activeMediaUploads > 0) {
+        showToast("Please wait a moment for your photos to finish uploading before saving!", "warning");
+        return;
+    }
     const submitBtn = document.getElementById("save-ws-btn");
     const originalText = submitBtn ? submitBtn.textContent : "Save Workshop";
     if (submitBtn) {
@@ -1836,7 +2013,7 @@ async function handleWorkshopSubmit(event) {
 
         const result = await TLP_DB.saveWorkshops(workshops);
         renderWorkshopsTable();
-        closeWorkshopModal();
+        closeWorkshopModal(true);
 
         if (result && result.cloud) {
             showToast(`Workshop "${title}" saved and synced to live website!`, 'success');
@@ -1864,9 +2041,16 @@ async function deleteWorkshop(wsId) {
     if (confirm(`Are you sure you want to delete "${workshops[idx].title}"?`)) {
         const title = workshops[idx].title;
         workshops.splice(idx, 1);
-        await TLP_DB.saveWorkshops(workshops);
+        const savePromise = TLP_DB.saveWorkshops(workshops);
         renderWorkshopsTable();
-        showToast(`Workshop "${title}" removed.`, 'info');
+        const res = await savePromise;
+        if (res && res.cloud) {
+            showToast(`Workshop "${title}" removed and synced to live website.`, 'success');
+        } else if (res && res.error) {
+            showToast(`Removed locally. Cloud notice: ${res.error}`, 'error', 6000);
+        } else {
+            showToast(`Workshop "${title}" removed.`, 'info');
+        }
     }
 }
 
@@ -1936,12 +2120,19 @@ function openTeamModal(mode, index = null) {
     overlay.classList.add("open");
 }
 
-function closeTeamModal() {
+function closeTeamModal(force = false) {
+    if (!force && activeMediaUploads > 0 && !confirm("Headshot is still uploading. Cancel anyway and discard unfinished upload?")) {
+        return;
+    }
     document.getElementById("team-modal-overlay").classList.remove("open");
 }
 
 async function handleTeamSubmit(event) {
     event.preventDefault();
+    if (activeMediaUploads > 0) {
+        showToast("Please wait a moment for the headshot photo to finish uploading before saving!", "warning");
+        return;
+    }
     const submitBtn = document.getElementById("save-team-btn");
     const originalBtnText = submitBtn ? submitBtn.textContent : "Save Team Member";
     if (submitBtn) {
@@ -1971,7 +2162,7 @@ async function handleTeamSubmit(event) {
 
         const result = await TLP_DB.saveTeam(team);
         renderTeamTable();
-        closeTeamModal();
+        closeTeamModal(true);
 
         if (result && result.cloud) {
             showToast(`Team member "${name}" saved and synced to live website!`, 'success');
@@ -1999,9 +2190,16 @@ async function deleteTeamMember(index) {
     if (confirm(`Are you sure you want to remove "${member.name}" from the team?`)) {
         const name = member.name;
         team.splice(index, 1);
-        await TLP_DB.saveTeam(team);
+        const savePromise = TLP_DB.saveTeam(team);
         renderTeamTable();
-        showToast(`"${name}" removed from team.`, 'info');
+        const res = await savePromise;
+        if (res && res.cloud) {
+            showToast(`"${name}" removed from team and synced to live website.`, 'success');
+        } else if (res && res.error) {
+            showToast(`Removed locally. Cloud notice: ${res.error}`, 'error', 6000);
+        } else {
+            showToast(`"${name}" removed from team.`, 'info');
+        }
     }
 }
 
