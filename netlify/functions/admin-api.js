@@ -100,7 +100,7 @@ exports.handler = async (event, context) => {
 
         const storeOptions = {
             name: "tlp-live-data",
-            consistency: "strong"
+            consistency: "eventual"
         };
 
         const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
@@ -218,9 +218,13 @@ exports.handler = async (event, context) => {
             }
 
             // Automatically save a backup of current state before overwriting
-            const prev = await store.get(type === "all" ? "productions" : type, { type: "json" });
-            if (prev) {
-                await store.setJSON(`backup_${type}`, prev);
+            try {
+                const prev = await store.get(type === "all" ? "productions" : type, { type: "json" });
+                if (prev) {
+                    await store.setJSON(`backup_${type}`, prev);
+                }
+            } catch (backupErr) {
+                console.warn("Backup snapshot skipped:", backupErr.message);
             }
 
             if (type === "all") {

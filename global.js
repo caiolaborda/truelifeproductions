@@ -380,6 +380,28 @@ class DatabasePortal {
         } catch (e) {}
     }
 
+    /**
+     * Tracks recently saved types for 90s so eventual-consistency edge reads
+     * never overwrite freshly saved edits when navigating across pages immediately.
+     */
+    _markRecentlySaved(type) {
+        try {
+            const map = JSON.parse(localStorage.getItem("tlp_recent_saves") || "{}");
+            map[type] = Date.now();
+            localStorage.setItem("tlp_recent_saves", JSON.stringify(map));
+        } catch (e) {}
+    }
+
+    _isRecentlySaved(type) {
+        try {
+            const map = JSON.parse(localStorage.getItem("tlp_recent_saves") || "{}");
+            const ts = map && map[type];
+            return typeof ts === "number" && (Date.now() - ts) < 90 * 1000;
+        } catch (e) {
+            return false;
+        }
+    }
+
     hasPendingSync() {
         return this._activeSyncCount > 0 || Object.keys(this._queuedByType).length > 0;
     }
@@ -517,8 +539,8 @@ class DatabasePortal {
             
             let hasChanges = false;
             const saveKey = (key, typeName, val) => {
-                // Never overwrite local data that is currently syncing or waiting to flush to cloud
-                if (this._inFlightByType[typeName] || this._queuedByType[typeName] || dirtyMap[typeName]) {
+                // Never overwrite local data that is currently syncing, waiting to flush, or within 90s eventual-consistency window
+                if (this._inFlightByType[typeName] || this._queuedByType[typeName] || dirtyMap[typeName] || this._isRecentlySaved(typeName)) {
                     return;
                 }
                 this.memoryStore[key] = val;
@@ -713,6 +735,7 @@ class DatabasePortal {
                 if (!this._queuedByType[type]) {
                     if (lastResult.cloud || lastResult.offline) {
                         this._clearDirty(type);
+                        if (lastResult.cloud) this._markRecentlySaved(type);
                         this._lastSyncError = null;
                     } else {
                         this._lastSyncError = lastResult.error || "Sync failed";
