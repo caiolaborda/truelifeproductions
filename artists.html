@@ -388,7 +388,10 @@
         }
 
         // Render Workshops dynamically
+        let workshopSlideshowTimers = [];
         function renderWorkshops() {
+            workshopSlideshowTimers.forEach(t => clearInterval(t));
+            workshopSlideshowTimers = [];
             const container = document.getElementById("workshops-container");
             if (!container) return;
             const workshops = TLP_DB.getWorkshops ? TLP_DB.getWorkshops() : [];
@@ -445,11 +448,12 @@
                 let current = 0;
                 if (images.length > 1) {
                     const slideEls = card.querySelectorAll(".slide");
-                    setInterval(() => {
+                    const timerId = setInterval(() => {
                         slideEls[current].classList.remove("active");
                         current = (current + 1) % slideEls.length;
                         slideEls[current].classList.add("active");
                     }, 3000 + (idx * 300));
+                    workshopSlideshowTimers.push(timerId);
                 }
                 if (slideshowEl && typeof openGlobalLightbox === "function") {
                     slideshowEl.addEventListener("click", () => {

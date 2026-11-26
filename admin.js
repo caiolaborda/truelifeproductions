@@ -677,20 +677,23 @@ function setupPlaysTableDragAndDrop() {
         });
     });
 
-    tableBody.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        
-        const dragging = tableBody.querySelector("tr.is-dragging");
-        if (!dragging) return;
+    if (!tableBody.dataset.dragoverBound) {
+        tableBody.dataset.dragoverBound = "true";
+        tableBody.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            
+            const dragging = tableBody.querySelector("tr.is-dragging");
+            if (!dragging) return;
 
-        const afterElement = getDragAfterRow(tableBody, e.clientY);
-        if (afterElement == null) {
-            tableBody.appendChild(dragging);
-        } else if (afterElement !== dragging) {
-            tableBody.insertBefore(dragging, afterElement);
-        }
-    });
+            const afterElement = getDragAfterRow(tableBody, e.clientY);
+            if (afterElement == null) {
+                tableBody.appendChild(dragging);
+            } else if (afterElement !== dragging) {
+                tableBody.insertBefore(dragging, afterElement);
+            }
+        });
+    }
 }
 
 /**
@@ -1441,9 +1444,24 @@ function renderWorkshopsTable() {
 
     workshops.forEach((ws, idx) => {
         const row = document.createElement("tr");
+        row.className = "is-draggable";
+        row.setAttribute("draggable", "true");
+        row.setAttribute("data-id", ws.id || `ws-${idx}`);
+        row.setAttribute("data-index", idx);
+
         row.innerHTML = `
+            <td class="drag-handle-cell">
+                <div class="drag-handle-wrap">
+                    <span class="order-number-badge">${idx + 1}</span>
+                    <span class="drag-grip-icon" title="Drag to reorder workshop">⠿</span>
+                    <div class="reorder-btns-col">
+                        <button type="button" class="reorder-btn up" title="Move Up" ${idx === 0 ? 'disabled' : ''} onclick="moveWorkshopOrder(${idx}, -1)">▲</button>
+                        <button type="button" class="reorder-btn down" title="Move Down" ${idx === workshops.length - 1 ? 'disabled' : ''} onclick="moveWorkshopOrder(${idx}, 1)">▼</button>
+                    </div>
+                </div>
+            </td>
             <td>
-                <img src="${ws.image || 'assets/images/slideshow11-86368c53.jpg'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" alt="${ws.title}">
+                <img src="${ws.image || 'assets/images/slideshow11-86368c53.jpg'}" draggable="false" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" alt="${(ws.title || '').replace(/"/g, '&quot;')}" onerror="this.src='assets/images/image06.png'">
             </td>
             <td style="font-weight: 600;">${ws.title}</td>
             <td><span class="status-badge" style="background: rgba(223, 183, 92, 0.15); color: var(--primary); border: 1px solid var(--border-gold);">${ws.category || 'Workshop'}</span></td>
@@ -1451,13 +1469,163 @@ function renderWorkshopsTable() {
             <td>${ws.schedule || 'Term Sessions'}</td>
             <td>
                 <div class="action-btns-group">
-                    <button type="button" class="action-icon-btn edit" onclick="openWorkshopModal('edit', '${ws.id || idx}')">Edit</button>
-                    <button type="button" class="action-icon-btn delete" onclick="deleteWorkshop('${ws.id || idx}')">Delete</button>
+                    <button type="button" class="action-icon-btn edit" onclick="openWorkshopModal('edit', '${idx}')">Edit</button>
+                    <button type="button" class="action-icon-btn delete" onclick="deleteWorkshop('${idx}')">Delete</button>
                 </div>
             </td>
         `;
         tableBody.appendChild(row);
     });
+
+    setupWorkshopsTableDragAndDrop();
+}
+
+/**
+ * Update numerical badges (#1, #2, #3...) and button states in the workshops table without re-rendering
+ */
+function updateWorkshopsTableOrderUI() {
+    const tableBody = document.getElementById("workshops-table-body");
+    if (!tableBody) return;
+
+    const rows = Array.from(tableBody.querySelectorAll("tr.is-draggable"));
+    rows.forEach((row, idx) => {
+        row.setAttribute("data-index", idx);
+
+        const badge = row.querySelector(".order-number-badge");
+        if (badge) badge.textContent = `${idx + 1}`;
+
+        const upBtn = row.querySelector(".reorder-btn.up");
+        const downBtn = row.querySelector(".reorder-btn.down");
+        const editBtn = row.querySelector(".action-icon-btn.edit");
+        const deleteBtn = row.querySelector(".action-icon-btn.delete");
+
+        if (upBtn) {
+            upBtn.disabled = (idx === 0);
+            upBtn.setAttribute("onclick", `moveWorkshopOrder(${idx}, -1)`);
+        }
+        if (downBtn) {
+            downBtn.disabled = (idx === rows.length - 1);
+            downBtn.setAttribute("onclick", `moveWorkshopOrder(${idx}, 1)`);
+        }
+        if (editBtn) {
+            editBtn.setAttribute("onclick", `openWorkshopModal('edit', '${idx}')`);
+        }
+        if (deleteBtn) {
+            deleteBtn.setAttribute("onclick", `deleteWorkshop('${idx}')`);
+        }
+    });
+}
+
+/**
+ * Move workshop up or down by 1 position and sync live
+ */
+async function moveWorkshopOrder(idx, direction) {
+    const tableBody = document.getElementById("workshops-table-body");
+    const workshops = TLP_DB.getWorkshops();
+    if (idx < 0 || idx >= workshops.length) return;
+
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= workshops.length) return;
+
+    const [movedWorkshop] = workshops.splice(idx, 1);
+    workshops.splice(newIdx, 0, movedWorkshop);
+
+    renderWorkshopsTable();
+
+    // Pulse highlight the moved row
+    if (tableBody) {
+        const movedRow = tableBody.querySelector(`tr[data-index="${newIdx}"]`);
+        if (movedRow) {
+            movedRow.classList.add("row-moved-flash");
+            setTimeout(() => movedRow.classList.remove("row-moved-flash"), 1200);
+        }
+    }
+
+    try {
+        const res = await TLP_DB.saveWorkshops(workshops);
+        if (res && res.cloud) {
+            showToast(`Order updated: "${movedWorkshop.title}" (Position #${newIdx + 1}) synced to live website!`, 'success');
+        } else if (res && res.error) {
+            showToast(`Order updated locally. Cloud notice: ${res.error}`, 'info');
+        } else {
+            showToast(`Order updated: "${movedWorkshop.title}" moved ${direction < 0 ? 'up' : 'down'}.`, 'success');
+        }
+    } catch (err) {
+        showToast("Error updating workshop order: " + err.message, 'error');
+    }
+}
+
+/**
+ * HTML5 Real-Time Drag and Drop Handlers for Workshops Table
+ */
+function setupWorkshopsTableDragAndDrop() {
+    const tableBody = document.getElementById("workshops-table-body");
+    if (!tableBody) return;
+
+    let draggingRow = null;
+
+    tableBody.querySelectorAll("tr.is-draggable").forEach(row => {
+        row.addEventListener("dragstart", (e) => {
+            draggingRow = row;
+            row.classList.add("is-dragging");
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", row.getAttribute("data-index"));
+        });
+
+        row.addEventListener("dragend", async () => {
+            if (!draggingRow) return;
+            const movedRow = draggingRow;
+            draggingRow.classList.remove("is-dragging");
+            draggingRow = null;
+
+            // Extract new order from the live DOM structure using previous row indices
+            const rows = Array.from(tableBody.querySelectorAll("tr.is-draggable"));
+            const prevIndices = rows.map(r => parseInt(r.getAttribute("data-index"), 10));
+            const currentWorkshops = TLP_DB.getWorkshops();
+            const isDifferent = prevIndices.some((origIdx, i) => origIdx !== i);
+
+            // Update order UI badges (#1, #2...) and buttons immediately
+            updateWorkshopsTableOrderUI();
+
+            if (isDifferent) {
+                const reordered = prevIndices.map(origIdx => currentWorkshops[origIdx]).filter(Boolean);
+
+                movedRow.classList.add("row-moved-flash");
+                setTimeout(() => movedRow.classList.remove("row-moved-flash"), 1200);
+
+                try {
+                    const res = await TLP_DB.saveWorkshops(reordered);
+                    if (res && res.cloud) {
+                        showToast(`Workshops reordered and synced to live website!`, 'success');
+                    } else if (res && res.error) {
+                        showToast(`Workshops reordered locally. Cloud notice: ${res.error}`, 'info');
+                    } else {
+                        showToast(`Workshops reordered successfully!`, 'success');
+                    }
+                } catch (err) {
+                    showToast("Failed to save reordered workshops: " + err.message, 'error');
+                }
+            }
+        });
+    });
+
+    if (!tableBody.dataset.dragoverBound) {
+        tableBody.dataset.dragoverBound = "true";
+        tableBody.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+
+            const dragging = tableBody.querySelector("tr.is-dragging");
+            if (!dragging) return;
+
+            const afterElement = getDragAfterRow(tableBody, e.clientY);
+            if (afterElement == null) {
+                tableBody.appendChild(dragging);
+            } else if (afterElement !== dragging) {
+                tableBody.insertBefore(dragging, afterElement);
+            }
+        });
+    }
 }
 
 function openWorkshopModal(mode, wsId = '') {
@@ -1475,10 +1643,10 @@ function openWorkshopModal(mode, wsId = '') {
         titleEl.textContent = "Add New Workshop";
         document.getElementById("workshop-image").value = "assets/images/workshop-theatre-club.jpg";
         renderImagePreview("ws-image-preview", "workshop-image", "assets/images/workshop-theatre-club.jpg", "Default Image");
-    } else if (mode === "edit" && wsId) {
+    } else if (mode === "edit" && wsId !== '') {
         titleEl.textContent = "Edit Workshop";
         const workshops = TLP_DB.getWorkshops();
-        const ws = workshops.find((w, i) => w.id === wsId || String(i) === String(wsId));
+        const ws = workshops.find((w, i) => String(i) === String(wsId) || w.id === wsId);
 
         if (ws) {
             document.getElementById("workshop-title").value = ws.title || '';
@@ -1640,12 +1808,17 @@ async function handleWorkshopSubmit(event) {
         const workshops = TLP_DB.getWorkshops();
 
         if (mode === "create") {
-            const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const baseId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'workshop';
+            let id = baseId;
+            let suffix = 2;
+            while (workshops.some(w => w.id === id)) {
+                id = `${baseId}-${suffix++}`;
+            }
             workshops.push({
                 id, title, category, instructor, schedule, location, image, slideshowImages, description, subDescription, ctaText, ctaLink, status: "active"
             });
         } else {
-            const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
+            const idx = workshops.findIndex((w, i) => String(i) === String(wsId) || w.id === wsId);
             if (idx !== -1) {
                 workshops[idx].title = title;
                 workshops[idx].category = category;
@@ -1685,7 +1858,7 @@ async function handleWorkshopSubmit(event) {
 
 async function deleteWorkshop(wsId) {
     const workshops = TLP_DB.getWorkshops();
-    const idx = workshops.findIndex((w, i) => w.id === wsId || String(i) === String(wsId));
+    const idx = workshops.findIndex((w, i) => String(i) === String(wsId) || w.id === wsId);
     if (idx === -1) return;
 
     if (confirm(`Are you sure you want to delete "${workshops[idx].title}"?`)) {
